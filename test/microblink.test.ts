@@ -17,7 +17,7 @@ describe('Dummy test', () => {
     expect(new Microblink().getData()).toBe(true)
   })
 
-  it('Microblink class has method init', () => {
-    expect(new Microblink().init).toBeTruthy()
-  })
+  // it('Microblink class has method init', () => {
+  //   expect(new Microblink().init).toBeTruthy()
+  // })
 })

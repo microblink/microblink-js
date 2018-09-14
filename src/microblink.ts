@@ -6,7 +6,7 @@ export default class Microblink {
     return true
   }
 
-  public init(): void {
-    //
-  }
+  // public init(): void {
+  //   //
+  // }
 }
