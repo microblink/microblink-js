@@ -12,7 +12,7 @@
   "author": "Matija Stepanic <matija.stepanic@microblink.com>",
   "repository": {
     "type": "git",
-    "url": "https:git@github.com:microblink/microblink-js.git"
+    "url": "git@github.com:microblink/microblink-js.git"
   },
   "license": "MIT",
   "engines": {
@@ -31,7 +31,9 @@
     "commit": "git-cz",
     "semantic-release": "semantic-release",
     "semantic-release-prepare": "ts-node tools/semantic-release-prepare",
-    "travis-deploy-once": "travis-deploy-once --pro"
+    "travis-deploy-once": "travis-deploy-once --pro",
+    "prepush": "npm run test:prod && npm run build",
+    "commitmsg": "commitlint -E GIT_PARAMS"
   },
   "lint-staged": {
     "{src,test}/**/*.ts": [

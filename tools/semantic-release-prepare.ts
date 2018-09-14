@@ -21,6 +21,7 @@ fork(path.resolve(__dirname, "..", "node_modules", "husky", "bin", "install"))
 console.log()
 console.log(colors.green("Done!!"))
 console.log()
+console.log(pkg.repository)
 
 if (pkg.repository.url.trim()) {
   console.log(colors.cyan("Now run:"))
