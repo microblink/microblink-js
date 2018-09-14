@@ -32,8 +32,7 @@
     "semantic-release": "semantic-release",
     "semantic-release-prepare": "ts-node tools/semantic-release-prepare",
     "travis-deploy-once": "travis-deploy-once --pro",
-    "prepush": "npm run test:prod && npm run build",
-    "commitmsg": "commitlint -E GIT_PARAMS"
+    "prepush": "npm run test:prod && npm run build"
   },
   "lint-staged": {
     "{src,test}/**/*.ts": [
