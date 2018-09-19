@@ -4,7 +4,7 @@
 export class FrameHelper {
   /**
    * Get frame quality
-   * @param rgbaImgData is an RGB array 0=>RED, 1=>GREEN, 2=>BLUE
+   * @param rgbaImgData is an RGB array (3n)=>RED, (3n+1)=>GREEN, (3n+2)=>BLUE, where n is pixel index in 2D grid
    * @param width is the frame horizontal dimension in pixels
    * @param height is the frame vertical dimension in pixels
    */
@@ -63,7 +63,7 @@ export class FrameHelper {
 
   /**
    * Get pixel intensity
-   * @param rgbaImgData is an RGB array 0=>RED, 1=>GREEN, 2=>BLUE
+   * @param rgbaImgData is an RGB array (3n)=>RED, (3n+1)=>GREEN, (3n+2)=>BLUE, where n is pixel index in 2D grid
    * @param row is an row of the pixel in the frame
    * @param col is na column of the pixel in the frame
    * @param width is the frame horizontal dimension in pixels
