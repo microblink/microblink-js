@@ -6,6 +6,8 @@ export interface IMicroblinkApi {
     imageBase64: string,
     uploadProgress?: EventListener
   ): Observable<any>
+
   SetAuthorization(authorizationHeader: string): void
+
   SetEndpoint(endpoint: string): void
 }

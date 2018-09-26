@@ -2,7 +2,7 @@
 // import "core-js/fn/array.find"
 // ...
 
-import { FrameHelper } from './frameHelper'
+// import { FrameHelper } from './frameHelper'
 import { blobToBase64String } from 'blob-util'
 import { IMicroblink } from './microblink.interface'
 import { IMicroblinkApi } from './microblinkApi.interface'
@@ -24,8 +24,8 @@ export default class Microblink implements IMicroblink {
   ): Observable<any> {
     return Observable.create((observer: Observer<any>) => {
       blobToBase64String(blob)
-        .then(base64String => {
-          this.API.Recognize(recognizers, base64String, uploadProgress).subscribe(
+        .then(blobAsBase64String => {
+          this.API.Recognize(recognizers, blobAsBase64String, uploadProgress).subscribe(
             result => {
               observer.next(result)
               observer.complete()
