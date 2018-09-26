@@ -475,16 +475,32 @@ class WebApi extends HTMLElement {
 	}
 
 	startRecording() {
+    console.log('startRecording');
 		let enableResultShow = false;
 		let countdown = 3;
 		$(this.shadowRoot).find('#photoBtn').addClass('hidden');
 		$(this.shadowRoot).find('#counter').addClass('show').find('.counter-number').text(countdown);
 		this.captureFrame().then(blob => {
-			//TODO: slati blob Matiji
+      //TODO: slati blob Matiji
+			console.log('startRecording.captureFrame');
+			var uploadProgress = function (event) {
+				console.log('uploadProgress from captureFrame', event);
+			}
+
+			Microblink.SDK.Scan('MRTD', blob, uploadProgress).subscribe((result) => {
+				console.log('rezultati RADI', result);
+			}, (err) => {
+				console.log('greska NE RADI', err);
+			});
 		});
 		let imageProcessInterval = setInterval(() => {
-			this.captureFrame().then(blob => {}/*TODO: slati blob Matiji*/);
-		}, 200);
+			this.captureFrame().then(blob => {
+        /*TODO: slati blob Matiji*/
+        console.log('imageProcessInterval.captureFrame');
+
+
+      });
+		}, 1000);
 		let counterInterval = setInterval(() => {
 			if(countdown > 1) {
 				$(this.shadowRoot).find("#counter").find('.counter-number').text(--countdown);
