@@ -10,4 +10,6 @@ export interface IMicroblinkApi {
   SetAuthorization(authorizationHeader: string): void
 
   SetEndpoint(endpoint: string): void
+
+  TerminateAll(): void
 }

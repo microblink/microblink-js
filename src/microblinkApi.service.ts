@@ -10,9 +10,21 @@ const DEFAULT_ENDPOINT = 'https://api.microblink.com'
 export default class MicroblinkApi implements IMicroblinkApi {
   private authorizationHeader = ''
   private endpoint: string
+  private activeRequests: XMLHttpRequest[] = []
 
   constructor() {
     this.endpoint = DEFAULT_ENDPOINT
+  }
+
+  /**
+   * Terminate request session with aborting all pending responses
+   */
+  TerminateAll(): void {
+    this.activeRequests.forEach(activeRequest => {
+      activeRequest.abort()
+    })
+    // Clear array of all active requests when every request is terminated (aborted)
+    this.activeRequests = []
   }
 
   /**
@@ -54,6 +66,7 @@ export default class MicroblinkApi implements IMicroblinkApi {
       const data = JSON.stringify(body)
 
       const xhr = new XMLHttpRequest()
+
       xhr.withCredentials = true
       xhr.open('POST', this.endpoint + '/recognize/execute')
       xhr.setRequestHeader('Content-Type', 'application/json')
@@ -90,6 +103,9 @@ export default class MicroblinkApi implements IMicroblinkApi {
       }
 
       xhr.send(data)
+
+      // append the request to active stack
+      this.activeRequests.push(xhr)
     })
   }
 
