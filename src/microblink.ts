@@ -9,7 +9,13 @@ import { IMicroblinkApi } from './microblinkApi.interface'
 import MicroblinkApi from './microblinkApi.service'
 import { Observable } from 'rxjs/internal/Observable'
 import { Observer } from 'rxjs/internal/types'
-import { ScanInputFile, ScanInputFrame, ScanListener, ScanOutput } from './microblink.SDK.types'
+import {
+  ScanInputFile,
+  ScanInputFrame,
+  ScanListener,
+  ScanOutput,
+  StatusCodes
+} from './microblink.SDK.types'
 
 export default class Microblink implements IMicroblink {
   private API: IMicroblinkApi
@@ -35,18 +41,32 @@ export default class Microblink implements IMicroblink {
   }
 
   /**
-   * Push file to SCAN queue
+   * Scan file and get result from subscribed observable
    */
-  SendFile(scanInputFile: ScanInputFile, uploadProgress?: EventListener): Observable<ScanOutput> {
-    return this.scan(scanInputFile.blob, uploadProgress)
+  ScanFile(
+    scanInputFile: ScanInputFile,
+    uploadProgress?: EventListener | undefined
+  ): Observable<ScanOutput> {
+    return this.scan(scanInputFile.blob)
   }
 
   /**
-   * Push video frame to SCAN queue
+   * Push file to SCAN queue, global listener(s) will handle the result
    */
-  SendFrame(scanInputFrame: ScanInputFrame): Observable<ScanOutput> {
+  SendFile(scanInputFile: ScanInputFile, uploadProgress?: EventListener): void {
+    // return this.scan(scanInputFile.blob, uploadProgress)
+  }
+
+  /**
+   * Push video frame to SCAN queue, global listener(s) will handle the result
+   */
+  SendFrame(scanInputFrame: ScanInputFrame): void {
     // TODO: add frame quality estimatior
-    return this.scan(scanInputFrame.blob)
+
+    // Call observable with empty callback because global listener will handle result
+    // NOTE: error callback should be defined to handle Uncaught exception
+    // tslint:disable-next-line:no-empty
+    this.scan(scanInputFrame.blob).subscribe(() => {}, () => {})
   }
 
   /**
@@ -74,8 +94,6 @@ export default class Microblink implements IMicroblink {
    * Notify all global listeners when success scan is complete
    */
   private notifyOnSuccessListeners(scanOutput: ScanOutput): void {
-    console.log('scanOutput', scanOutput)
-
     const result = scanOutput.result.data.result
 
     let isSuccessfulResponse = false
@@ -110,6 +128,11 @@ export default class Microblink implements IMicroblink {
   private notifyOnErrorListeners(err: any): void {
     this.TerminateActiveRequests()
 
+    // Make silent if JSON is not prasable becaue this error will happen when request is aborted
+    if (err.code === StatusCodes.ResultIsNotValidJSON) {
+      return
+    }
+
     this.listeners.forEach(listener => {
       if (listener.onScanError) {
         listener.onScanError(err)
@@ -132,8 +155,10 @@ export default class Microblink implements IMicroblink {
               observer.complete()
             },
             err => {
-              this.notifyOnErrorListeners(err)
-              observer.error(err)
+              if (err) {
+                this.notifyOnErrorListeners(err)
+                observer.error(err)
+              }
             }
           )
         })

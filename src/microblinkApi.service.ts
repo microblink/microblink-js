@@ -1,6 +1,7 @@
 import { IMicroblinkApi } from './microblinkApi.interface'
 import { Observable } from 'rxjs/internal/Observable'
 import { Observer } from 'rxjs/internal/types'
+import { StatusCodes } from './microblink.SDK.types'
 
 const DEFAULT_ENDPOINT = 'https://api.microblink.com'
 
@@ -82,15 +83,16 @@ export default class MicroblinkApi implements IMicroblinkApi {
           try {
             // Return result as parsed JSON object
             data = JSON.parse(this.responseText)
+            observer.next(data)
+            observer.complete()
           } catch (err) {
             data = {
-              error: 'Result is not parsable JSON',
+              error: 'Result is not valid JSON',
+              code: StatusCodes.ResultIsNotValidJSON,
               responseText: this.responseText
             }
+            observer.error(data)
           }
-
-          observer.next(data)
-          observer.complete()
         }
       })
 

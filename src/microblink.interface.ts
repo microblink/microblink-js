@@ -2,8 +2,10 @@ import { Observable } from 'rxjs/internal/Observable'
 import { ScanInputFile, ScanInputFrame, ScanListener, ScanOutput } from './microblink.SDK.types'
 
 export interface IMicroblink {
-  SendFile(scanInputFile: ScanInputFile, uploadProgress?: EventListener): Observable<ScanOutput>
-  SendFrame(scanInputFrame: ScanInputFrame): Observable<ScanOutput>
+  ScanFile(scanInputFile: ScanInputFile, uploadProgress?: EventListener): Observable<ScanOutput>
+
+  SendFile(scanInputFile: ScanInputFile, uploadProgress?: EventListener): void
+  SendFrame(scanInputFrame: ScanInputFrame): void
 
   RegisterListener(scanListener: ScanListener): void
 
