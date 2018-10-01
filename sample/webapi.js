@@ -45,7 +45,8 @@ class WebApi extends HTMLElement {
 		Microblink.SDK.RegisterListener(microblinkSDKListener);
 		Microblink.SDK.RegisterListener(this);
 		
-		Microblink.SDK.SetRecognizers(['MRTD', 'QR', 'VIN']);
+		// Microblink.SDK.SetRecognizers(['MRTD', 'QR', 'VIN']);
+		Microblink.SDK.SetRecognizers('MRTD');
 	}
 	connectedCallback() {
 		this.getLocalization().then(() => {
@@ -661,15 +662,15 @@ class WebApi extends HTMLElement {
 
 	startRecording() {
 		let enableResultShow = false; //FIXME: omoguciti tek nakon HOLD STILL prikaza
-		let countdown = 3;
+		let countdown = 13;
 		$(this.shadowRoot).find('#photoBtn').addClass('hidden');
 		$(this.shadowRoot).find('#counter').addClass('show').find('.counter-number').text(countdown);
 		this.frameSendingIntervalId = setInterval(() => {
 			this.captureFrame().then(scanInput => {
 
-				console.log('scanINput', scanInput);
+				console.log('scanINput', scanInput, countdown);
 
-				Microblink.SDK.SendImage(scanInput).subscribe();
+				Microblink.SDK.SendImage(scanInput);
 
 				//Microblink.SDK.SendImage(data); //no progressCallback for frames - only for drag & drop files
 			});
@@ -694,7 +695,7 @@ class WebApi extends HTMLElement {
 			this.restartCounter();
 			this.restart();
 			//TODO: set timed out error this.toggleError(true, 'TIMED OUT');
-		}, 5000);
+		}, 15000);
 	}
 
 	captureFrame() {
@@ -893,6 +894,14 @@ class WebApi extends HTMLElement {
 			event.initCustomEvent('resultReady', true, true, { result: response.result });
 		}
 		this.dispatchEvent(event);
+		console.log('onSuccessCallback scan dispatchEvent', event);
+
+
+		// clearTimeout(this.frameSendingIntervalId);
+		// 	Microblink.SDK.TerminateRequest();
+		// 	this.stopCamera();
+		// 	this.restartCounter();
+		// 	this.restart();
 	}
 
 	onScanError(errorMsg) {
