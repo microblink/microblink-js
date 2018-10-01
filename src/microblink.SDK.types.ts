@@ -41,5 +41,5 @@ export enum StatusCodes {
  * Helper for detecting ScanInputFrame type
  */
 export function IsScanInputFrame(scanInput: ScanInputFile | ScanInputFrame): boolean {
-  return (scanInput as ScanInputFrame).pixelData !== undefined
+  return !!(scanInput as ScanInputFrame).pixelData
 }
