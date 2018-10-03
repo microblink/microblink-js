@@ -5,9 +5,16 @@ import {
   ScanOutput,
   ScanInputFile,
   ScanInputFrame,
-  IsScanInputFrame
+  StatusCodes as statusCodes
 } from './microblink.SDK.types'
 import { IMicroblink } from './microblink.interface'
+
+/**
+ * Helper for detecting ScanInputFrame type
+ */
+function IsScanInputFrame(scanInput: ScanInputFile | ScanInputFrame): boolean {
+  return !!(scanInput as ScanInputFrame).pixelData
+}
 
 /**
  * NOTE: This is public SDK API, rename of this functions will produce backward incompatible API!
@@ -77,4 +84,9 @@ export namespace SDK {
   export function TerminateRequest(): void {
     SDK.TerminateActiveRequests()
   }
+
+  /**
+   * Get all SDK status codes
+   */
+  export const StatusCodes = statusCodes
 }

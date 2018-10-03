@@ -14,13 +14,18 @@ import {
   ScanInputFrame,
   ScanListener,
   ScanOutput,
-  StatusCodes
-} from './microblink.SDK.types'
+  StatusCodes,
+  ScanInputFrameWithQuality
+} from './microblink.types'
+import { FrameHelper } from './frameHelper'
 
 export default class Microblink implements IMicroblink {
+  private static fromHowManyFramesQualityCalculateBestFrame = 10
+
   private API: IMicroblinkApi
   private recognizers: string | string[] = []
   private listeners: ScanListener[] = []
+  private scanFrameQueue: ScanInputFrameWithQuality[] = []
 
   constructor() {
     this.API = new MicroblinkApi()
@@ -31,6 +36,8 @@ export default class Microblink implements IMicroblink {
    */
   TerminateActiveRequests(): void {
     this.API.TerminateAll()
+    // Clear scan frame queue if it is not empty
+    this.scanFrameQueue = []
   }
 
   /**
@@ -54,19 +61,46 @@ export default class Microblink implements IMicroblink {
    * Push file to SCAN queue, global listener(s) will handle the result
    */
   SendFile(scanInputFile: ScanInputFile, uploadProgress?: EventListener): void {
-    // return this.scan(scanInputFile.blob, uploadProgress)
+    // Call observable with empty callback because global listener will handle result
+    // NOTE: error callback should be defined to handle Uncaught exception
+    // tslint:disable-next-line:no-empty
+    this.scan(scanInputFile.blob, uploadProgress).subscribe(() => {}, () => {})
   }
 
   /**
    * Push video frame to SCAN queue, global listener(s) will handle the result
    */
   SendFrame(scanInputFrame: ScanInputFrame): void {
-    // TODO: add frame quality estimatior
+    // Get frame quality estimatior
+    const frameQuality = FrameHelper.getFrameQuality(scanInputFrame.pixelData)
 
-    // Call observable with empty callback because global listener will handle result
-    // NOTE: error callback should be defined to handle Uncaught exception
-    // tslint:disable-next-line:no-empty
-    this.scan(scanInputFrame.blob).subscribe(() => {}, () => {})
+    // Add the frame with quality to the scan queue
+    this.scanFrameQueue.push({ frame: scanInputFrame, quality: frameQuality })
+
+    // Skip finding of best frame if queue is not full with enough number of frames
+    if (this.scanFrameQueue.length < Microblink.fromHowManyFramesQualityCalculateBestFrame) {
+      return
+    }
+
+    // Find video frame with best quality
+    let bestQuality = 0
+    let bestFrame: ScanInputFrame | undefined
+    this.scanFrameQueue.forEach(scanFrame => {
+      if (scanFrame.quality > bestQuality) {
+        bestQuality = scanFrame.quality
+        bestFrame = scanFrame.frame
+      }
+    })
+
+    // Clear scan frame queue
+    this.scanFrameQueue = []
+
+    if (bestFrame !== undefined) {
+      // Call observable with empty callback because global listener will handle result
+      // NOTE: error callback should be defined to handle Uncaught exception
+      // tslint:disable-next-line:no-empty
+      this.scan(bestFrame.blob).subscribe(() => {}, () => {})
+    }
   }
 
   /**
@@ -141,7 +175,7 @@ export default class Microblink implements IMicroblink {
   }
 
   /**
-   * Execute scan with Microblink API service
+   * Execute scan on Microblink API service
    */
   private scan(blob: Blob, uploadProgress?: EventListener): Observable<ScanOutput> {
     return Observable.create((observer: Observer<ScanOutput>) => {

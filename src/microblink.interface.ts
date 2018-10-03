@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs/internal/Observable'
-import { ScanInputFile, ScanInputFrame, ScanListener, ScanOutput } from './microblink.SDK.types'
+import { ScanInputFile, ScanInputFrame, ScanListener, ScanOutput } from './microblink.types'
 
 export interface IMicroblink {
   ScanFile(scanInputFile: ScanInputFile, uploadProgress?: EventListener): Observable<ScanOutput>

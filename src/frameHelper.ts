@@ -4,11 +4,23 @@
 export class FrameHelper {
   /**
    * Get frame quality
+   * @param pixelData is ImageData from `canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height)`
+   */
+  public static getFrameQuality(pixelData: ImageData): number {
+    return this.calculateFrameQuality(pixelData.data, pixelData.width, pixelData.height)
+  }
+
+  /**
+   * Calculate frame quality
    * @param rgbaImgData is an RGB array (3n)=>RED, (3n+1)=>GREEN, (3n+2)=>BLUE, where n is pixel index in 2D grid
    * @param width is the frame horizontal dimension in pixels
    * @param height is the frame vertical dimension in pixels
    */
-  public static getFrameQuality(rgbaImgData: Array<number>, width: number, height: number) {
+  private static calculateFrameQuality(
+    rgbaImgData: Uint8ClampedArray,
+    width: number,
+    height: number
+  ): number {
     const vertScanLineNum = 28
     const horizScanLineNum = 20
     let totalStrength = 0
@@ -69,7 +81,7 @@ export class FrameHelper {
    * @param width is the frame horizontal dimension in pixels
    */
   private static getIntensity(
-    rgbaImgData: Array<number>,
+    rgbaImgData: Uint8ClampedArray,
     row: number,
     col: number,
     width: number
