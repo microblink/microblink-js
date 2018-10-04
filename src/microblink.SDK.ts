@@ -63,9 +63,19 @@ export namespace SDK {
 
   /**
    * Set authorization header which will be used in next request
+   * @param authorizationHeader is authorization header with apiKey and apiSecret which should be generated
+   * here: https://microblink.com/customer/api
    */
   export function SetAuthorization(authorizationHeader: string): void {
     SDK.SetAuthorization(authorizationHeader)
+  }
+
+  /**
+   * Change export images flag for next request
+   * @param isExportImagesEnabled is flag which describes does API should return extracted images in next response
+   */
+  export function SetExportImages(isExportImagesEnabled: boolean): void {
+    SDK.SetExportImages(isExportImagesEnabled)
   }
 
   /**

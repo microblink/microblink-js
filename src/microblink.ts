@@ -118,6 +118,14 @@ export default class Microblink implements IMicroblink {
   }
 
   /**
+   * Change export images flag for next request
+   * @param isExportImagesEnabled is flag which describes does API should return extracted images in next response
+   */
+  SetExportImages(isExportImagesEnabled: boolean): void {
+    this.API.SetExportImages(isExportImagesEnabled)
+  }
+
+  /**
    * Set endpoint for next SCAN(s), by defuault https://api.microblink.com/recognize is using
    */
   SetEndpoint(endpoint: string): void {

@@ -10,6 +10,7 @@ const DEFAULT_ENDPOINT = 'https://api.microblink.com'
  */
 export default class MicroblinkApi implements IMicroblinkApi {
   private authorizationHeader = ''
+  private isExportImagesEnabled = false
   private endpoint: string
   private activeRequests: XMLHttpRequest[] = []
 
@@ -36,7 +37,16 @@ export default class MicroblinkApi implements IMicroblinkApi {
   }
 
   /**
+   * Change export images flag for next request
+   * @param isExportImagesEnabled is flag which describes does API should return extracted images in next response
+   */
+  SetExportImages(isExportImagesEnabled: boolean): void {
+    this.isExportImagesEnabled = isExportImagesEnabled
+  }
+
+  /**
    * Change API endpoint
+   * @param endpoint is API endpoint where Microblink API or Microblink API proxy is available
    */
   SetEndpoint(endpoint: string): void {
     this.endpoint = endpoint
@@ -44,6 +54,9 @@ export default class MicroblinkApi implements IMicroblinkApi {
 
   /**
    * Execute remote recognition
+   * @param recognizers is string or array of strings on which image will be processed
+   * @param imageBase64 is Base64 encoded image which should contain document for processing
+   * @param uploadProgress (optional) is XHR event listener for image upload to show upload progress bar on UI
    */
   Recognize(
     recognizers: string | string[],
@@ -61,6 +74,11 @@ export default class MicroblinkApi implements IMicroblinkApi {
         body['recognizer'] = recognizers
       } else {
         body['recognizers'] = recognizers
+      }
+
+      // Export images flag set if it is enabled
+      if (this.isExportImagesEnabled) {
+        body['exportImages'] = true
       }
 
       // Body data should be send as stringified JSON and as Content-type=application/json
@@ -112,10 +130,15 @@ export default class MicroblinkApi implements IMicroblinkApi {
   }
 
   /**
-   * Authorization header validator
+   * Authorization header offline validator, just check for Authorization header format before sending it to the API
    */
   private get isAuthorizationHeaderValid() {
-    if (this.authorizationHeader.startsWith('Bearer ')) {
+    if (
+      this.authorizationHeader.startsWith('Bearer ') ||
+      this.authorizationHeader.startsWith('bearer ') ||
+      this.authorizationHeader.startsWith('Basic ') ||
+      this.authorizationHeader.startsWith('basic ')
+    ) {
       return true
     }
     return false

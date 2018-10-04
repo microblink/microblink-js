@@ -11,6 +11,7 @@ export interface IMicroblink {
 
   SetRecognizers(recognizers: string | string[]): void
   SetAuthorization(authorizationHeader: string): void
+  SetExportImages(isExportImagesEnabled: boolean): void
   SetEndpoint(endpoint: string): void
 
   TerminateActiveRequests(): void
