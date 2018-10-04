@@ -47,6 +47,10 @@ class WebApi extends HTMLElement {
 		
 		// Microblink.SDK.SetRecognizers(['MRTD', 'QR', 'VIN']);
 		Microblink.SDK.SetRecognizers('MRTD');
+
+		Microblink.SDK.SetEndpoint('https://wt-f2bc1e742928378c2eda881f7dd00276-0.sandbox.auth0-extend.com/microblinkApiProxyExample');
+
+		Microblink.SDK.SetExportImages(true);
 	}
 	connectedCallback() {
 		this.getLocalization().then(() => {
@@ -668,13 +672,13 @@ class WebApi extends HTMLElement {
 		this.frameSendingIntervalId = setInterval(() => {
 			this.captureFrame().then(scanInput => {
 
-				console.log('scanINput', scanInput, countdown);
+				// console.log('scanINput', scanInput, countdown);
 
 				Microblink.SDK.SendImage(scanInput);
 
 				//Microblink.SDK.SendImage(data); //no progressCallback for frames - only for drag & drop files
 			});
-		}, 1000);
+		}, 100);
 		let counterIntervalId = setInterval(() => {
 			if(countdown > 1) {
 				$(this.shadowRoot).find("#counter").find('.counter-number').text(--countdown);
@@ -705,6 +709,7 @@ class WebApi extends HTMLElement {
 		canvas.height = video.videoHeight;
 		canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
 		let pixelData = canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height);
+
 		return new Promise(resolve => {
 			if (canvas.toBlob) {
 				canvas.toBlob(blob => resolve({ blob, pixelData }), "image/jpeg");
