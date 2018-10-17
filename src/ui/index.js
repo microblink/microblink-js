@@ -44,8 +44,6 @@ class WebApi extends HTMLElement {
 		this.startRecording = this.startRecording.bind(this);
 		this.autoScrollListener = this.autoScrollListener.bind(this);
 		Microblink.SDK.RegisterListener(this);
-    Microblink.SDK.SetRecognizers(['MRTD'/*, 'USDL', 'PDF417', 'CODE128', 'CODE39', 'AZTEC', 'DATA_MATRIX', 'EAN13', 'EAN8', 'ITF', 'QR', 'UPCA', 'UPCE', 'SIM', 'VIN', 'UAE_ID_FRONT', 'UAE_ID_BACK', 'CYP_ID_FRONT', 'CYP_ID_BACK'*/]);
-		Microblink.SDK.SetAuthorization('Bearer MDY0YWNlMGNiN2IzNGUwZTk4YWVmMDVhZDEyOGJjY2E6Mzk5NzNkNDUtYjg4MS00OWE1LTlhMTItYmEzYTRkNmYzY2Fj');
 	}
 	connectedCallback() {
 		this.getLocalization().then(() => {
