@@ -44,7 +44,7 @@ class WebApi extends HTMLElement {
 		this.startRecording = this.startRecording.bind(this);
 		this.autoScrollListener = this.autoScrollListener.bind(this);
 		Microblink.SDK.RegisterListener(this);
-		Microblink.SDK.SetRecognizers('MRTD');
+    Microblink.SDK.SetRecognizers(['MRTD'/*, 'USDL', 'PDF417', 'CODE128', 'CODE39', 'AZTEC', 'DATA_MATRIX', 'EAN13', 'EAN8', 'ITF', 'QR', 'UPCA', 'UPCE', 'SIM', 'VIN', 'UAE_ID_FRONT', 'UAE_ID_BACK', 'CYP_ID_FRONT', 'CYP_ID_BACK'*/]);
 		Microblink.SDK.SetAuthorization('Bearer MDY0YWNlMGNiN2IzNGUwZTk4YWVmMDVhZDEyOGJjY2E6Mzk5NzNkNDUtYjg4MS00OWE1LTlhMTItYmEzYTRkNmYzY2Fj');
 	}
 	connectedCallback() {
@@ -58,7 +58,7 @@ class WebApi extends HTMLElement {
 					height: 100%;
 					box-sizing: border-box;
 					border-style: solid;
-					--mb-widget-font-family: Tahoma, Verdana, Arial, sans-serif;
+					--mb-widget-font-family: Helvetica, Tahoma, Verdana, Arial, sans-serif;
 					--mb-widget-border-width: 2px;
 					--mb-widget-border-color: black;
 					--mb-default-font-color: black;
@@ -189,7 +189,7 @@ class WebApi extends HTMLElement {
 				video {
 					height: 100%;
 				}
-				.loader, .error-container, .permission {
+				.pending-container, .error-container, .permission {
 					display: none;
 					position: fixed;
 					z-index: 1000;
@@ -198,8 +198,21 @@ class WebApi extends HTMLElement {
 					left: 0;
 					right: 0;
 				}
-				.loader { background-color: #48b2e8; }
-				.loader.show, .error-container.show, .permission.show {
+				.pending-container { 
+					background-color: black; 
+					flex-direction: column;
+					color: white;
+				}
+				.pending-container h2 {
+					font-size: 1.4rem;
+					margin: 0 0 1rem;
+					font-weight: 500;
+				}
+				.pending-container.loader { 
+					background-color: #48b2e8;
+					color: black;
+				}
+				.pending-container.show, .error-container.show, .permission.show {
 					display: flex;
 					align-items: center;
 					justify-content: center;
@@ -210,18 +223,14 @@ class WebApi extends HTMLElement {
     				margin: 0;
 				}
 				.progress-bar {
-  					background-color: white;
-  					border-radius: 5px;
-  					box-shadow: 0 2px 3px rgba(0, 0, 0, 0.25) inset;
-  					border: 1px solid black;
-  					width: 50%;
-  					height: 1rem;
+  					background-color: rgba(72, 128, 232, 0.25);
+  					width: 37.5%;
+  					height: 10px;		
   					position: relative;
   					display: block;
 				}
 				.progress-bar > .progress-bar-value {
 				 	background-color: #48b2e8;
-				 	border-radius: 5px;
 				 	display: block;
 				 	width: 0%;
 				 	height: 100%;
@@ -401,7 +410,7 @@ class WebApi extends HTMLElement {
 						padding: 0 5%;
 					}
 				}
-				/*@media only screen and (max-width: 500px) {
+				@media only screen and (max-width: 500px) {
 					.tab label {
 						padding: 0 0.5rem;
 					}
@@ -419,7 +428,7 @@ class WebApi extends HTMLElement {
 						height: 100%;
 					}
 					.intro .inline p { margin-bottom: 1.5rem; }
-				}*/
+				}
 
 				.container.root[max-width~="500px"] .tab label {
 					padding: 0 5%;
@@ -492,10 +501,11 @@ class WebApi extends HTMLElement {
 						<p class="counter-alt hidden"><slot name="labels.holdStill">HOLD STILL</slot></p>
 					</div>
 				</div>
-				<div class="loader">
-				<div class="progress-bar">
-					<div class="progress-bar-value"></div>
-				</div>
+				<div class="pending-container">
+					<h2><slot name="labels.processing">Processing</slot></h2>
+					<div class="progress-bar">
+						<div class="progress-bar-value"></div>
+					</div>
 					<img class="loader-img" src="https://microblink.com/bundles/microblinkmicroblink/images/loading-animation-on-blue.gif" />
 				</div>
 				<div class="error-container">
@@ -713,14 +723,14 @@ class WebApi extends HTMLElement {
 
 	}
 
-	toggleLoader(show) {
-		let loader = this.shadowRoot.querySelector('.loader');
-		if(show) {
-			this.shadowRoot.querySelector('.progress-bar-value').style.width = '';
-			this.toggleTabs(false);
-		}
-		toggleClass(loader, 'show', show);
-	}
+  toggleLoader(show) {
+    let loader = this.shadowRoot.querySelector('.pending-container');
+    if(show) {
+      this.shadowRoot.querySelector('.progress-bar-value').style.width = '';
+      this.toggleTabs(false);
+    }
+    toggleClass(loader, 'show', show);
+  }
 
 	toggleError(show) {
 		let errDialog = this.shadowRoot.querySelector('.error-container');
@@ -1025,21 +1035,25 @@ class WebApi extends HTMLElement {
 		this.dispatchEvent(event);
 	}
 
-	onScanProgress(progressEvent) {
-		let { loaded, total, lengthComputable } = progressEvent;
-		let isProgressBarHidden = hasClass(this.shadowRoot.querySelector('.progress-bar'), 'hidden');
-		if (lengthComputable) {
-			if (isProgressBarHidden) {
-				removeClass(this.shadowRoot.querySelector('.progress-bar'), 'hidden');
-				removeClass(this.shadowRoot.querySelector('.loader-img'), 'show');
-			}
-			this.shadowRoot.querySelector('.progress-bar-value').style.width = `${ (loaded/total) * 100 }%`;
-		}
-		else if(!isProgressBarHidden) {
-			this.shadowRoot.querySelector('.progress-bar').className += ' hidden';
-			this.shadowRoot.querySelector('.loader-img').className += ' show';
-		}
-	}
+  onScanProgress(progressEvent) {
+    let { loaded, total, lengthComputable } = progressEvent;
+    let isProgressBarHidden = hasClass(this.shadowRoot.querySelector('.progress-bar'), 'hidden');
+    if (lengthComputable) {
+      if (isProgressBarHidden) {
+        removeClass(this.shadowRoot.querySelector('.pending-container'), 'loader');
+        removeClass(this.shadowRoot.querySelector('.progress-bar'), 'hidden');
+        removeClass(this.shadowRoot.querySelector('.pending-container h2'), 'hidden');
+        removeClass(this.shadowRoot.querySelector('.loader-img'), 'show');
+      }
+      this.shadowRoot.querySelector('.progress-bar-value').style.width = `${ (loaded/total) * 100 }%`;
+    }
+    else if(!isProgressBarHidden) {
+      addClass(this.shadowRoot.querySelector('.pending-container'), 'loader');
+      addClass(this.shadowRoot.querySelector('.progress-bar'), 'hidden');
+      addClass(this.shadowRoot.querySelector('.pending-container h2'), 'hidden');
+      addClass(this.shadowRoot.querySelector('.loader-img'), 'show');
+    }
+  }
 
 	permissionDialogPresent() {
 		addClass(this.shadowRoot.querySelector('.permission'), 'show');
@@ -1072,7 +1086,7 @@ setTimeout(() => {
 	}
 	</style>`;
 	document.body.appendChild(template);
-	let widgetContainer = document.querySelector('.web-api-component');
+	/*let widgetContainer = document.querySelector('.web-api-component');
 	if (widgetContainer) {
 		widgetContainer.innerHTML += `
 		<microblink-ui-web tabs autoscroll>
@@ -1104,6 +1118,6 @@ setTimeout(() => {
  				}
 			</template>-->
 		</microblink-ui-web>`;
-	}
+	}*/
 	document.querySelector('microblink-ui-web').switchTheme();
 	}, 0);
