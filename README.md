@@ -4,7 +4,7 @@ Javascript SDK for integrating with Microblink API
 
 ## Demo
 
-Test Microblink UI web component with your passport. Only `MRTD` recognizer is enabled for this demo.
+Test Microblink UI web component with your passport. Only `MRTD`, `USDL` and `UAE_ID_FRONT` recognizers are enabled for this demo.
 
 <style>
 .demo-resp-iframe {
