@@ -1,10 +1,10 @@
 {
   "name": "microblink",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
   "keywords": [],
-  "main": "dist/microblink.umd.js",
-  "module": "dist/microblink.es5.js",
+  "main": "dist/microblink.sdk.umd.js",
+  "module": "dist/microblink.sdk.es5.js",
   "typings": "dist/types/microblink.d.ts",
   "files": [
     "dist"
