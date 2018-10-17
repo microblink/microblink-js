@@ -1,8 +1,18 @@
+import { SDK } from '../microblink.SDK';
+
 import ResizeSensor from './ResizeSensor.js';
 import ElementQueriesFactory from './ElementQueries.js';
 
 import {escapeHtml, labelFromCamelCase, dateFromObject, isMobile, hasClass, addClass, removeClass, toggleClass} from './utils.js';
 
+const Microblink = {
+	SDK: SDK
+};
+
+// Expose it to global window object
+if (window) {
+	window['Microblink'] = Microblink;
+}
 
 class WebApi extends HTMLElement {
 
@@ -41,10 +51,10 @@ class WebApi extends HTMLElement {
 		this.getLocalization().then(() => {
 			this.shadowRoot.innerHTML = `<style>
 				:host {
-					all:initial; 
-					contain: content; 
-					display: block; 
-					width: 100%; 
+					all:initial;
+					contain: content;
+					display: block;
+					width: 100%;
 					height: 100%;
 					box-sizing: border-box;
 					border-style: solid;
@@ -66,7 +76,7 @@ class WebApi extends HTMLElement {
 					font-family: var(--mb-widget-font-family);
 					border-width: var(--mb-widget-border-width, 2px);
 					border-color: var(--mb-widget-border-color, black);
-				} 
+				}
 				.container { height:100%; width:100%; margin:auto; box-sizing: border-box; position: relative;}
 				.font-0 {font-size:0;}
 				.font-1 {font-size:1rem;}
@@ -205,7 +215,7 @@ class WebApi extends HTMLElement {
   					box-shadow: 0 2px 3px rgba(0, 0, 0, 0.25) inset;
   					border: 1px solid black;
   					width: 50%;
-  					height: 1rem;		
+  					height: 1rem;
   					position: relative;
   					display: block;
 				}
@@ -217,8 +227,8 @@ class WebApi extends HTMLElement {
 				 	height: 100%;
 				 	transition: width 0.25s linear;
 				}
-				.error-container, .permission { 
-					background-color: #000; 
+				.error-container, .permission {
+					background-color: #000;
 					color: white;
 					font-weight: 500;
 					font-size: 1.4rem;
@@ -385,7 +395,7 @@ class WebApi extends HTMLElement {
 					color: #48b2e8;
 					border-bottom-color: #48b2e8;
 				}
-				
+
 				@media only screen and (max-width: 775px) {
 					.intro .inline {
 						padding: 0 5%;
@@ -410,7 +420,7 @@ class WebApi extends HTMLElement {
 					}
 					.intro .inline p { margin-bottom: 1.5rem; }
 				}*/
-				
+
 				.container.root[max-width~="500px"] .tab label {
 					padding: 0 5%;
 				}
@@ -428,7 +438,7 @@ class WebApi extends HTMLElement {
 					height: 100%;
 				}
 				.container.root[max-width~="500px"] .intro .inline p {margin-bottom: 1.5rem;}
-				
+
 				@media only screen and (orientation: portrait) {
 					.container.image img {
 						width: auto;
@@ -455,7 +465,7 @@ class WebApi extends HTMLElement {
 						<div class="inline font-1">
 							<div class="flex-center">
 								<p class="intro-label"><slot name="labels.cameraActivate">Activate your camera to capture the ID document:</slot></p>
-								<button type="button" id="cameraBtn"><slot name="buttons.camera">Use camera</slot></button>	
+								<button type="button" id="cameraBtn"><slot name="buttons.camera">Use camera</slot></button>
 							</div>
 						</div>
 					</div>
@@ -1040,13 +1050,13 @@ class WebApi extends HTMLElement {
 	}
 
 }
-customElements.define('mb-api-widget', WebApi);
+customElements.define('microblink-ui-web', WebApi);
 
 setTimeout(() => {
 	let template = document.createElement('template');
 	template.className = 'web-api-style';
 	template.innerHTML = `<style id="webApiTheme">
-		mb-api-widget {
+		microblink-ui-web {
 			--mb-widget-font-family: AvenirNextPro;
 			--mb-widget-border-width: 4px;
 			--mb-widget-border-color: black;
@@ -1065,7 +1075,7 @@ setTimeout(() => {
 	let widgetContainer = document.querySelector('.web-api-component');
 	if (widgetContainer) {
 		widgetContainer.innerHTML += `
-		<mb-api-widget tabs autoscroll>
+		<microblink-ui-web tabs autoscroll>
 			<!--<template class="localization json">
 				{
 					"buttons" : {
@@ -1093,7 +1103,7 @@ setTimeout(() => {
 					}
  				}
 			</template>-->
-		</mb-api-widget>`;
+		</microblink-ui-web>`;
 	}
-	document.querySelector('mb-api-widget').switchTheme();
+	document.querySelector('microblink-ui-web').switchTheme();
 	}, 0);

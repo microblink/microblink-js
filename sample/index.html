@@ -1,12 +1,32 @@
-<html>
-  <head>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-      <script src="webapi.js" ></script>
-      {{/*  <script src="../dist/microblink.min.js" ></script>  */}}
-      <script src="../dist/microblink.umd.js" ></script>
-  </head>
-  <body>
-    <img id="BLA" src="https://www.redditstatic.com/desktop2x/img/banner/banner-small-logo.png">
-    <mb-api-widget tabs></mb-api-widget>
-  </body>
+<!DOCTYPE html>
+<html lang="en" style="font-size:20px;">
+<head>
+    <meta charset="UTF-8">
+    <title>WEB API COMPONENT DEMO</title>
+    <meta name="viewport" content="initial-scale=1, user-scalable=no"/>
+
+    <script src="../dist/microblink.ui.min.js" ></script>
+
+    <style type="text/css" >
+      body {
+        margin: 0;
+        padding: 0;
+        font-size: 20px;
+      }
+      .microblink-ui-component-wrapper {
+        max-width: 901px;
+        height: 545px;
+        position: relative;
+        margin: 0;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+    </style>
+
+</head>
+<body>
+  <div class="microblink-ui-component-wrapper">
+    <microblink-ui-web tabs autoscroll></microblink-ui-web>
+  </div>
+</body>
 </html>
