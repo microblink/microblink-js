@@ -126,7 +126,10 @@ export default class Microblink implements IMicroblink {
   }
 
   /**
-   * Set endpoint for next SCAN(s), by defuault https://api.microblink.com/recognize is using
+   * Set endpoint for next SCAN(s)
+   * Default value is https://api.microblink.com/recognize
+   * Endpoint should be changed when backend proxy which is credentials keeper is using as proxy between
+   * Microblink SaaS API and frontend application which uses this library.
    */
   SetEndpoint(endpoint: string): void {
     this.API.SetEndpoint(endpoint)
@@ -136,22 +139,25 @@ export default class Microblink implements IMicroblink {
    * Notify all global listeners when success scan is complete
    */
   private notifyOnSuccessListeners(scanOutput: ScanOutput): void {
-    const result = scanOutput.result.data.result
-
+    const data: any = scanOutput.result.data
     let isSuccessfulResponse = false
 
-    if (Array.isArray(result)) {
-      result.forEach(resultItem => {
+    // check if it is fetched data array of results
+    if (Array.isArray(data)) {
+      data.forEach(resultItem => {
         if (resultItem.result) {
           isSuccessfulResponse = true
         }
       })
     } else {
+      // otherwise it is returned result as object
+      const result = data.result
       if (result) {
         isSuccessfulResponse = true
       }
     }
 
+    // when success response is received then terminate active requests and return results
     if (isSuccessfulResponse) {
       this.TerminateActiveRequests()
 
