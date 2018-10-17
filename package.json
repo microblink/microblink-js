@@ -1,6 +1,6 @@
 {
   "name": "microblink",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "",
   "keywords": [],
   "main": "dist/microblink.sdk.umd.js",
@@ -21,7 +21,7 @@
   "scripts": {
     "lint": "tslint  --project tsconfig.json -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
     "prebuild": "rimraf dist",
-    "build": "tsc --module commonjs && rollup -c rollup.config.ts && typedoc --out docs --target es6 --theme minimal --mode file src",
+    "build": "tsc --module commonjs && rollup -c rollup.config.ts && typedoc --out docs --target es6 --theme minimal --mode file src && cp sample/demo-at-docs.html docs/demo.html",
     "start": "rollup -c rollup.config.ts -w",
     "test": "jest --verbose",
     "test:watch": "jest --watch",

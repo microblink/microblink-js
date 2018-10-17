@@ -1065,7 +1065,7 @@ class WebApi extends HTMLElement {
 customElements.define('microblink-ui-web', WebApi);
 
 setTimeout(() => {
-	let template = document.createElement('template');
+	/*let template = document.createElement('template');
 	template.className = 'web-api-style';
 	template.innerHTML = `<style id="webApiTheme">
 		microblink-ui-web {
@@ -1083,7 +1083,7 @@ setTimeout(() => {
 			--mb-json-color-number: black;
 	}
 	</style>`;
-	document.body.appendChild(template);
+	document.body.appendChild(template);*/
 	/*let widgetContainer = document.querySelector('.web-api-component');
 	if (widgetContainer) {
 		widgetContainer.innerHTML += `
@@ -1117,5 +1117,5 @@ setTimeout(() => {
 			</template>-->
 		</microblink-ui-web>`;
 	}*/
-	document.querySelector('microblink-ui-web').switchTheme();
+	//document.querySelector('microblink-ui-web').switchTheme();
 	}, 0);

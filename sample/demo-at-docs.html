@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" style="font-size:20px;">
+<head>
+    <meta charset="UTF-8">
+    <title>WEB API COMPONENT DEMO</title>
+    <meta name="viewport" content="initial-scale=1, user-scalable=no"/>
+
+    <script src="../dist/microblink.ui.min.js" ></script>
+
+    <script>
+      Microblink.SDK.SetRecognizers(['MRTD'/*, 'QR', 'USDL', 'PDF417', 'CODE128', 'CODE39', 'AZTEC', 'DATA_MATRIX', 'EAN13', 'EAN8', 'ITF', 'QR', 'UPCA', 'UPCE', 'SIM', 'VIN', 'UAE_ID_FRONT', 'UAE_ID_BACK', 'CYP_ID_FRONT', 'CYP_ID_BACK'*/]);
+		  Microblink.SDK.SetAuthorization('Bearer MDY0YWNlMGNiN2IzNGUwZTk4YWVmMDVhZDEyOGJjY2E6Mzk5NzNkNDUtYjg4MS00OWE1LTlhMTItYmEzYTRkNmYzY2Fj');
+    </script>
+
+    <style type="text/css" >
+      body {
+        margin: 0;
+        padding: 0;
+        font-size: 20px;
+      }
+      .microblink-ui-component-wrapper {
+        max-width: 901px;
+        height: 545px;
+        position: relative;
+        margin: 0;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+
+      microblink-ui-web {
+        --mb-widget-border-width: 4px;
+        --mb-widget-border-color: black;
+        --mb-default-font-color: #48b2e8;
+        --mb-btn-font-color: white;
+        --mb-btn-background-color: #48b2e8;
+        --mb-btn-background-color-hover: #26a4e4;
+        --mb-btn-flip-image-color: #48b2e8;
+        --mb-json-color-key: black;
+        --mb-json-color-string: #48b2e8;
+        --mb-json-color-boolean: black;
+        --mb-json-color-number: black;
+      }
+    </style>
+
+</head>
+<body>
+  <div class="microblink-ui-component-wrapper">
+    <microblink-ui-web tabs autoscroll></microblink-ui-web>
+  </div>
+</body>
+</html>
