@@ -1,6 +1,6 @@
 {
   "name": "microblink",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "",
   "keywords": [],
   "main": "dist/microblink.sdk.umd.js",
