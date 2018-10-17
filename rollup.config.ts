@@ -5,6 +5,7 @@ import camelCase from 'lodash.camelCase'
 import typescript from 'rollup-plugin-typescript2'
 import json from 'rollup-plugin-json'
 import { terser } from "rollup-plugin-terser";
+import copy from 'rollup-plugin-cpy'
 
 const pkg = require('./package.json')
 
@@ -115,6 +116,14 @@ export default [
       sourceMaps(),
       // Minify library
       terser(),
+      // Copy other non TypeScript (JavaScript) dependencies to `dist`
+      copy({
+        files: ['src/ui/*'],
+        dest: 'dist/lib/ui',
+        options: {
+          verbose: true
+        }
+      })
     ],
   }
 ]
