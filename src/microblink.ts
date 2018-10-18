@@ -54,7 +54,7 @@ export default class Microblink implements IMicroblink {
     scanInputFile: ScanInputFile,
     uploadProgress?: EventListener | undefined
   ): Observable<ScanOutput> {
-    return this.scan(scanInputFile.blob)
+    return this.scan(scanInputFile.blob, true)
   }
 
   /**
@@ -64,7 +64,7 @@ export default class Microblink implements IMicroblink {
     // Call observable with empty callback because global listener will handle result
     // NOTE: error callback should be defined to handle Uncaught exception
     // tslint:disable-next-line:no-empty
-    this.scan(scanInputFile.blob, uploadProgress).subscribe(() => {}, () => {})
+    this.scan(scanInputFile.blob, true, uploadProgress).subscribe(() => {}, () => {})
   }
 
   /**
@@ -99,7 +99,7 @@ export default class Microblink implements IMicroblink {
       // Call observable with empty callback because global listener will handle result
       // NOTE: error callback should be defined to handle Uncaught exception
       // tslint:disable-next-line:no-empty
-      this.scan(bestFrame.blob).subscribe(() => {}, () => {})
+      this.scan(bestFrame.blob, false).subscribe(() => {}, () => {})
     }
   }
 
@@ -146,7 +146,7 @@ export default class Microblink implements IMicroblink {
   /**
    * Notify all global listeners when success scan is complete
    */
-  private notifyOnSuccessListeners(scanOutput: ScanOutput): void {
+  private notifyOnSuccessListeners(scanOutput: ScanOutput, isFileScan: boolean): void {
     const data: any = scanOutput.result.data
     let isSuccessfulResponse = false
 
@@ -166,8 +166,11 @@ export default class Microblink implements IMicroblink {
     }
 
     // when success response is received then terminate active requests and return results
-    if (isSuccessfulResponse) {
-      this.TerminateActiveRequests()
+    if (isSuccessfulResponse || isFileScan) {
+      // Active requests can only exists if it is video frame scan
+      if (!isFileScan) {
+        this.TerminateActiveRequests()
+      }
 
       this.listeners.forEach(listener => {
         if (listener.onScanSuccess) {
@@ -199,14 +202,18 @@ export default class Microblink implements IMicroblink {
   /**
    * Execute scan on Microblink API service
    */
-  private scan(blob: Blob, uploadProgress?: EventListener): Observable<ScanOutput> {
+  private scan(
+    blob: Blob,
+    isFileScan: boolean,
+    uploadProgress?: EventListener
+  ): Observable<ScanOutput> {
     return Observable.create((observer: Observer<ScanOutput>) => {
       blobToBase64String(blob)
         .then(blobAsBase64String => {
           this.API.Recognize(this.recognizers, blobAsBase64String, uploadProgress).subscribe(
             result => {
               const output = { sourceBlob: blob, result: result }
-              this.notifyOnSuccessListeners(output)
+              this.notifyOnSuccessListeners(output, isFileScan)
               observer.next(output)
               observer.complete()
             },
