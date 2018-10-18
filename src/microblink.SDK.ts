@@ -96,6 +96,14 @@ export namespace SDK {
   }
 
   /**
+   * Set unique user ID which will be stored with uploaded image to associate image with user who uploaded the image
+   * @param userId is string user identificator, recommended it to be an user's email because when delete request is sent by this email, all images associated with this email will be permanentally removed if it is stored on upload, not every image will be stored, this depends on other API key options
+   */
+  export function SetUserId(userId: string): void {
+    SDK.SetUserId(userId)
+  }
+
+  /**
    * Get all SDK status codes
    */
   export const StatusCodes = statusCodes

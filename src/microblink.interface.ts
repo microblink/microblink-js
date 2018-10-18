@@ -15,4 +15,6 @@ export interface IMicroblink {
   SetEndpoint(endpoint: string): void
 
   TerminateActiveRequests(): void
+
+  SetUserId(userId: string): void
 }

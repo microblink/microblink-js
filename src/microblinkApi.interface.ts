@@ -12,4 +12,6 @@ export interface IMicroblinkApi {
   SetEndpoint(endpoint: string): void
 
   TerminateAll(): void
+
+  SetUserId(userId: string): void
 }

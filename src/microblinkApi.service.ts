@@ -13,6 +13,7 @@ export default class MicroblinkApi implements IMicroblinkApi {
   private isExportImagesEnabled = false
   private endpoint: string
   private activeRequests: XMLHttpRequest[] = []
+  private userId: string = ''
 
   constructor() {
     this.endpoint = DEFAULT_ENDPOINT
@@ -53,6 +54,14 @@ export default class MicroblinkApi implements IMicroblinkApi {
   }
 
   /**
+   * Set user identificator which will be stored with uploaded image
+   * @param userId is any string which unique identifies user who use SDK and upload any image to API
+   */
+  SetUserId(userId: string): void {
+    this.userId = userId
+  }
+
+  /**
    * Execute remote recognition
    * @param recognizers is string or array of strings on which image will be processed
    * @param imageBase64 is Base64 encoded image which should contain document for processing
@@ -79,6 +88,11 @@ export default class MicroblinkApi implements IMicroblinkApi {
       // Export images flag set if it is enabled
       if (this.isExportImagesEnabled) {
         body['exportImages'] = true
+      }
+
+      // Set userId if it is defined
+      if (this.userId) {
+        body['userId'] = this.userId
       }
 
       // Body data should be send as stringified JSON and as Content-type=application/json

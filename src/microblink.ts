@@ -136,6 +136,14 @@ export default class Microblink implements IMicroblink {
   }
 
   /**
+   * Set user identificator which will be stored with uploaded image
+   * @param userId is any string which unique identifies user who use SDK and upload any image to API
+   */
+  SetUserId(userId: string): void {
+    this.API.SetUserId(userId)
+  }
+
+  /**
    * Notify all global listeners when success scan is complete
    */
   private notifyOnSuccessListeners(scanOutput: ScanOutput): void {
