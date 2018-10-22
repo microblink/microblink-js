@@ -70,6 +70,7 @@ class WebApi extends HTMLElement {
 					--mb-json-color-string: #008000;
 					--mb-json-color-boolean: #0000FF;
 					--mb-json-color-key: #ff0000;
+					--mb-loader-font-color: white;
 					font-size: inherit;
 					font-family: var(--mb-widget-font-family);
 					border-width: var(--mb-widget-border-width, 2px);
@@ -199,7 +200,7 @@ class WebApi extends HTMLElement {
 				.pending-container { 
 					background-color: black; 
 					flex-direction: column;
-					color: white;
+					color: var(--mb-loader-font-color);
 				}
 				.pending-container h2 {
 					font-size: 1.4rem;
@@ -208,7 +209,6 @@ class WebApi extends HTMLElement {
 				}
 				.pending-container.loader { 
 					background-color: #48b2e8;
-					color: black;
 				}
 				.pending-container.show, .error-container.show, .permission.show {
 					display: flex;
@@ -217,8 +217,9 @@ class WebApi extends HTMLElement {
 				}
 				.loader-img {
 					display: none;
-    				position: relative;
-    				margin: 0;
+    			position: relative;
+    			margin: 0;
+    			text-align: center;
 				}
 				.progress-bar {
   					background-color: rgba(72, 128, 232, 0.25);
@@ -230,7 +231,7 @@ class WebApi extends HTMLElement {
 				.progress-bar > .progress-bar-value {
 				 	background-color: #48b2e8;
 				 	display: block;
-				 	width: 0%;
+				 	width: 0;
 				 	height: 100%;
 				 	transition: width 0.25s linear;
 				}
@@ -321,7 +322,7 @@ class WebApi extends HTMLElement {
 					width: 50%;
 					word-break: break-word;
 					border: 1px solid black;
-					padding: 0.8rem 2rem;
+					padding: 0.8rem 1rem;
 					box-sizing: border-box;
 				}
 				.results th:first-child, .results td:first-child {
@@ -334,6 +335,14 @@ class WebApi extends HTMLElement {
 				.results td:last-child {
 					font-weight: 500;
 					color: var(--mb-default-font-color);
+				}
+				.results .no-result {
+				  position: absolute;
+				  top: 50%;
+				  left: 50%;
+				  transform: translate(-50%, -50%);
+				  text-align: center;
+				  width: 80%;
 				}
 				.container.image img {
 					width: 100%;
@@ -452,6 +461,41 @@ class WebApi extends HTMLElement {
 						height: 100%;
 					}
 				}
+				.lds-ring {
+          display: inline-block;
+          position: relative;
+          width: 64px;
+          height: 64px;
+           }
+           .lds-ring div {
+             box-sizing: border-box;
+             display: block;
+             position: absolute;
+             width: 51px;
+             height: 51px;
+             margin: 6px;
+             border: 6px solid #fff;
+             border-radius: 50%;
+             animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+             border-color: #fff transparent transparent transparent;
+           }
+           .lds-ring div:nth-child(1) {
+             animation-delay: -0.45s;
+           }
+           .lds-ring div:nth-child(2) {
+             animation-delay: -0.3s;
+           }
+           .lds-ring div:nth-child(3) {
+             animation-delay: -0.15s;
+           }
+           @keyframes lds-ring {
+             0% {
+               transform: rotate(0deg);
+             }
+             100% {
+               transform: rotate(360deg);
+             }
+           }
 			</style>
 			<div class="container root">
 				<div class="tab-container">
@@ -465,8 +509,9 @@ class WebApi extends HTMLElement {
 						<div class="inline font-1 dropzone">
 							<div class="flex-center">
 								<p class="intro-label"><slot name="labels.dragDrop">Drag and Drop<br/>document here OR</slot></p>
+								<p class="intro-label hidden"><slot name="labels.nativeCamera">Choose image from <br/>device or camera app:</slot></p>
 								<button type="button" id="fileBtn"><slot name="buttons.browse">Browse</slot></button>
-								<input type="file" accept="application/pdf,image/*" id="file" />
+								<input type="file" accept="image/*" id="file"/>
 							</div>
 						</div>
 						<div class="inline font-1">
@@ -484,9 +529,9 @@ class WebApi extends HTMLElement {
 					</div>
 				</div>
 				<div class="container video hidden">
-					<video id="video" playsinline>Your browser does not support video tag.</video>
+					<video class="flipped" id="video" playsinline>Your browser does not support video tag.</video>
 					<button type="button" id="photoBtn"><slot name="buttons.takePhoto">TAKE A PHOTO</slot></button>
-					<button type="button" id="flipBtn">
+					<button type="button" id="flipBtn" class="flipped">
 						<svg width='44' height='35' viewBox='0 0 44 35' fill='none' xmlns='http://www.w3.org/2000/svg'>
 							<path d='M22 7V35' stroke-width='1.38744' stroke-miterlimit='3.8637' stroke-dasharray='1.39 2.77'/>
 							<path d='M38.8375 11.5471L27.2239 20.9999L38.8375 30.4527L38.8375 11.5471Z' stroke-width='1.38744'/>
@@ -500,11 +545,15 @@ class WebApi extends HTMLElement {
 					</div>
 				</div>
 				<div class="pending-container">
-					<h2><slot name="labels.processing">Processing</slot></h2>
+					<h2><slot name="labels.uploading">Uploading</slot></h2>
 					<div class="progress-bar">
 						<div class="progress-bar-value"></div>
 					</div>
-					<img class="loader-img" src="https://microblink.com/bundles/microblinkmicroblink/images/loading-animation-on-blue.gif" />
+					<div class="loader-img">
+					  <slot name="loader-image">
+					    <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
+            </slot>
+           </div>
 				</div>
 				<div class="error-container">
 					<p><slot name="labels.errorMsg">We're sorry, but something went wrong. Please try again.</slot></p>
@@ -558,7 +607,7 @@ class WebApi extends HTMLElement {
 				this.shadowRoot.removeChild(textarea);
 			});
 			this.handleWebRTCSupport();
-			this.adjustComponent();
+			this.adjustComponent(true);
 		});
 		window.addEventListener('resize', this.adjustComponent.bind(this));
 		this.ElementQueries = ElementQueriesFactory(ResizeSensor);
@@ -589,13 +638,17 @@ class WebApi extends HTMLElement {
 		}
 	}
 
-	adjustComponent() {
+	adjustComponent(initial) {
 		if (isMobile()) {
 			this.style.height = `${window.innerHeight}px`;
 			if(parseInt(getComputedStyle(this.parentNode).height) < window.innerHeight) {
 				this.style.height = getComputedStyle(this.parentNode).height;
 			}
-			this.shadowRoot.getElementById('flipBtn').style.setProperty('display', 'none', 'important');
+			if (initial === true) {
+        this.shadowRoot.getElementById('flipBtn').style.setProperty('display', 'none', 'important');
+        Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('#flipBtn, .video video'), elem => toggleClass(elem, 'flipped'));
+			  Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.dropzone .intro-label'), elem => toggleClass(elem, 'hidden'));
+      }
 		}
 	}
 
@@ -698,7 +751,7 @@ class WebApi extends HTMLElement {
 
 	//TODO: this is testing method - remove it later
 	switchLocale() {
-		let slotTargets =  this.querySelectorAll('[slot]'); //not live nodelist so it will work
+		let slotTargets =  this.querySelectorAll('[slot*=labels]'); //not live nodelist so it will work
 		if (slotTargets && slotTargets.length) {
 			Array.prototype.forEach.call(slotTargets, target => target.parentNode.removeChild(target));
 		} else {
@@ -730,8 +783,18 @@ class WebApi extends HTMLElement {
     toggleClass(loader, 'show', show);
   }
 
-	toggleError(show) {
+	toggleError(show, message) {
 		let errDialog = this.shadowRoot.querySelector('.error-container');
+    var p = errDialog.querySelector('p:not(:first-child)');
+    if (p) errDialog.removeChild(p);
+		if (show && message) {
+		  var element = document.createElement('p');
+		  element.textContent = message;
+		  errDialog.insertBefore(element, errDialog.querySelector('button'));
+      addClass(errDialog.querySelector('p:first-child'), 'hidden');
+    } else {
+		  removeClass(errDialog.querySelector('p:first-child'), 'hidden');
+    }
 		toggleClass(errDialog, 'show', show);
 	}
 
@@ -756,9 +819,11 @@ class WebApi extends HTMLElement {
 			file = event.dataTransfer.files && event.dataTransfer.files[0];
 		}
 		if (file) {
-			if (file.type && (file.type.indexOf('image') !== -1 || file.type.indexOf('pdf') !== -1)) {
+			if (file.type && (file.type.indexOf('image') !== -1)) {
 				this.setFile(file);
-			}
+			} else {
+			  this.toggleError(true, 'Unsupported file type');
+      }
 		}
 	}
 
@@ -778,6 +843,11 @@ class WebApi extends HTMLElement {
 	}
 
 	setFile(file) {
+	  if (file.size > 15 * 1024 * 1024) {
+	    this.toggleError(true, `Maximum file size is 15 MB`)
+	    return;
+    }
+	  this.toggleUploadBar(true);
 		this.toggleLoader(true);
 		this.restart();
 		Microblink.SDK.SendImage({ blob: file }, this.onScanProgress);
@@ -835,6 +905,7 @@ class WebApi extends HTMLElement {
 
 	startRecording() {
 		this.enableResultShow = false;
+		this.stopSendingFrames = false;
 		let countdown = 3;
 		addClass(this.shadowRoot.getElementById('photoBtn'), 'hidden');
 		addClass(this.shadowRoot.getElementById('counter'), 'show');
@@ -842,6 +913,7 @@ class WebApi extends HTMLElement {
 		numberNode.textContent = String(countdown);
 		this.frameSendingIntervalId = setInterval(() => {
 			this.captureFrame().then(data => {
+			  if (this.stopSendingFrames) return;
 				Microblink.SDK.SendImage(data);
 			});
 		}, 100);
@@ -859,13 +931,14 @@ class WebApi extends HTMLElement {
 			}
 		}, 1000);
 		this.recordingTimeoutId = setTimeout(() => {
+		  this.stopSendingFrames = true;
 			clearInterval(this.frameSendingIntervalId);
 			Microblink.SDK.TerminateRequest();
 			this.stopCamera();
 			this.restartCounter();
 			this.restart();
-			//TODO: set timed out error this.toggleError(true, 'TIMED OUT');
-		}, 15000);
+			this.toggleError(true, 'Request Timed Out');
+		}, 18000);
 	}
 
 	captureFrame() {
@@ -938,7 +1011,9 @@ class WebApi extends HTMLElement {
 		if (innerHtml) {
 			this.shadowRoot.querySelector('.container.results').innerHTML = innerHtml;
 		} else {
-			//here paste No results HTML
+      this.shadowRoot.querySelector('.container.results').innerHTML = `<span class="no-result">
+        Scanning is finished, but we could not extract the data. Please check if you uploaded the right document type
+      </span>`;
 		}
 	}
 
@@ -994,6 +1069,7 @@ class WebApi extends HTMLElement {
 
 	onScanSuccess(response) {
 		if (!response) return;
+		this.stopSendingFrames = true;
 		clearInterval(this.frameSendingIntervalId);
 		clearTimeout(this.recordingTimeoutId);
 		let showIntervalId = setInterval(() => {
@@ -1035,22 +1111,27 @@ class WebApi extends HTMLElement {
 
   onScanProgress(progressEvent) {
     let { loaded, total, lengthComputable } = progressEvent;
-    let isProgressBarHidden = hasClass(this.shadowRoot.querySelector('.progress-bar'), 'hidden');
+    let isUploadBarHidden = hasClass(this.shadowRoot.querySelector('.progress-bar'), 'hidden');
     if (lengthComputable) {
-      if (isProgressBarHidden) {
-        removeClass(this.shadowRoot.querySelector('.pending-container'), 'loader');
-        removeClass(this.shadowRoot.querySelector('.progress-bar'), 'hidden');
-        removeClass(this.shadowRoot.querySelector('.pending-container h2'), 'hidden');
-        removeClass(this.shadowRoot.querySelector('.loader-img'), 'show');
+      if (isUploadBarHidden) {
+        this.toggleUploadBar(true);
       }
       this.shadowRoot.querySelector('.progress-bar-value').style.width = `${ (loaded/total) * 100 }%`;
+      if (loaded === total) {
+        setTimeout(() => this.onScanProgress({ lengthComputable: false }), 500);
+      }
     }
-    else if(!isProgressBarHidden) {
-      addClass(this.shadowRoot.querySelector('.pending-container'), 'loader');
-      addClass(this.shadowRoot.querySelector('.progress-bar'), 'hidden');
-      addClass(this.shadowRoot.querySelector('.pending-container h2'), 'hidden');
-      addClass(this.shadowRoot.querySelector('.loader-img'), 'show');
+    else if(!isUploadBarHidden) {
+      this.toggleUploadBar(false);
     }
+  }
+
+  toggleUploadBar(show) {
+	  const fn = show ? removeClass : addClass;
+	  fn(this.shadowRoot.querySelector('.pending-container'), 'loader');
+    fn(this.shadowRoot.querySelector('.progress-bar'), 'hidden');
+    fn(this.shadowRoot.querySelector('.pending-container h2'), 'hidden');
+    fn(this.shadowRoot.querySelector('.loader-img'), 'show');
   }
 
 	permissionDialogPresent() {

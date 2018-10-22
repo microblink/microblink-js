@@ -17,14 +17,6 @@
       /*  Microblink.SDK.SetAuthorization('Bearer MDY0YWNlMGNiN2IzNGUwZTk4YWVmMDVhZDEyOGJjY2E6Mzk5NzNkNDUtYjg4MS00OWE1LTlhMTItYmEzYTRkNmYzY2Fj');  */
       Microblink.SDK.SetUserId('test-user-id@microblink.com');
 
-      Microblink.SDK.RegisterListener({
-        onScanSuccess: function() {
-          console.log('onScanSuccess', arguments);
-        },
-        onScanError: function() {
-          console.log('onScanError', arguments);
-        }
-      });
 
     </script>
 
@@ -54,15 +46,18 @@
         --mb-btn-flip-image-color: #48b2e8;
         --mb-json-color-key: black;
         --mb-json-color-string: #48b2e8;
-        --mb-json-color-boolean: black;
+        --mb-json-color-boolean: #26a4e4;
         --mb-json-color-number: black;
-    }
+        --mb-json-color-null: #26a4e4;
+      }
     </style>
 
 </head>
 <body>
   <div class="microblink-ui-component-wrapper">
-    <microblink-ui-web tabs autoscroll></microblink-ui-web>
+    <microblink-ui-web tabs autoscroll>
+        <img slot="loader-image" src="https://microblink.com/bundles/microblinkmicroblink/images/loading-animation-on-blue.gif" />
+    </microblink-ui-web>
   </div>
 </body>
 </html>
