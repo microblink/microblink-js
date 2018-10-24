@@ -144,6 +144,16 @@ export default class Microblink implements IMicroblink {
   }
 
   /**
+   * When Authorization is not set it is available to disable persiting of uploaded data, by default it is enabled
+   * this should be disabled for every page where GDPR is not implemented and this is ability to disable data persisting
+   * on some demo pages
+   * @param isEnabled is flag which describes should or should not API persist uploaded data, be default it is enabled
+   */
+  SetIsDataPersistingEnabled(isEnabled: boolean): void {
+    this.API.SetIsDataPersistingEnabled(isEnabled)
+  }
+
+  /**
    * Notify all global listeners when success scan is complete
    */
   private notifyOnSuccessListeners(scanOutput: ScanOutput, isFileScan: boolean): void {

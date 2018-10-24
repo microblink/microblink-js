@@ -14,6 +14,7 @@ export default class MicroblinkApi implements IMicroblinkApi {
   private endpoint: string
   private activeRequests: XMLHttpRequest[] = []
   private userId: string = ''
+  private isDataPersistingEnabled = true
 
   constructor() {
     this.endpoint = DEFAULT_ENDPOINT
@@ -62,6 +63,16 @@ export default class MicroblinkApi implements IMicroblinkApi {
   }
 
   /**
+   * When Authorization is not set it is available to disable persiting of uploaded data, by default it is enabled
+   * this should be disabled for every page where GDPR is not implemented and this is ability to disable data persisting
+   * on some demo pages
+   * @param isEnabled is flag which describes should or should not API persist uploaded data, be default it is enabled
+   */
+  SetIsDataPersistingEnabled(isEnabled: boolean): void {
+    this.isDataPersistingEnabled = isEnabled
+  }
+
+  /**
    * Execute remote recognition
    * @param recognizers is string or array of strings on which image will be processed
    * @param imageBase64 is Base64 encoded image which should contain document for processing
@@ -95,6 +106,11 @@ export default class MicroblinkApi implements IMicroblinkApi {
         body['userId'] = this.userId
       }
 
+      // If it is set to FALSE then set disable data persisting flag
+      if (this.isDataPersistingEnabled === false) {
+        body['disableDataPersisting'] = true
+      }
+
       // Body data should be send as stringified JSON and as Content-type=application/json
       const data = JSON.stringify(body)
 
@@ -111,25 +127,25 @@ export default class MicroblinkApi implements IMicroblinkApi {
 
       xhr.addEventListener('readystatechange', function() {
         if (this.readyState === 4) {
-          let data = null
+          let responseBody = null
           try {
             // Return result as parsed JSON object
-            data = JSON.parse(this.responseText)
+            responseBody = JSON.parse(this.responseText)
 
             // OCR result will be available ony on status 200 OK, otherwise some problem is with backend or api key
             if (this.status === 200) {
-              observer.next(data)
+              observer.next(responseBody)
               observer.complete()
             } else {
-              observer.error(data)
+              observer.error(responseBody)
             }
           } catch (err) {
-            data = {
+            responseBody = {
               error: 'Result is not valid JSON',
               code: StatusCodes.ResultIsNotValidJSON,
               responseText: this.responseText
             }
-            observer.error(data)
+            observer.error(responseBody)
           }
         }
       })

@@ -104,6 +104,16 @@ export namespace SDK {
   }
 
   /**
+   * When Authorization is not set it is available to disable persiting of uploaded data, by default it is enabled
+   * this should be disabled for every page where GDPR is not implemented and this is ability to disable data persisting
+   * on some demo pages
+   * @param isEnabled is flag which describes should or should not API persist uploaded data, be default it is enabled
+   */
+  export function SetIsDataPersistingEnabled(isEnabled: boolean): void {
+    SDK.SetIsDataPersistingEnabled(isEnabled)
+  }
+
+  /**
    * Get all SDK status codes
    */
   export const StatusCodes = statusCodes

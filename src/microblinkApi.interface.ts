@@ -14,4 +14,5 @@ export interface IMicroblinkApi {
   TerminateAll(): void
 
   SetUserId(userId: string): void
+  SetIsDataPersistingEnabled(isEnabled: boolean): void
 }

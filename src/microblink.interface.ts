@@ -17,4 +17,5 @@ export interface IMicroblink {
   TerminateActiveRequests(): void
 
   SetUserId(userId: string): void
+  SetIsDataPersistingEnabled(isEnabled: boolean): void
 }
