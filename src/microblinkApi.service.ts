@@ -115,8 +115,14 @@ export default class MicroblinkApi implements IMicroblinkApi {
           try {
             // Return result as parsed JSON object
             data = JSON.parse(this.responseText)
-            observer.next(data)
-            observer.complete()
+
+            // OCR result will be available ony on status 200 OK, otherwise some problem is with backend or api key
+            if (this.status === 200) {
+              observer.next(data)
+              observer.complete()
+            } else {
+              observer.error(data)
+            }
           } catch (err) {
             data = {
               error: 'Result is not valid JSON',
