@@ -4,20 +4,11 @@ Javascript SDK for integrating with Microblink API
 
 ## Demo
 
-Test Microblink UI web component with your passport. Only `MRTD`, `USDL` and `UAE_ID_FRONT` recognizers are enabled for this demo.
+<!-- ./sample/demo-at-docs.md -->
 
-<style>
-.demo-resp-iframe {
-    width: 100%;
-    border: 0;
-    min-height: 545px;
-    margin: 0;
-    box-sizing: border-box;
-    overflow: hidden;
-}
-</style>
+App implementation is available on [Codepen](https://codepen.io/microblink/pen/WaYReG/).  
 
-<iframe class="demo-resp-iframe" src="demo.html" gesture="media" allow="encrypted-media" allowfullscreen></iframe>
+More details about product with demo page are available [here](https://microblink.com/products/blinkid/web-api).
 
 ## About
 
