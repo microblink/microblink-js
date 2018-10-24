@@ -158,8 +158,9 @@ class WebApi extends HTMLElement {
 				}
 				.intro .inline p { margin-bottom: 2.5rem; }
 				.intro .inline + .inline {
-					border-left: 1px solid;
-					border-image: linear-gradient(to bottom, transparent 15%, #bdbdbd 1.8rem, #bdbdbd 85%, transparent 85%) 0 100% ;
+					border-image: linear-gradient(to bottom, transparent 15%, #bdbdbd 1.8rem, #bdbdbd 85%, transparent 85%) 1;
+					border-width: 0 0 0 1px;
+					border-style: solid;
 				}
 				.intro .inline:only-child {
 					width: 100%;
@@ -190,7 +191,7 @@ class WebApi extends HTMLElement {
 				}
 				.pending-container, .error-container, .permission {
 					display: none;
-					position: fixed;
+					position: absolute;
 					z-index: 1000;
 					top: 0;
 					bottom: 0;
@@ -427,9 +428,8 @@ class WebApi extends HTMLElement {
 						padding: 0 15%;
 					}
 					.intro .inline + .inline {
-						border-left: none;
-						border-top: 1px solid;
-						border-image: linear-gradient(to right, transparent 15%, #bdbdbd 1.8rem, #bdbdbd 85%, transparent 85%) 100% 0;
+						border-image: linear-gradient(to right, transparent 15%, #bdbdbd 1.8rem, #bdbdbd 85%, transparent 85%) 1;
+						border-width: 1px 0 0 0;
 					}
 					.intro .inline:only-child {
 						height: 100%;
@@ -446,9 +446,8 @@ class WebApi extends HTMLElement {
 					padding: 0 15%;
 				}
 				.container.root[max-width~="500px"] .intro .inline + .inline {
-					border-left: none;
-					border-top: 1px solid;
-					border-image: linear-gradient(to right, transparent 15%, #bdbdbd 1.8rem, #bdbdbd 85%, transparent 85%) 100% 0;
+					border-image: linear-gradient(to right, transparent 15%, #bdbdbd 1.8rem, #bdbdbd 85%, transparent 85%) 1;
+					border-width: 0 0 0 1px;
 				}
 				.container.root[max-width~="500px"] .intro .inline:only-child {
 					height: 100%;
@@ -749,8 +748,7 @@ class WebApi extends HTMLElement {
 		}
 	}
 
-	//TODO: this is testing method - remove it later
-	switchLocale() {
+	/*switchLocale() {
 		let slotTargets =  this.querySelectorAll('[slot*=labels]'); //not live nodelist so it will work
 		if (slotTargets && slotTargets.length) {
 			Array.prototype.forEach.call(slotTargets, target => target.parentNode.removeChild(target));
@@ -758,9 +756,6 @@ class WebApi extends HTMLElement {
 			this.getLocalization();
 		}
 	}
-
-
-	//TODO: this is testing method - remove it later
 	switchTheme() {
 		var theme = document.getElementById('webApiTheme');
 		if (theme) {
@@ -771,8 +766,7 @@ class WebApi extends HTMLElement {
 				document.head.appendChild(template.content.cloneNode(true));
 			}
 		}
-
-	}
+	}*/
 
   toggleLoader(show) {
     let loader = this.shadowRoot.querySelector('.pending-container');
