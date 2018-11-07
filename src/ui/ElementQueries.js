@@ -1,4 +1,28 @@
-export default function(ResizeSensor) {
+/**
+ * @license
+ *
+ * Copyright (c) 2013 Marc J. Schmidt
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ * */
+
+export default function(ResizeSensor, shadowRoot) {
 
 	var ElementQueries = function () {
 
@@ -130,7 +154,7 @@ export default function(ResizeSensor) {
 
 		function getQuery(container) {
 			var query;
-			if (document.querySelectorAll) query = (container) ? container.querySelectorAll.bind(container) : document.querySelectorAll.bind(document);
+			if (document.querySelectorAll) query = (container) ? container.querySelectorAll.bind(container) : shadowRoot ? shadowRoot.querySelectorAll.bind(shadowRoot) : document.querySelectorAll.bind(document);
 			if (!query && 'undefined' !== typeof $$) query = $$;
 			if (!query && 'undefined' !== typeof jQuery) query = jQuery;
 
@@ -219,7 +243,7 @@ export default function(ResizeSensor) {
 					children[imageToDisplay].src = sources[imageToDisplay];
 				}
 			}
-			element.resizeSensor = new ResizeSensor(element, check);
+			element.resizeSensorInstance = new ResizeSensor(element, check);
 			check();
 		}
 
@@ -287,11 +311,15 @@ export default function(ResizeSensor) {
 			} else if (typeof document.documentElement.style['OAnimationName'] !== 'undefined') {
 				animationStart = 'oanimationstart';
 			}
-			document.body.addEventListener(animationStart, function (e) {
-				var element = e.target;
-				var styles = window.getComputedStyle(element, null);
+			var root = shadowRoot || document.body;
 
-				if (-1 !== styles.getPropertyValue('animation-name').indexOf('element-queries')) {
+			root.addEventListener(animationStart, function (e) {
+				var element = e.target;
+        var styles = element && window.getComputedStyle(element, null);
+        var animationName = styles && styles.getPropertyValue('animation-name');
+        var requiresSetup = animationName && (-1 !== animationName.indexOf('element-queries'));
+
+				if (requiresSetup) {
 					element.elementQueriesSensor = new ResizeSensor(element, function () {
 						if (element.elementQueriesSetupInformation) {
 							element.elementQueriesSetupInformation.call();
@@ -304,20 +332,21 @@ export default function(ResizeSensor) {
 					setupElement(e.target, idToSelectorMapping[id]);
 				}
 			});
+			root = shadowRoot || document;
 			if (!defaultCssInjected) {
 				cssStyleElement = document.createElement('style');
 				cssStyleElement.type = 'text/css';
 				cssStyleElement.innerHTML = '[responsive-image] > img, [data-responsive-image] {overflow: hidden; padding: 0; } [responsive-image] > img, [data-responsive-image] > img {width: 100%;}';
 				cssStyleElement.innerHTML += '\n@keyframes element-queries { 0% { visibility: inherit; } }';
-				document.getElementsByTagName('head')[0].appendChild(cssStyleElement);
+				shadowRoot ? shadowRoot.appendChild(cssStyleElement) : document.getElementsByTagName('head')[0].appendChild(cssStyleElement);
 				defaultCssInjected = true;
 			}
 			for (var i = 0, j = document.styleSheets.length; i < j; i++) {
 				try {
-					if (document.styleSheets[i].href && 0 === document.styleSheets[i].href.indexOf('file://')) {
-						console.log("CssElementQueries: unable to parse local css files, " + document.styleSheets[i].href);
+					if (root.styleSheets[i].href && 0 === root.styleSheets[i].href.indexOf('file://')) {
+						console.log("CssElementQueries: unable to parse local css files, " + root.styleSheets[i].href);
 					}
-					readRules(document.styleSheets[i].cssRules || document.styleSheets[i].rules || document.styleSheets[i].cssText);
+					readRules(root.styleSheets[i].cssRules || root.styleSheets[i].rules || root.styleSheets[i].cssText);
 				} catch (e) {
 				}
 			}
@@ -341,9 +370,9 @@ export default function(ResizeSensor) {
 			element.elementQueriesSensor.detach();
 			delete element.elementQueriesSetupInformation;
 			delete element.elementQueriesSensor;
-		} else if (element.resizeSensor) {
-			element.resizeSensor.detach();
-			delete element.resizeSensor;
+		} else if (element.resizeSensorInstance) {
+			element.resizeSensorInstance.detach();
+			delete element.resizeSensorInstance;
 		}
 	};
 

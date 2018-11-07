@@ -14,7 +14,7 @@ More details about product with demo page are available [here](https://microblin
 
 This package includes library for image preparation and HTTP integration with Microblink API publicly hosted on https://api.microblink.com or for self hostend on-premise solution with Microblink API wrapped in Docker image, which is available on [Docker Hub](https://hub.docker.com/r/microblink/api/).   
 
-Also, this package has an Microblink API UI web component available as custom HTML tag `<mb-api-widget></mb-api-widget>` which has native camera management for mobile and desktop devices with WebRTC support and file management solution.
+Also, this package has an Microblink API UI web component available as custom HTML tag `<microblink-ui-web></microblink-ui-web>` which has native camera management for mobile and desktop devices with WebRTC support and file management solution.
 
 ## Microblink API Proxy
 

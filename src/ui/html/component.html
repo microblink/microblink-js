@@ -1,0 +1,513 @@
+<style>
+  :host {
+    all:initial;
+    contain: content;
+    display: block;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    border-style: solid;
+    --mb-widget-font-family: Helvetica, Tahoma, Verdana, Arial, sans-serif;
+    --mb-default-font-color: black;
+    --mb-btn-background-color: black;
+    --mb-btn-background-color-hover: dimgrey;
+    --mb-btn-flip-image-color: black;
+    --mb-json-color-null: #ff00ff;
+    --mb-json-color-number: #ffc000;
+    --mb-json-color-string: #008000;
+    --mb-json-color-boolean: #0000FF;
+    --mb-json-color-key: #ff0000;
+    --mb-hem: 1rem;
+    font-family: var(--mb-widget-font-family);
+    border-width: var(--mb-widget-border-width, 0);
+    border-color: var(--mb-widget-border-color, black);
+    font-size: var(--mb-hem);
+    background-color: var(--mb-widget-background-color, transparent);
+  }
+  .container {height:100%; width:100%; margin:auto; box-sizing: border-box; position: relative;}
+  .font-0 {font-size:0;}
+  .font-1 {font-size: var(--mb-hem);}
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    font-size: calc(.9 * var(--mb-hem));
+    font-weight: 500;
+    line-height: 1;
+    padding: .7222222222em 0;
+    user-select: none;
+    border: 1px solid transparent;
+    outline: none;
+    color: var(--mb-btn-font-color, #fff);
+    background-color: var(--mb-btn-background-color);
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
+    width: calc( 7.5 * var(--mb-hem));
+    border-radius: var(--mb-btn-border-radius, 5px);
+  }
+  button:hover {
+    background-color: var(--mb-btn-background-color-hover);
+  }
+  button#flipBtn {
+    background-color: transparent;
+    background-size: auto;
+    position: absolute;
+    bottom: var(--mb-hem);
+    right: var(--mb-hem);
+    margin: 0;
+    padding: 0;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  #flipBtn svg path {
+    stroke: var(--mb-btn-flip-image-color);
+  }
+  #flipBtn svg .fill {
+    fill: var(--mb-btn-flip-image-color);
+  }
+  .intro { text-align: center;}
+  .inline {display: inline-block;}
+  .intro .inline {
+    text-align: center;
+    width: 50%;
+    height: 100%;
+    flex-direction: column;
+    padding: 0 10%;
+    vertical-align: top;
+    box-sizing: border-box;
+  }
+  .tabs > .container {
+    height: calc(100% - 56px);
+  }
+  .tab-container {
+    background: var(--mb-tabs-background-color, black);
+    color: var(--mb-tabs-font-color, white);
+    height: 56px;
+    display: none;
+    margin: 0;
+    padding: 0;
+  }
+  .tabs .tab-container {
+    display: flex;
+    justify-content: space-around;
+  }
+  .tab {
+    text-align: center;
+    line-height: 56px;
+    cursor: pointer;
+  }
+  .tab label {
+    display: inline-block;
+    margin: auto;
+    padding: 0 calc(1.25 * var(--mb-hem));
+    box-sizing: border-box;
+    border-bottom: var(--mb-tabs-border-width, 4px) solid transparent;
+    height: 56px;
+    user-select: none;
+    cursor: inherit;
+  }
+  .tab.active label {
+    color: var(--mb-tabs-active-color, var(--mb-tabs-hover-color, #ddd));
+    border-bottom-color: var(--mb-tabs-active-color, var(--mb-tabs-hover-color, #ddd));
+  }
+  .tab:hover label {
+    color: var(--mb-tabs-hover-color, var(--mb-tabs-active-color, #ddd));
+    border-bottom-color: var(--mb-tabs-hover-color, var(--mb-tabs-active-color, #ddd));
+  }
+  .flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .intro .flex-center {
+    flex-direction: column;
+    height: 100%;
+  }
+  .inline p { margin: 0; }
+  .intro-label {
+    color: var(--mb-alt-font-color, var(--mb-default-font-color, black));
+  }
+  .intro .inline p {
+    flex-basis: calc(3 * 1.2 * var(--mb-hem));
+    line-height: 1.2;
+    margin-bottom: calc(50px - 1.2 * var(--mb-hem));
+  }
+  .intro .inline + .inline {
+    border-image: linear-gradient(to bottom, transparent 15%, var(--mb-widget-border-color, #bdbdbd) 15%, var(--mb-widget-border-color, #bdbdbd) 85%, transparent 85%) 1;
+    border-width: 0 0 0 1px;
+    border-style: solid;
+  }
+  .intro .inline:only-child {
+    width: 100%;
+  }
+  .dropzone * { pointer-events: none; }
+  .dropzone button { pointer-events: auto; }
+  .draghover {
+    background-color: var(--mb-dropzone-hover-color, rgba(0, 0, 0, .25));
+    cursor: copy;
+  }
+  #file {
+    display: none;
+  }
+  .video {
+    display: flex;
+    justify-content: center;
+  }
+  video.flipped, #flipBtn.flipped {
+    -ms-transform: scaleX(-1);
+    -webkit-transform: scaleX(-1);
+    transform: scaleX(-1);
+  }
+  video {
+    height: 100%;
+  }
+  .pending-container, .error-container, .permission {
+    display: none;
+    position: absolute;
+    z-index: 1000;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+  .pending-container {
+    background-color: var(--mb-loader-background-color, var(--mb-dialog-background-color, white));
+    flex-direction: column;
+    color: var(--mb-loader-font-color, var(--mb-dialog-font-color, black));
+  }
+  .pending-container h2 {
+    font-size: calc(1.4 * var(--mb-hem));
+    margin: calc(1.4 *var(--mb-hem)) 0 0;
+    font-weight: 500;
+  }
+  .pending-container.show, .error-container.show, .permission.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .loader-img {
+    display: block;
+    position: relative;
+    margin: 0;
+    text-align: center;
+    font-size: 0;
+  }
+  /*.progress-bar {
+    background-color: var(--mb-progress-bar-color, lightgrey);
+    width: 37.5%;
+    height: 10px;
+    position: relative;
+    display: block;
+  }
+  .progress-bar > .progress-bar-value {
+    background-color: var(--mb-progress-bar-value-color, black);
+    display: block;
+    width: 0;
+    height: 100%;
+    transition: width 0.25s linear;
+  }*/
+  .error-container, .permission {
+    background-color: var(--mb-dialog-background-color, white);
+    color: var(--mb-dialog-font-color, black);
+    font-weight: 500;
+    font-size: calc(1.4 * var(--mb-hem));
+    text-align: center;
+  }
+  .error-container.show {
+    flex-direction: column;
+  }
+  .error-container p { margin: calc(2.5 * var(--mb-hem)) 0; }
+  .container.hidden {
+    display: none;
+  }
+  .hidden {
+    display: none;
+  }
+  .show {
+    display: block;
+  }
+  .container.main > * {
+    display: none;
+  }
+  .container.main > .active {
+    display: block;
+  }
+  .container.main > .image.active {
+    display: block;
+    overflow: hidden;
+  }
+  .container.main > .json {
+    padding: calc(0.7 * var(--mb-hem)) calc(1.5 * var(--mb-hem));
+    overflow: auto;
+    font-size: calc(0.9 * var(--mb-hem));
+    line-height: calc(1.5 * var(--mb-hem));
+    position: relative;
+  }
+  .json > div {
+    white-space: pre;
+  }
+  .json .key { color: var(--mb-json-color-key); }
+  .json .string { color: var(--mb-json-color-string); }
+  .json .number { color: var(--mb-json-color-number); }
+  .json .null { color: var(--mb-json-color-null); }
+  .json .boolean { color: var(--mb-json-color-boolean); }
+  #copyBtn {
+    font-size: calc(0.8 * var(--mb-hem));
+    padding: 0 calc(0.8 * var(--mb-hem));
+    line-height: calc(1.9 * var(--mb-hem));
+    height: calc(1.9 * var(--mb-hem));
+    box-sizing: content-box;
+    width: auto;
+    position: absolute;
+    top: calc(1.5 * var(--mb-hem));
+    right: calc(1.5 * var(--mb-hem));
+  }
+  .cpyTxtArea {
+    position: absolute;
+    left: -9999px;
+    top: -9999px;
+  }
+  .container.results { overflow: auto; }
+  .container.results caption {
+    text-align: center;
+    padding: var(--mb-hem) calc(2 * var(--mb-hem));
+    font-weight: bold;
+    font-size: calc(1.2 * var(--mb-hem));
+    color: var(--mb-default-font-color);
+  }
+  .results table {
+    border-width: 1px 0;
+    border-style: solid;
+    table-layout: fixed;
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .results table + table {
+    margin-top: calc(1.5 * var(--mb-hem));
+  }
+  .results th {
+    font-weight: bold;
+    background-color: var(--mb-table-header-background-color, #f2f2f2);
+  }
+  .results th, .results td {
+    width: 50%;
+    word-break: break-word;
+    border: 1px solid black;
+    padding: calc(0.8 * var(--mb-hem)) var(--mb-hem);
+    box-sizing: border-box;
+  }
+  .results th:first-child, .results td:first-child {
+    border-left: 0;
+    text-transform: capitalize;
+  }
+  .results th:last-child, .results td:last-child {
+    border-right: 0;
+  }
+  .results td:last-child {
+    font-weight: 500;
+    color: var(--mb-default-font-color);
+  }
+  .results .no-result {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    width: 80%;
+  }
+  .results .masked-label {
+    text-align: center;
+    margin: var(--mb-hem);
+    line-height: 1.5;
+    font-weight: 500;
+  }
+  .container.image img {
+    width: 100%;
+    height: auto;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+  #photoBtn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  #counter {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--mb-counter-background-color, rgba(0, 0, 0, 0.7));
+    width: calc(8 * var(--mb-hem));
+    height: calc(8 * var(--mb-hem));
+    display: none;
+    text-align: center;
+    color: var(--mb-counter-font-color, white);
+    font-size: calc(2.5 * var(--mb-hem));
+    justify-content: center;
+    align-items: center;
+  }
+  .counter-number, .counter-alt {
+    margin: 0;
+    padding: 0;
+    font-weight: 500;
+  }
+  .counter-alt {
+    line-height: 1.25;
+    font-size: calc(2.5 * var(--mb-hem));
+  }
+  .counter-number {
+    line-height: 1;
+    font-size: calc(4 * var(--mb-hem));
+  }
+  #counter.show {
+    display: flex;
+  }
+
+  .container.root[max-width~="775px"] .intro .inline {
+    padding: 0 5%;
+  }
+  .container.root[max-width~="500px"] .tab label {
+    padding: 0 calc(0.5 * var(--mb-hem));
+  }
+  .container.root[max-width~="500px"] .intro .inline {
+    height: 50%;
+    width: 100%;
+    padding: 0 15%;
+  }
+  .container.root[max-width~="500px"] .intro .inline + .inline {
+    border-image: linear-gradient(to right, transparent 15%, var(--mb-widget-border-color, #bdbdbd) 15%, var(--mb-widget-border-color, #bdbdbd) 85%, transparent 85%) 1;
+    border-width: 1px 0 0 0;
+  }
+  .container.root[max-width~="500px"] .intro .inline:only-child {
+    height: 100%;
+  }
+  .container.root[max-width~="500px"] .intro .inline p {margin-bottom: calc(1.5 * var(--mb-hem));}
+
+  .container.root[max-width~="500px"] #copyBtn {
+    position: relative;
+    top: 0;
+    left: 0;
+    margin: calc(0.9 * var(--mb-hem)) auto;
+    display: block;
+  }
+
+  @media only screen and (orientation: portrait) {
+    .container.image img {
+      width: auto;
+      height: 100%;
+    }
+  }
+
+  .lds-ring {
+    display: inline-block;
+    position: relative;
+    width: calc(5 * var(--mb-hem));
+    height: calc(5 * var(--mb-hem));
+  }
+  .lds-ring div {
+    box-sizing: border-box;
+    display: block;
+    position: absolute;
+    width: calc(5 * var(--mb-hem));
+    height: calc(5 * var(--mb-hem));
+    border: 6px solid;
+    border-radius: 50%;
+    animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    border-color: var(--mb-loader-font-color, var(--mb-dialog-font-color, black)) transparent transparent transparent;
+  }
+  .lds-ring div:nth-child(1) {
+    animation-delay: -0.45s;
+  }
+  .lds-ring div:nth-child(2) {
+    animation-delay: -0.3s;
+  }
+  .lds-ring div:nth-child(3) {
+    animation-delay: -0.15s;
+  }
+  @keyframes lds-ring {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+</style>
+<div class="container root">
+  <div class="tab-container">
+    <div class="tab" id="introTab"><label><slot name="tabs.retake">RETAKE</slot></label></div>
+    <div class="tab active" id="resultsTab"><label><slot name="tabs.results">RESULTS</slot></label></div>
+    <div class="tab" id="imageTab"><label><slot name="tabs.image">IMAGE</slot></label></div>
+    <div class="tab" id="jsonTab"><label><slot name="tabs.json">JSON</slot></label></div>
+  </div>
+  <div class="container main">
+    <div class="container intro font-0 active">
+      <div class="inline font-1 dropzone">
+        <div class="flex-center">
+          <p class="intro-label"><slot name="labels.dragDrop">Drag and Drop<br/>document here OR</slot></p>
+          <p class="intro-label hidden"><slot name="labels.nativeCamera">Choose image from <br/>device or camera app:</slot></p>
+          <button type="button" id="fileBtn"><slot name="buttons.browse">Browse</slot></button>
+          <input type="file" accept="image/*" id="file"/>
+        </div>
+      </div>
+      <div class="inline font-1">
+        <div class="flex-center">
+          <p class="intro-label"><slot name="labels.cameraActivate">Activate your camera to capture the ID document:</slot></p>
+          <button type="button" id="cameraBtn"><slot name="buttons.camera">Use camera</slot></button>
+        </div>
+      </div>
+    </div>
+    <div class="container results"></div>
+    <div class="container image"></div>
+    <div class="container json">
+      <button id="copyBtn"><slot name="buttons.copy">Copy to clipboard</slot></button>
+      <div></div>
+    </div>
+  </div>
+  <div class="container video hidden">
+    <video class="flipped" id="video" playsinline>Your browser does not support video tag.</video>
+    <button type="button" id="photoBtn"><slot name="buttons.takePhoto">TAKE A PHOTO</slot></button>
+    <button type="button" id="flipBtn" class="flipped">
+      <svg width='44' height='35' viewBox='0 0 44 35' fill='none' xmlns='http://www.w3.org/2000/svg'>
+        <path d='M22 7V35' stroke-width='1.38744' stroke-miterlimit='3.8637' stroke-dasharray='1.39 2.77'/>
+        <path d='M38.8375 11.5471L27.2239 20.9999L38.8375 30.4527L38.8375 11.5471Z' stroke-width='1.38744'/>
+        <path class="fill" d='M5.16247 11.5471L16.7761 20.9999L5.16247 30.4527L5.16247 11.5471Z' stroke-width='1.38744'/>
+        <path class="fill" d='M21.4447 1.75C23.851 1.75 26.2572 2.975 28.1082 5.075L26.0721 7H31.625V1.75L29.4038 3.85C27.1827 1.4 24.4063 0 21.4447 0C17.9279 0 14.7812 1.75 12.375 5.075L13.8558 6.125C15.8918 3.325 18.4832 1.75 21.4447 1.75Z'/>
+      </svg>
+    </button>
+    <div id="counter">
+      <p class="counter-number"></p>
+      <p class="counter-alt hidden"><slot name="labels.holdStill">HOLD STILL</slot></p>
+    </div>
+  </div>
+  <div class="pending-container">
+    <div class="loader-img">
+      <slot name="loader-image">
+        <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
+      </slot>
+    </div>
+    <h2><slot name="labels.uploading">Uploading</slot> <span class="progress-bar-value"></span></h2>
+    <h2><slot name="labels.processing">Processing</slot></h2>
+    <h2><slot name="labels.analyzing">Analyzing</slot></h2>
+    <h2><slot name="labels.extracting">Extracting data</slot></h2>
+    <h2><slot name="labels.almostDone">Almost done</slot></h2>
+    <!--<div class="progress-bar">
+      <div class="progress-bar-value"></div>
+    </div> -->
+  </div>
+  <div class="error-container">
+    <p><slot name="labels.errorMsg">We're sorry, but something went wrong. Please try again.</slot></p>
+    <button type="button" id="againBtn"><slot name="buttons.tryAgain">TRY AGAIN</slot></button>
+  </div>
+  <div class="permission">
+    <p><slot name="labels.permissionMsg">Enable camera please</slot></p>
+  </div>
+</div>

@@ -44,5 +44,6 @@ export interface ScanListener {
  */
 export enum StatusCodes {
   Ok = 'OK',
-  ResultIsNotValidJSON = 'RESULT_IS_NOT_VALID_JSON'
+  ResultIsNotValidJSON = 'RESULT_IS_NOT_VALID_JSON',
+  TimedOut = 'CONNECTION_TIMED_OUT'
 }

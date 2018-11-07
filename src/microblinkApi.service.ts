@@ -117,6 +117,10 @@ export default class MicroblinkApi implements IMicroblinkApi {
       const xhr = new XMLHttpRequest()
 
       xhr.withCredentials = true
+      if (uploadProgress) {
+        // set timeout for file uploading
+        xhr.timeout = 15000
+      }
       xhr.open('POST', this.endpoint + '/recognize/execute')
       xhr.setRequestHeader('Content-Type', 'application/json')
 
@@ -140,10 +144,17 @@ export default class MicroblinkApi implements IMicroblinkApi {
               observer.error(responseBody)
             }
           } catch (err) {
-            responseBody = {
-              error: 'Result is not valid JSON',
-              code: StatusCodes.ResultIsNotValidJSON,
-              responseText: this.responseText
+            if (uploadProgress && this.status === 0) {
+              responseBody = {
+                code: StatusCodes.TimedOut,
+                message: 'Connection timed out. Please try again.'
+              }
+            } else {
+              responseBody = {
+                error: 'Result is not valid JSON',
+                code: StatusCodes.ResultIsNotValidJSON,
+                responseText: this.responseText
+              }
             }
             observer.error(responseBody)
           }

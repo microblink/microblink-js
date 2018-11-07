@@ -1,6 +1,6 @@
 {
   "name": "microblink",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "",
   "keywords": [],
   "main": "dist/microblink.sdk.umd.js",
@@ -100,6 +100,7 @@
     "rollup": "^0.66.1",
     "rollup-plugin-commonjs": "^9.0.0",
     "rollup-plugin-cpy": "^1.1.0",
+    "rollup-plugin-html": "^0.2.1",
     "rollup-plugin-json": "^3.0.0",
     "rollup-plugin-node-resolve": "^3.0.0",
     "rollup-plugin-sourcemaps": "^0.4.2",

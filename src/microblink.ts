@@ -20,7 +20,7 @@ import {
 import { FrameHelper } from './frameHelper'
 
 export default class Microblink implements IMicroblink {
-  private static fromHowManyFramesQualityCalculateBestFrame = 10
+  private static fromHowManyFramesQualityCalculateBestFrame = 5
 
   private API: IMicroblinkApi
   private recognizers: string | string[] = []

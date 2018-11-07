@@ -1,3 +1,26 @@
+/**
+ * Copyright (c) 2013 Marc J. Schmidt
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ * */
+
+
 var ResizeSensor = (function () {
 
 	if (typeof window === "undefined") {
@@ -108,7 +131,8 @@ var ResizeSensor = (function () {
 			var size = getElementSize(element);
 			var lastWidth = size.width;
 			var lastHeight = size.height;
-			var initialHiddenCheck = true, resetRAF_id;
+			var initialHiddenCheck = true;
+			var lastAnimationFrame = 0;
 
 			var resetExpandShrink = function () {
 				expandChild.style.width = '100000px';
@@ -123,18 +147,18 @@ var ResizeSensor = (function () {
 
 			var reset = function() {
 				if (initialHiddenCheck) {
-					if (!expand.scrollTop && !expand.scrollLeft) {
-						resetExpandShrink();
-						if (!resetRAF_id){
-							resetRAF_id = requestAnimationFrame(function(){
-								resetRAF_id = 0;
-								reset();
-							});
-						}
-						return;
-					} else {
-						initialHiddenCheck = false;
-					}
+          var invisible = element.offsetWidth === 0 && element.offsetHeight === 0;
+          if (invisible) {
+            if (!lastAnimationFrame){
+              lastAnimationFrame = requestAnimationFrame(function(){
+                lastAnimationFrame = 0;
+                reset();
+              });
+            }
+            return;
+          } else {
+            initialHiddenCheck = false;
+          }
 				}
 				resetExpandShrink();
 			};
@@ -175,40 +199,13 @@ var ResizeSensor = (function () {
 			requestAnimationFrame(reset);
 		}
 
-		if (typeof ResizeObserver !== "undefined") {
-			observer = new ResizeObserver(function(element){
-				forEachElement(element, function (elem) {
-					callback.call(
-						this,
-						{
-							width: elem.contentRect.width,
-							height: elem.contentRect.height
-						}
-					);
-				});
-			});
-			if (element !== undefined) {
-				forEachElement(element, function(elem){
-					observer.observe(elem);
-				});
-			}
-		}
-		else {
-			forEachElement(element, function(elem){
-				attachResizeEvent(elem, callback);
-			});
-		}
+    forEachElement(element, function(elem){
+      attachResizeEvent(elem, callback);
+    });
 
-		this.detach = function(ev) {
-			if (typeof ResizeObserver != "undefined") {
-				forEachElement(element, function(elem){
-					observer.unobserve(elem);
-				});
-			}
-			else {
-				ResizeSensor.detach(element, ev);
-			}
-		};
+    this.detach = function(ev) {
+      ResizeSensor.detach(element, ev);
+    };
 
 		this.reset = function() {
 			element.resizeSensor.resetSensor();

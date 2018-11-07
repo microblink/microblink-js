@@ -1,5 +1,6 @@
 import { SDK } from '../microblink.SDK';
 
+import templateHtml from './html/component.html';
 import ResizeSensor from './ResizeSensor.js';
 import ElementQueriesFactory from './ElementQueries.js';
 
@@ -14,10 +15,17 @@ if (window) {
 	window['Microblink'] = Microblink;
 }
 
+let template = document.createElement('template');
+template.innerHTML = templateHtml;
+
+const ERR_TIMED_OUT = 'Request Timed Out';
+const ERR_UNSUPPORTED_TYPE = 'Unsupported file type';
+const RESULT_MASKED = 'Please notice that your results are masked due to missing Authorization header';
+
 class WebApi extends HTMLElement {
 
 	static get observedAttributes() {
-		return ['tabs', 'recognizer', 'autoscroll'];
+		return ['tabs', 'autoscroll'];
 	}
 
 	get tabs() { return this.hasAttribute('tabs'); }
@@ -25,15 +33,6 @@ class WebApi extends HTMLElement {
 
 	get autoscroll() { return this.hasAttribute('autoscroll'); }
 	set autoscroll(value) { value === true ? this.setAttribute('autoscroll', '') : this.removeAttribute('autoscroll'); }
-
-	get recognizer() { return this.getAttribute('recognizer'); }
-	set recognizer(value) {
-		if (value instanceof Array && value.length) {
-			this.setAttribute('recognizer', value.join());
-		} else {
-			this.setAttribute('recognizer', String(value));
-		}
-	}
 
 	constructor() {
 		super();
@@ -45,528 +44,11 @@ class WebApi extends HTMLElement {
 		this.autoScrollListener = this.autoScrollListener.bind(this);
 		Microblink.SDK.RegisterListener(this);
 	}
+
 	connectedCallback() {
 		this.getLocalization().then(() => {
-			this.shadowRoot.innerHTML = `<style>
-				:host {
-					all:initial;
-					contain: content;
-					display: block;
-					width: 100%;
-					height: 100%;
-					box-sizing: border-box;
-					border-style: solid;
-					--mb-widget-font-family: Helvetica, Tahoma, Verdana, Arial, sans-serif;
-					--mb-widget-border-width: 2px;
-					--mb-widget-border-color: black;
-					--mb-default-font-color: black;
-					--mb-btn-font-color: #000;
-					--mb-intro-font-color: #575757;
-					--mb-btn-background-color: #ffc107;
-					--mb-btn-background-color-hover: #C58F08;
-					--mb-btn-flip-image-color: black;
-					--mb-json-color-null: #ff00ff;
-					--mb-json-color-number: #ffc000;
-					--mb-json-color-string: #008000;
-					--mb-json-color-boolean: #0000FF;
-					--mb-json-color-key: #ff0000;
-					--mb-loader-font-color: white;
-					font-size: inherit;
-					font-family: var(--mb-widget-font-family);
-					border-width: var(--mb-widget-border-width, 2px);
-					border-color: var(--mb-widget-border-color, black);
-				}
-				.container { height:100%; width:100%; margin:auto; box-sizing: border-box; position: relative;}
-				.font-0 {font-size:0;}
-				.font-1 {font-size:1rem;}
-				button, .button {
-					font-family: inherit;
-					cursor: pointer;
-    				font-size: .9rem;
-    				font-weight: 500;
-    				line-height: 1;
-    				padding: .7222222222em 0;
-    				user-select: none;
-    				border: 1px solid transparent;
-    				outline: none;
-    				color: var(--mb-btn-font-color);
-    				background-color: var(--mb-btn-background-color);
-    				transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
-    				width: 7.5rem;
-				}
-				button:hover, .button:hover {
-					background-color: var(--mb-btn-background-color-hover);
-				}
-				button#flipBtn {
-					background-color: transparent;
-					background-size: auto;
-					position: absolute;
-					bottom: 1rem;
-					right: 1rem;
-					margin: 0;
-					padding: 0;
-					width: 50px;
-					height: 50px;
-					display: flex;
-					justify-content: center;
-					align-items: center;
-				}
-				#flipBtn svg path {
-					stroke: var(--mb-btn-flip-image-color);
-				}
-				#flipBtn svg .fill {
-					fill: var(--mb-btn-flip-image-color);
-				}
-				.intro { text-align: center;}
-				.inline {display: inline-block;}
-				.intro .inline {
-					text-align: center;
-					width: 50%;
-					height: 100%;
-					flex-direction: column;
-					padding: 0 10%;
-					vertical-align: top;
-					box-sizing: border-box;
-				}
-				.tabs > .container {
-					height: calc(100% - 56px);
-				}
-				.tab-container {
-					background: black;
-					color: white;
-					height: 56px;
-					display: none;
-					margin: 0;
-					padding: 0;
-				}
-				.tabs .tab-container {
-					display: flex;
-					justify-content: space-around;
-				}
-				.flex-center {
-					display: flex;
-					align-items: center;
-					justify-content: center;
-				}
-				.intro .flex-center {
-					flex-direction: column;
-					height: 100%;
-				}
-				.inline p { margin: 0; }
-				.intro-label {
-					color: var(--mb-intro-font-color);
-				}
-				.intro .inline p { margin-bottom: 2.5rem; }
-				.intro .inline + .inline {
-					border-image: linear-gradient(to bottom, transparent 15%, #bdbdbd 1.8rem, #bdbdbd 85%, transparent 85%) 1;
-					border-width: 0 0 0 1px;
-					border-style: solid;
-				}
-				.intro .inline:only-child {
-					width: 100%;
-				}
-				.dropzone {
-					padding: 2rem 1.4rem;
-				}
-				.dropzone * { pointer-events: none; }
-				.dropzone button { pointer-events: auto; }
-				.draghover {
-					background-color: rgba(72, 178, 232, .4);
-					cursor: copy;
-				}
-				#file {
-					display: none;
-				}
-				.video {
-					display: flex;
-					justify-content: center;
-				}
-				video.flipped, #flipBtn.flipped {
-					-ms-transform: scaleX(-1);
-					-webkit-transform: scaleX(-1);
-					transform: scaleX(-1);
-				}
-				video {
-					height: 100%;
-				}
-				.pending-container, .error-container, .permission {
-					display: none;
-					position: absolute;
-					z-index: 1000;
-					top: 0;
-					bottom: 0;
-					left: 0;
-					right: 0;
-				}
-				.pending-container { 
-					background-color: black; 
-					flex-direction: column;
-					color: var(--mb-loader-font-color);
-				}
-				.pending-container h2 {
-					font-size: 1.4rem;
-					margin: 0 0 1rem;
-					font-weight: 500;
-				}
-				.pending-container.loader { 
-					background-color: #48b2e8;
-				}
-				.pending-container.show, .error-container.show, .permission.show {
-					display: flex;
-					align-items: center;
-					justify-content: center;
-				}
-				.loader-img {
-					display: none;
-    			position: relative;
-    			margin: 0;
-    			text-align: center;
-				}
-				.progress-bar {
-  					background-color: rgba(72, 128, 232, 0.25);
-  					width: 37.5%;
-  					height: 10px;		
-  					position: relative;
-  					display: block;
-				}
-				.progress-bar > .progress-bar-value {
-				 	background-color: #48b2e8;
-				 	display: block;
-				 	width: 0;
-				 	height: 100%;
-				 	transition: width 0.25s linear;
-				}
-				.error-container, .permission {
-					background-color: #000;
-					color: white;
-					font-weight: 500;
-					font-size: 1.4rem;
-					text-align: center;
-				}
-				.error-container.show {
-					flex-direction: column;
-				}
-				.error-container p { margin: 2.5rem 0; }
-				.container.hidden {
-					display: none;
-				}
-				.hidden {
-					display: none;
-				}
-				.show {
-					display: block;
-				}
-				.container.main > * {
-					display: none;
-				}
-				.container.main > .active {
-					display: block;
-				}
-				.container.main > .image.active {
-					display: block;
-					overflow: hidden;
-				}
-				.container.main > .json {
-					padding: 0.7rem 1.5rem;
-					overflow: auto;
-					font-size: 0.9rem;
-					line-height: 1.5rem;
-					position: relative;
-				}
-				.json > div {
-					white-space: pre;
-				}
-				.json .key { color: var(--mb-json-color-key); }
-				.json .string { color: var(--mb-json-color-string); }
-				.json .number { color: var(--mb-json-color-number); }
-				.json .null { color: var(--mb-json-color-null); }
-				.json .boolean { color: var(--mb-json-color-boolean); }
-				#copyBtn {
-					font-size: 0.8rem;
-					padding: 0 0.8rem;
-					line-height: 1.9rem;
-					height: 1.9rem;
-					box-sizing: content-box;
-					width: auto;
-					position: absolute;
-					top: 1.5rem;
-					right: 1.5rem;
-				}
-				.cpyTxtArea {
-					position: absolute;
-					left: -9999px;
-					top: -9999px;
-				}
-				.container.results { overflow: auto; }
-				.container.results caption {
-					text-align: center;
-					padding: 1rem 2rem;
-					font-weight: bold;
-					font-size: 1.2rem;
-					color: var(--mb-default-font-color);
-				}
-				.results table {
-					border-width: 1px 0;
-					border-style: solid;
-					table-layout: fixed;
-					width: 100%;
-					border-collapse: collapse;
-				}
-				.results table + table {
-					margin-top: 2rem;
-				}
-				.results th {
-					font-weight: bold;
-					background-color: #f2f2f2;
-				}
-				.results th, .results td {
-					width: 50%;
-					word-break: break-word;
-					border: 1px solid black;
-					padding: 0.8rem 1rem;
-					box-sizing: border-box;
-				}
-				.results th:first-child, .results td:first-child {
-					border-left: 0;
-					text-transform: capitalize;
-				}
-				.results th:last-child, .results td:last-child {
-					border-right: 0;
-				}
-				.results td:last-child {
-					font-weight: 500;
-					color: var(--mb-default-font-color);
-				}
-				.results .no-result {
-				  position: absolute;
-				  top: 50%;
-				  left: 50%;
-				  transform: translate(-50%, -50%);
-				  text-align: center;
-				  width: 80%;
-				}
-				.container.image img {
-					width: 100%;
-					height: auto;
-					position: absolute;
-					top: 50%;
-					left: 50%;
-					transform: translate(-50%, -50%);
-					max-width: 100%;
-					max-height: 100%;
-					object-fit: contain;
-				}
-				#photoBtn {
-					position: absolute;
-					top: 50%;
-					left: 50%;
-					transform: translate(-50%, -50%);
-				}
-				#counter {
-					position: absolute;
-					top: 50%;
-					left: 50%;
-					transform: translate(-50%, -50%);
-					background: rgba(72, 178, 232, 0.7);
-					width: 8rem;
-					height: 8rem;
-					display: none;
-					text-align: center;
-					color: black;
-					font-size: 2.5rem;
-					justify-content: center;
-					align-items: center;
-				}
-				.counter-number, .counter-alt {
-					margin: 0;
-					padding: 0;
-					font-weight: 500;
-				}
-				.counter-alt {
-					line-height: 1.25;
-					font-size: 2.5rem;
-				}
-				.counter-number {
-					line-height: 1;
-					font-size: 4rem;
-				}
-				#counter.show {
-					display: flex;
-				}
-				.tab {
-					text-align: center;
-					line-height: 56px;
-					cursor: pointer;
-				}
-				.tab label {
-					display: inline-block;
-					margin: auto;
-					padding: 0 1.25rem;
-					box-sizing: border-box;
-					border-bottom: 4px solid transparent;
-					height: 56px;
-					user-select: none;
-					cursor: inherit;
-				}
-				.tab:hover label, .tab.active label {
-					color: #48b2e8;
-					border-bottom-color: #48b2e8;
-				}
-
-				@media only screen and (max-width: 775px) {
-					.intro .inline {
-						padding: 0 5%;
-					}
-				}
-				@media only screen and (max-width: 500px) {
-					.tab label {
-						padding: 0 0.5rem;
-					}
-					.intro .inline {
-						height: 50%;
-						width: 100%;
-						padding: 0 15%;
-					}
-					.intro .inline + .inline {
-						border-image: linear-gradient(to right, transparent 15%, #bdbdbd 1.8rem, #bdbdbd 85%, transparent 85%) 1;
-						border-width: 1px 0 0 0;
-					}
-					.intro .inline:only-child {
-						height: 100%;
-					}
-					.intro .inline p { margin-bottom: 1.5rem; }
-				}
-
-				.container.root[max-width~="500px"] .tab label {
-					padding: 0 5%;
-				}
-				.container.root[max-width~="500px"] .intro .inline {
-					height: 50%;
-					width: 100%;
-					padding: 0 15%;
-				}
-				.container.root[max-width~="500px"] .intro .inline + .inline {
-					border-image: linear-gradient(to right, transparent 15%, #bdbdbd 1.8rem, #bdbdbd 85%, transparent 85%) 1;
-					border-width: 0 0 0 1px;
-				}
-				.container.root[max-width~="500px"] .intro .inline:only-child {
-					height: 100%;
-				}
-				.container.root[max-width~="500px"] .intro .inline p {margin-bottom: 1.5rem;}
-
-				@media only screen and (orientation: portrait) {
-					.container.image img {
-						width: auto;
-						height: 100%;
-					}
-				}
-				.lds-ring {
-          display: inline-block;
-          position: relative;
-          width: 64px;
-          height: 64px;
-           }
-           .lds-ring div {
-             box-sizing: border-box;
-             display: block;
-             position: absolute;
-             width: 51px;
-             height: 51px;
-             margin: 6px;
-             border: 6px solid #fff;
-             border-radius: 50%;
-             animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-             border-color: #fff transparent transparent transparent;
-           }
-           .lds-ring div:nth-child(1) {
-             animation-delay: -0.45s;
-           }
-           .lds-ring div:nth-child(2) {
-             animation-delay: -0.3s;
-           }
-           .lds-ring div:nth-child(3) {
-             animation-delay: -0.15s;
-           }
-           @keyframes lds-ring {
-             0% {
-               transform: rotate(0deg);
-             }
-             100% {
-               transform: rotate(360deg);
-             }
-           }
-			</style>
-			<div class="container root">
-				<div class="tab-container">
-					<div class="tab" id="introTab"><label><slot name="tabs.retake">RETAKE</slot></label></div>
-					<div class="tab active" id="resultsTab"><label><slot name="tabs.results">RESULTS</slot></label></div>
-					<div class="tab" id="imageTab"><label><slot name="tabs.image">IMAGE</slot></label></div>
-					<div class="tab" id="jsonTab"><label><slot name="tabs.json">JSON</slot></label></div>
-				</div>
-				<div class="container main">
-					<div class="container intro font-0 active">
-						<div class="inline font-1 dropzone">
-							<div class="flex-center">
-								<p class="intro-label"><slot name="labels.dragDrop">Drag and Drop<br/>document here OR</slot></p>
-								<p class="intro-label hidden"><slot name="labels.nativeCamera">Choose image from <br/>device or camera app:</slot></p>
-								<button type="button" id="fileBtn"><slot name="buttons.browse">Browse</slot></button>
-								<input type="file" accept="image/*" id="file"/>
-							</div>
-						</div>
-						<div class="inline font-1">
-							<div class="flex-center">
-								<p class="intro-label"><slot name="labels.cameraActivate">Activate your camera to capture the ID document:</slot></p>
-								<button type="button" id="cameraBtn"><slot name="buttons.camera">Use camera</slot></button>
-							</div>
-						</div>
-					</div>
-					<div class="container results"></div>
-					<div class="container image"></div>
-					<div class="container json">
-						<button id="copyBtn"><slot name="buttons.copy">Copy to clipboard</slot></button>
-						<div></div>
-					</div>
-				</div>
-				<div class="container video hidden">
-					<video class="flipped" id="video" playsinline>Your browser does not support video tag.</video>
-					<button type="button" id="photoBtn"><slot name="buttons.takePhoto">TAKE A PHOTO</slot></button>
-					<button type="button" id="flipBtn" class="flipped">
-						<svg width='44' height='35' viewBox='0 0 44 35' fill='none' xmlns='http://www.w3.org/2000/svg'>
-							<path d='M22 7V35' stroke-width='1.38744' stroke-miterlimit='3.8637' stroke-dasharray='1.39 2.77'/>
-							<path d='M38.8375 11.5471L27.2239 20.9999L38.8375 30.4527L38.8375 11.5471Z' stroke-width='1.38744'/>
-							<path class="fill" d='M5.16247 11.5471L16.7761 20.9999L5.16247 30.4527L5.16247 11.5471Z' stroke-width='1.38744'/>
-							<path class="fill" d='M21.4447 1.75C23.851 1.75 26.2572 2.975 28.1082 5.075L26.0721 7H31.625V1.75L29.4038 3.85C27.1827 1.4 24.4063 0 21.4447 0C17.9279 0 14.7812 1.75 12.375 5.075L13.8558 6.125C15.8918 3.325 18.4832 1.75 21.4447 1.75Z'/>
-						</svg>
-					</button>
-					<div id="counter">
-						<p class="counter-number"></p>
-						<p class="counter-alt hidden"><slot name="labels.holdStill">HOLD STILL</slot></p>
-					</div>
-				</div>
-				<div class="pending-container">
-					<h2><slot name="labels.uploading">Uploading</slot></h2>
-					<div class="progress-bar">
-						<div class="progress-bar-value"></div>
-					</div>
-					<div class="loader-img">
-					  <slot name="loader-image">
-					    <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
-            </slot>
-           </div>
-				</div>
-				<div class="error-container">
-					<p><slot name="labels.errorMsg">We're sorry, but something went wrong. Please try again.</slot></p>
-					<button type="button" id="againBtn"><slot name="buttons.tryAgain">TRY AGAIN</slot></button>
-				</div>
-				<div class="permission">
-					<p><slot name="labels.permissionMsg">Enable camera please</slot></p>
-				</div>
-			</div>
-		`;
-			/*let template = this.getElementsByClassName('web-api-style')[0];
-			if (template) {
-				this.shadowRoot.insertBefore(template.content.cloneNode(true), this.shadowRoot.childNodes[1]);
-			}*/
+		  if (this.shadowRoot.innerHTML) this.shadowRoot.innerHTML = '';
+			this.shadowRoot.appendChild(template.content.cloneNode(true));
 			this.shadowRoot.getElementById('fileBtn').addEventListener('click', () => this.shadowRoot.getElementById('file').click());
 			this.shadowRoot.getElementById('file').addEventListener('click', function() { this.value = ''; });
 			this.shadowRoot.getElementById('file').addEventListener('touchstart', function() { this.value = ''; });
@@ -590,7 +72,7 @@ class WebApi extends HTMLElement {
 					let tabId = elem.id;
 					Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.tab'), elem => toggleClass(elem, 'active', tabId === elem.id));
 					Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.main > .container'), elem => {
-						toggleClass(elem, 'active', hasClass(elem, tabId.substring(0,tabId.length - 3)));
+						toggleClass(elem, 'active', hasClass(elem, tabId.substring(0, tabId.length - 3)));
 					});
 				});
 			});
@@ -607,35 +89,18 @@ class WebApi extends HTMLElement {
 			});
 			this.handleWebRTCSupport();
 			this.adjustComponent(true);
+      this.ElementQueries = ElementQueriesFactory(ResizeSensor, this.shadowRoot);
+      this.ElementQueries.listen();
+      this.ElementQueries.init();
 		});
 		window.addEventListener('resize', this.adjustComponent.bind(this));
-		this.ElementQueries = ElementQueriesFactory(ResizeSensor);
-		this.ElementQueries.listen();
-		this.ElementQueries.init();
 	}
 
-	attributeChangedCallback(name, oldValue, newValue) {
-		if (name === 'recognizer' && newValue) {
-			let recognizers = newValue.split(',');
-			if (recognizers.length === 1) recognizers = recognizers[0];
-			Microblink.SDK.SetRecognizers(recognizers);
-		}
-		else if (name === 'autoscroll') {
-			window[( newValue !== null ? 'add' : 'remove') + 'EventListener']('scroll', this.autoScrollListener);
-		}
-	}
-
-	setAuthorization(authorization) {
-		if (authorization) {
-			Microblink.SDK.SetAuthorization(authorization);
-		}
-	}
-
-	setEndPoint(endpoint) {
-		if (endpoint) {
-			Microblink.SDK.SetEndpoint(endpoint);
-		}
-	}
+  attributeChangedCallback(name, oldValue, newValue) {
+    if(name === 'autoscroll') {
+      window[(newValue !== null ? 'add' : 'remove') + 'EventListener']('scroll', this.autoScrollListener)
+    }
+  }
 
 	adjustComponent(initial) {
 		if (isMobile()) {
@@ -771,7 +236,8 @@ class WebApi extends HTMLElement {
   toggleLoader(show) {
     let loader = this.shadowRoot.querySelector('.pending-container');
     if(show) {
-      this.shadowRoot.querySelector('.progress-bar-value').style.width = '';
+      this.shadowRoot.querySelector('.progress-bar-value').textContent = '0%';
+      Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.pending-container h2'), elem => toggleClass(elem, 'hidden', !elem.matches(':first-of-type')));
       this.toggleTabs(false);
     }
     toggleClass(loader, 'show', show);
@@ -779,10 +245,10 @@ class WebApi extends HTMLElement {
 
 	toggleError(show, message) {
 		let errDialog = this.shadowRoot.querySelector('.error-container');
-    var p = errDialog.querySelector('p:not(:first-child)');
+    let p = errDialog.querySelector('p:not(:first-child)');
     if (p) errDialog.removeChild(p);
 		if (show && message) {
-		  var element = document.createElement('p');
+		  let element = document.createElement('p');
 		  element.textContent = message;
 		  errDialog.insertBefore(element, errDialog.querySelector('button'));
       addClass(errDialog.querySelector('p:first-child'), 'hidden');
@@ -816,7 +282,8 @@ class WebApi extends HTMLElement {
 			if (file.type && (file.type.indexOf('image') !== -1)) {
 				this.setFile(file);
 			} else {
-			  this.toggleError(true, 'Unsupported file type');
+			  this.toggleError(true, ERR_UNSUPPORTED_TYPE);
+			  this.dispatchEvent('error', new Error(ERR_UNSUPPORTED_TYPE));
       }
 		}
 	}
@@ -838,10 +305,10 @@ class WebApi extends HTMLElement {
 
 	setFile(file) {
 	  if (file.size > 15 * 1024 * 1024) {
-	    this.toggleError(true, `Maximum file size is 15 MB`)
+	    this.toggleError(true, 'Maximum file size is 15 MB');
+	    this.dispatchEvent('error', 'Maximum file size is 15 MB');
 	    return;
     }
-	  this.toggleUploadBar(true);
 		this.toggleLoader(true);
 		this.restart();
 		Microblink.SDK.SendImage({ blob: file }, this.onScanProgress);
@@ -867,6 +334,7 @@ class WebApi extends HTMLElement {
 			}).catch(error => {
 				this.permissionDialogAbsent(permissionTimeoutId);
 				this.toggleError(true);
+				this.dispatchEvent('error', new Error('Camera error: ' + error.name));
 				console.log(error.name); //NotFoundError, NotAllowedError, PermissionDismissedError
 			}).then(() => this.shadowRoot.getElementById('cameraBtn').removeAttribute('disabled'));
 
@@ -910,7 +378,7 @@ class WebApi extends HTMLElement {
 			  if (this.stopSendingFrames) return;
 				Microblink.SDK.SendImage(data);
 			});
-		}, 100);
+		}, 200);
 		let counterIntervalId = setInterval(() => {
 			if(countdown > 1) {
 				numberNode.textContent = String(--countdown);
@@ -931,7 +399,8 @@ class WebApi extends HTMLElement {
 			this.stopCamera();
 			this.restartCounter();
 			this.restart();
-			this.toggleError(true, 'Request Timed Out');
+			this.toggleError(true, ERR_TIMED_OUT);
+			this.dispatchEvent('error', ERR_TIMED_OUT);
 		}, 18000);
 	}
 
@@ -944,9 +413,9 @@ class WebApi extends HTMLElement {
 		let pixelData = canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height);
 		return new Promise(resolve => {
 			if (canvas.toBlob) {
-				canvas.toBlob(blob => resolve({ blob, pixelData }), "image/jpeg");
+				canvas.toBlob(blob => resolve({ blob, pixelData }), "image/jpeg", 0.95);
 			} else {
-				let binStr = atob(canvas.toDataURL("image/jpeg").split(',')[1]), len = binStr.length, arr = new Uint8Array(len);
+				let binStr = atob(canvas.toDataURL("image/jpeg", 0.95).split(',')[1]), len = binStr.length, arr = new Uint8Array(len);
 				Array.prototype.forEach.call(arr, (_, index) => arr[index] = binStr.charCodeAt(index));
 				let blob = new Blob([arr], { type: "image/jpeg" });
 				resolve({ blob, pixelData });
@@ -1003,6 +472,9 @@ class WebApi extends HTMLElement {
 			innerHtml += '</tbody></table>';
 		});
 		if (innerHtml) {
+		  if (json.summary.search(/Authorization header is missing/gi) !== -1) {
+		    innerHtml = `<p class="masked-label">${RESULT_MASKED}</p>${innerHtml}`;
+      }
 			this.shadowRoot.querySelector('.container.results').innerHTML = innerHtml;
 		} else {
       this.shadowRoot.querySelector('.container.results').innerHTML = `<span class="no-result">
@@ -1064,8 +536,7 @@ class WebApi extends HTMLElement {
 	onScanSuccess(response) {
 		if (!response) return;
 		this.stopSendingFrames = true;
-		clearInterval(this.frameSendingIntervalId);
-		clearTimeout(this.recordingTimeoutId);
+		this.clearTimers();
 		let showIntervalId = setInterval(() => {
 			if (this.enableResultShow) {
 				clearInterval(showIntervalId);
@@ -1073,59 +544,74 @@ class WebApi extends HTMLElement {
 				this.stopCamera();
 				this.restartCounter();
 				if (this.tabs) this.fillTabs(response);
-				let event;
-				if (typeof CustomEvent === 'function') {
-					event = new CustomEvent('resultReady', { detail: { result: response.result }, cancelable: true, bubbles: true });
-				} else {
-					event = document.createEvent('CustomEvent');
-					event.initCustomEvent('resultReady', true, true, { result: response.result });
-				}
-				this.dispatchEvent(event);
+				this.dispatchEvent('resultReady', response);
 			}
-		}, 100);
+		}, 200);
 	}
 
-	onScanError(errorMsg) {
-		clearInterval(this.frameSendingIntervalId);
-		clearTimeout(this.recordingTimeoutId);
+	onScanError(error) {
+		this.clearTimers();
 		this.toggleLoader(false);
 		this.stopCamera();
 		this.restartCounter();
-		this.toggleError(true);
-		let event;
-		if (typeof ErrorEvent === 'function') {
-			event = new ErrorEvent('error', { cancelable: true, bubbles: true, message: errorMsg, error: new Error(errorMsg) });
-		} else {
-			event = document.createEvent('ErrorEvent');
-			event.initErrorEvent('error', true, true, errorMsg, null, null );
-
-		}
-		this.dispatchEvent(event);
+		this.toggleError(true, error && error.message);
+		this.dispatchEvent('error', (error && error.message) || 'We\'re sorry, but something went wrong. Please try again.' );
 	}
+
+	clearTimers() {
+    clearInterval(this.frameSendingIntervalId);
+    clearTimeout(this.recordingTimeoutId);
+    clearTimeout(this.messageTimeoutId);
+  }
+
+	dispatchEvent(type, input) {
+    input = input || {};
+    let event;
+    switch(type) {
+      case 'resultReady':
+        if (typeof CustomEvent === 'function') {
+          event = new CustomEvent('resultReady', { detail: { result: input.result }, cancelable: true, bubbles: true });
+        } else {
+          event = document.createEvent('CustomEvent');
+          event.initCustomEvent('resultReady', true, true, { result: input.result });
+        }
+        break;
+      case 'error':
+        if (typeof ErrorEvent === 'function') {
+          event = new ErrorEvent('error', { cancelable: true, bubbles: true, message: input.message, error: input });
+        } else {
+          event = document.createEvent('ErrorEvent');
+          event.initErrorEvent('error', true, true, input.message, null, null);
+        }
+        break;
+      default: return;
+    }
+    super.dispatchEvent(event);
+  }
 
   onScanProgress(progressEvent) {
     let { loaded, total, lengthComputable } = progressEvent;
-    let isUploadBarHidden = hasClass(this.shadowRoot.querySelector('.progress-bar'), 'hidden');
+    let progressBar = this.shadowRoot.querySelector('.progress-bar-value');
+    let isUploadBarHidden = hasClass(progressBar, 'hidden');
     if (lengthComputable) {
       if (isUploadBarHidden) {
-        this.toggleUploadBar(true);
+        removeClass(progressBar, 'hidden');
       }
-      this.shadowRoot.querySelector('.progress-bar-value').style.width = `${ (loaded/total) * 100 }%`;
+      progressBar.textContent = `${ Math.round((loaded/total) * 100) }%`;
       if (loaded === total) {
-        setTimeout(() => this.onScanProgress({ lengthComputable: false }), 500);
+        setTimeout(() => this.changeLoaderMessage(), 200);
       }
     }
     else if(!isUploadBarHidden) {
-      this.toggleUploadBar(false);
+      addClass(progressBar, 'hidden');
     }
   }
 
-  toggleUploadBar(show) {
-	  const fn = show ? removeClass : addClass;
-	  fn(this.shadowRoot.querySelector('.pending-container'), 'loader');
-    fn(this.shadowRoot.querySelector('.progress-bar'), 'hidden');
-    fn(this.shadowRoot.querySelector('.pending-container h2'), 'hidden');
-    fn(this.shadowRoot.querySelector('.loader-img'), 'show');
+  changeLoaderMessage(cnt = 0) {
+    let messages = this.shadowRoot.querySelectorAll('.pending-container h2');
+    if (messages.length <= 1) return;
+    Array.prototype.forEach.call(messages, elem => toggleClass(elem, 'hidden', !elem.matches(`:nth-of-type(${(cnt % (messages.length - 1)) + 2})`)));
+    this.messageTimeoutId = setTimeout(() => this.changeLoaderMessage(++cnt), 1000 + Math.round(Math.random() * 3000));
   }
 
 	permissionDialogPresent() {
@@ -1138,59 +624,3 @@ class WebApi extends HTMLElement {
 
 }
 customElements.define('microblink-ui-web', WebApi);
-
-setTimeout(() => {
-	/*let template = document.createElement('template');
-	template.className = 'web-api-style';
-	template.innerHTML = `<style id="webApiTheme">
-		microblink-ui-web {
-			--mb-widget-font-family: AvenirNextPro;
-			--mb-widget-border-width: 4px;
-			--mb-widget-border-color: black;
-			--mb-default-font-color: #48b2e8;
-			--mb-btn-font-color: white;
-			--mb-btn-background-color: #48b2e8;
-			--mb-btn-background-color-hover: #26a4e4;
-			--mb-btn-flip-image-color: #48b2e8;
-			--mb-json-color-key: black;
-			--mb-json-color-string: #48b2e8;
-			--mb-json-color-boolean: black;
-			--mb-json-color-number: black;
-	}
-	</style>`;
-	document.body.appendChild(template);*/
-	/*let widgetContainer = document.querySelector('.web-api-component');
-	if (widgetContainer) {
-		widgetContainer.innerHTML += `
-		<microblink-ui-web tabs autoscroll>
-			<!--<template class="localization json">
-				{
-					"buttons" : {
-						"browse": "Prolistaj",
-						"camera": "Koristi kameru",
-						"tryAgain": "POKUŠAJTE PONOVO",
-						"takePhoto": "USLIKAJ",
-						"copy": "Kopiraj u međuspremnik"
-					},
-					"labels" : {
-						"dragDrop": "Dovuci i otpusti dokument ovdje ILI",
-						"cameraActivate": "Uključi kameru za slikanje dokumenta",
-						"errorMsg": "Nešto je pošlo krivo. Molimo pokušajte opet.",
-						"holdStill": "MIRNO DRŽI",
-						"table": {
-							"keys": "Podatkovno polje",
-							"values": "Vrijednost"
-						}
-					},
-					"tabs" : {
-						"retake": "PONOVO",
-						"results": "REZULTATI",
-						"image": "SLIKA",
-						"json": "JSON"
-					}
- 				}
-			</template>-->
-		</microblink-ui-web>`;
-	}*/
-	//document.querySelector('microblink-ui-web').switchTheme();
-	}, 0);

@@ -6,6 +6,7 @@ import typescript from 'rollup-plugin-typescript2'
 import json from 'rollup-plugin-json'
 import { terser } from "rollup-plugin-terser";
 import copy from 'rollup-plugin-cpy'
+import html from 'rollup-plugin-html'
 
 const pkg = require('./package.json')
 
@@ -62,6 +63,15 @@ export default [
       resolve(),
       // Resolve source maps to the original source
       sourceMaps(),
+      html ({
+        include: 'src/**/*.html',
+        htmlMinifierOptions: {
+          collapseWhitespace: true,
+          collapseBooleanAttributes: true,
+          conservativeCollapse: true,
+          minifyCSS: true
+        }
+      }),
     ],
   },
   {
@@ -88,7 +98,18 @@ export default [
       // Resolve source maps to the original source
       sourceMaps(),
       // Minify library
-      terser(),
+      terser({
+        output: {
+          comments: function(node, comment) {
+            var text = comment.value;
+            var type = comment.type;
+            if (type == "comment2") {
+              // multiline comment
+              return /@preserve|@license|@cc_on/i.test(text);
+            }
+          }
+        }
+      }),
     ],
   },
   {
@@ -115,7 +136,27 @@ export default [
       // Resolve source maps to the original source
       sourceMaps(),
       // Minify library
-      terser(),
+      terser({
+        output: {
+          comments: function(node, comment) {
+            var text = comment.value;
+            var type = comment.type;
+            if (type === "comment2") {
+              // multiline comment
+              return /@preserve|@license|@cc_on/i.test(text);
+            }
+          }
+        }
+      }),
+      html ({
+        include: 'src/**/*.html',
+        htmlMinifierOptions: {
+          collapseWhitespace: true,
+          collapseBooleanAttributes: true,
+          conservativeCollapse: true,
+          minifyCSS: true
+        }
+      }),
       // Copy other non TypeScript (JavaScript) dependencies to `dist`
       copy({
         files: ['src/ui/*'],

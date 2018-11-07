@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" style="font-size:20px;">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>WEB API COMPONENT DEMO</title>
@@ -13,7 +13,7 @@
     <script src="../dist/microblink.ui.min.js" ></script>
 
     <script>
-      Microblink.SDK.SetRecognizers(['MRTD'/*, 'QR', 'USDL', 'PDF417', 'CODE128', 'CODE39', 'AZTEC', 'DATA_MATRIX', 'EAN13', 'EAN8', 'ITF', 'QR', 'UPCA', 'UPCE', 'SIM', 'VIN', 'UAE_ID_FRONT', 'UAE_ID_BACK', 'CYP_ID_FRONT', 'CYP_ID_BACK'*/]);
+      Microblink.SDK.SetRecognizers(['MRTD', 'QR', 'CRO_ID_FRONT', 'CRO_ID_BACK'/*, 'QR', 'USDL', 'PDF417', 'CODE128', 'CODE39', 'AZTEC', 'DATA_MATRIX', 'EAN13', 'EAN8', 'ITF', 'QR', 'UPCA', 'UPCE', 'SIM', 'VIN', 'UAE_ID_FRONT', 'UAE_ID_BACK', 'CYP_ID_FRONT', 'CYP_ID_BACK'*/]);
       /*  Microblink.SDK.SetAuthorization('Bearer MDY0YWNlMGNiN2IzNGUwZTk4YWVmMDVhZDEyOGJjY2E6Mzk5NzNkNDUtYjg4MS00OWE1LTlhMTItYmEzYTRkNmYzY2Fj');  */
       Microblink.SDK.SetUserId('test-user-id@microblink.com');
 
@@ -37,18 +37,31 @@
 
       microblink-ui-web {
         --mb-widget-font-family: AvenirNextPro;
+        --mb-hem: 20px;
         --mb-widget-border-width: 4px;
-        --mb-widget-border-color: black;
+        --mb-alt-font-color: #575757;
         --mb-default-font-color: #48b2e8;
         --mb-btn-font-color: white;
         --mb-btn-background-color: #48b2e8;
         --mb-btn-background-color-hover: #26a4e4;
+        --mb-btn-border-radius: 0;
         --mb-btn-flip-image-color: #48b2e8;
+        --mb-dropzone-hover-color: rgba(72, 178, 232, .25);
+        --mb-loader-font-color: black;
+        --mb-loader-background-color: #48b2e8;
+        --mb-counter-background-color: rgba(72, 178, 232, 0.7);
+        --mb-counter-font-color: black;
+        --mb-tabs-hover-color: #26a4e4;
+        --mb-tabs-active-color: #48b2e8;
         --mb-json-color-key: black;
         --mb-json-color-string: #48b2e8;
         --mb-json-color-boolean: #26a4e4;
         --mb-json-color-number: black;
         --mb-json-color-null: #26a4e4;
+        --mb-dialog-font-color: white;
+        --mb-dialog-background-color: black;
+        /*--mb-progress-bar-value-color: #48b2e8;
+        --mb-progress-bar-color: rgba(72, 128, 232, 0.25);*/
       }
     </style>
 
@@ -56,6 +69,33 @@
 <body>
   <div class="microblink-ui-component-wrapper">
     <microblink-ui-web tabs autoscroll>
+      <!--<template class="localization json">
+				{
+					"buttons" : {
+						"browse": "Prolistaj",
+						"camera": "Koristi kameru",
+						"tryAgain": "POKUŠAJTE PONOVO",
+						"takePhoto": "USLIKAJ",
+						"copy": "Kopiraj u međuspremnik"
+					},
+					"labels" : {
+						"dragDrop": "Dovuci i otpusti dokument ovdje ILI",
+						"cameraActivate": "Uključi kameru za slikanje dokumenta",
+						"errorMsg": "Nešto je pošlo krivo. Molimo pokušajte opet.",
+						"holdStill": "MIRNO DRŽI",
+						"table": {
+							"keys": "Podatkovno polje",
+							"values": "Vrijednost"
+						}
+					},
+					"tabs" : {
+						"retake": "PONOVO",
+						"results": "REZULTATI",
+						"image": "SLIKA",
+						"json": "JSON"
+					}
+ 				}
+			</template>-->
         <img slot="loader-image" src="https://microblink.com/bundles/microblinkmicroblink/images/loading-animation-on-blue.gif" />
     </microblink-ui-web>
   </div>
