@@ -15,6 +15,11 @@ if (window) {
 	window['Microblink'] = Microblink;
 }
 
+//insert web components light polyfill for cross-browser compatibility
+let script = document.createElement('script');
+script.src = '//unpkg.com/@webcomponents/webcomponentsjs/webcomponents-loader.js'
+document.head.insertBefore(script, document.head.querySelector('script[src$="microblink.ui.min.js"]'));
+
 let template = document.createElement('template');
 template.innerHTML = templateHtml;
 
