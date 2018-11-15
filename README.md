@@ -131,7 +131,7 @@ Below is the list of all currently available style hooks with their explanations
 
 
 | Property | Description |
-| :------- -------------------------| :----------|
+| :-------------------------------| :----------|
 | --mb-hem | This is basically CSS rem unit for the component. Default value is set to page's 1rem. If you wish to scale up or down text size of the component, use this property. |
 | --mb-widget-font-family | Use to define component's font family. Default value: `Helvetica, Tahoma, Verdana, Arial, sans-serif` |
 | --mb-widget-border-width | Border width of the entire component. Default value: `0` |
