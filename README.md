@@ -24,13 +24,13 @@ To avoid the leaking of your credentials (Microblink API Authorization header = 
 
 Minimum proxy implementation which ensure the security for your credentials are available here https://github.com/microblink/microblink-api-proxy-example this example can be easily hosted at Webtask.io service in few minutes. More details about this example are available in this [README.md](https://github.com/microblink/microblink-api-proxy-example/blob/master/README.md)
 
-##Using web component
+## Using web component
 
 To skip developing your own front-end UI solution, we have included our web component in the package to provide you quick and easy integration, theme customization and labels translation.
 Under the hood we are using [WebComponents](https://www.webcomponents.org/) technology, custom elements and shadow DOM.
 Just insert our custom html element `<microblink-ui-web></microblink-ui-web>` into your page and the component will be rendered with initial setup.
 
-###Javascript events
+### Javascript events
 
 As we have developed our UI solution as a custom html element, we have also implemented it to dispatch additional HTML DOM events which can easily be accessed with javascript.  
 Component fires two kind of events which are important for interacting with the rest of the page. Adding event listeners is the way to communicate with the component. 
@@ -57,7 +57,7 @@ document.querySelector('microblink-ui-web').addEventListener('error', function(/
 });
 ```
 
-###Setting component dimensions
+### Setting component dimensions
 
 The component will initially stretch to the size of it's container. To control component's width and height, we recommend wrapping it inside a single `<div>` and setting css dimension properties on wrapper `<div>` element.  
 For better UX, when viewing your page from a mobile browser, the component's height is set to 100% height of the viewport, but not more than a container's height. This gives you an option to control component's height inside viewport height range.
@@ -131,7 +131,7 @@ Below is the list of all currently available style hooks with their explanations
 
 
 | Property | Description |
-| :------- | :----------:|
+| :------- -------------------------| :----------|
 | --mb-hem | This is basically CSS rem unit for the component. Default value is set to page's 1rem. If you wish to scale up or down text size of the component, use this property. |
 | --mb-widget-font-family | Use to define component's font family. Default value: `Helvetica, Tahoma, Verdana, Arial, sans-serif` |
 | --mb-widget-border-width | Border width of the entire component. Default value: `0` |
@@ -155,7 +155,7 @@ There are additional properties to style component if you are using 'tabs' optio
 They are listed below:
 
 | Property | Description |
-| :------- | :----------:|
+| :----------------------------------- | :----------|
 | --mb-tabs-font-color | Font color of tabs. Default value: `white` |
 | --mb-tabs-background-color | Background color of tabs. Default value: `black` |
 | --mb-tabs-border-width | Use to set bottom border width for underlined text inside tabs. Default value: `4px` |
