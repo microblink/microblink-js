@@ -17,7 +17,7 @@ if (window) {
 
 //insert web components light polyfill for cross-browser compatibility
 let script = document.createElement('script');
-script.src = '//unpkg.com/@webcomponents/webcomponentsjs/webcomponents-loader.js'
+script.src = '//unpkg.com/@webcomponents/webcomponentsjs/webcomponents-loader.js';
 document.head.insertBefore(script, document.head.querySelector('script[src$="microblink.ui.min.js"]'));
 
 let template = document.createElement('template');
@@ -47,59 +47,59 @@ class WebApi extends HTMLElement {
 		this.onScanProgress = this.onScanProgress.bind(this);
 		this.startRecording = this.startRecording.bind(this);
 		this.autoScrollListener = this.autoScrollListener.bind(this);
-		Microblink.SDK.RegisterListener(this);
+		this.getLocalization = this.getLocalization.bind(this);
+    document.addEventListener('DOMContentLoaded', this.getLocalization);
+    Microblink.SDK.RegisterListener(this);
 	}
 
-	connectedCallback() {
-		this.getLocalization().then(() => {
-		  if (this.shadowRoot.innerHTML) this.shadowRoot.innerHTML = '';
-			this.shadowRoot.appendChild(template.content.cloneNode(true));
-			this.shadowRoot.getElementById('fileBtn').addEventListener('click', () => this.shadowRoot.getElementById('file').click());
-			this.shadowRoot.getElementById('file').addEventListener('click', function() { this.value = ''; });
-			this.shadowRoot.getElementById('file').addEventListener('touchstart', function() { this.value = ''; });
-			this.shadowRoot.getElementById('file').addEventListener('change', this.fileChosen.bind(this));
-			this.shadowRoot.getElementById('againBtn').addEventListener('click', () => {
-				this.restart();
-				this.stopCamera();
-				this.toggleError();
-			});
-			this.shadowRoot.querySelector('.dropzone').addEventListener('dragover', event => event.preventDefault());
-			this.shadowRoot.querySelector('.dropzone').addEventListener('drop', this.onDrop.bind(this));
-			this.shadowRoot.querySelector('.dropzone').addEventListener('dragenter', this.onDragEnter.bind(this));
-			this.shadowRoot.querySelector('.dropzone').addEventListener('dragleave', this.onDragLeave.bind(this));
-			this.shadowRoot.getElementById('cameraBtn').addEventListener('click', this.activateCamera.bind(this));
-			this.shadowRoot.querySelector('video').addEventListener('loadedmetadata', function() { this.play(); });
-			this.shadowRoot.getElementById('photoBtn').addEventListener('click', () => this.startRecording());
-			this.shadowRoot.getElementById('flipBtn').addEventListener('click', this.flipCamera.bind(this));
+  connectedCallback() {
+    if(this.shadowRoot.innerHTML) this.shadowRoot.innerHTML = '';
+    this.shadowRoot.appendChild(template.content.cloneNode(true));
+    this.shadowRoot.getElementById('fileBtn').addEventListener('click', () => this.shadowRoot.getElementById('file').click());
+    this.shadowRoot.getElementById('file').addEventListener('click', function() { this.value = ''; });
+    this.shadowRoot.getElementById('file').addEventListener('touchstart', function() { this.value = ''; });
+    this.shadowRoot.getElementById('file').addEventListener('change', this.fileChosen.bind(this));
+    this.shadowRoot.getElementById('againBtn').addEventListener('click', () => {
+      this.restart();
+      this.stopCamera();
+      this.toggleError();
+    });
+    this.shadowRoot.querySelector('.dropzone').addEventListener('dragover', event => event.preventDefault());
+    this.shadowRoot.querySelector('.dropzone').addEventListener('drop', this.onDrop.bind(this));
+    this.shadowRoot.querySelector('.dropzone').addEventListener('dragenter', this.onDragEnter.bind(this));
+    this.shadowRoot.querySelector('.dropzone').addEventListener('dragleave', this.onDragLeave.bind(this));
+    this.shadowRoot.getElementById('cameraBtn').addEventListener('click', this.activateCamera.bind(this));
+    this.shadowRoot.querySelector('video').addEventListener('loadedmetadata', function() { this.play(); });
+    this.shadowRoot.getElementById('photoBtn').addEventListener('click', () => this.startRecording());
+    this.shadowRoot.getElementById('flipBtn').addEventListener('click', this.flipCamera.bind(this));
 
-			Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.tab'), elem => {
-				elem.addEventListener('click', () => {
-					let tabId = elem.id;
-					Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.tab'), elem => toggleClass(elem, 'active', tabId === elem.id));
-					Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.main > .container'), elem => {
-						toggleClass(elem, 'active', hasClass(elem, tabId.substring(0, tabId.length - 3)));
-					});
-				});
-			});
+    Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.tab'), elem => {
+      elem.addEventListener('click', () => {
+        let tabId = elem.id;
+        Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.tab'), elem => toggleClass(elem, 'active', tabId === elem.id));
+        Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.main > .container'), elem => {
+          toggleClass(elem, 'active', hasClass(elem, tabId.substring(0, tabId.length - 3)));
+        });
+      });
+    });
 
-			this.shadowRoot.getElementById('copyBtn').addEventListener('click', () => {
-				let text = this.shadowRoot.querySelector('.main > .json > div').textContent;
-				let textarea = document.createElement('textarea');
-				textarea.value = text;
-				textarea.className += 'cpyTxtArea';
-				this.shadowRoot.appendChild(textarea);
-				textarea.select();
-				document.execCommand('copy');
-				this.shadowRoot.removeChild(textarea);
-			});
-			this.handleWebRTCSupport();
-			this.adjustComponent(true);
-      this.ElementQueries = ElementQueriesFactory(ResizeSensor, this.shadowRoot);
-      this.ElementQueries.listen();
-      this.ElementQueries.init();
-		});
-		window.addEventListener('resize', this.adjustComponent.bind(this));
-	}
+    this.shadowRoot.getElementById('copyBtn').addEventListener('click', () => {
+      let text = this.shadowRoot.querySelector('.main > .json > div').textContent;
+      let textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.className += 'cpyTxtArea';
+      this.shadowRoot.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      this.shadowRoot.removeChild(textarea);
+    });
+    this.handleWebRTCSupport();
+    this.adjustComponent(true);
+    this.ElementQueries = ElementQueriesFactory(ResizeSensor, this.shadowRoot);
+    this.ElementQueries.listen();
+    this.ElementQueries.init();
+    window.addEventListener('resize', this.adjustComponent.bind(this));
+  }
 
   attributeChangedCallback(name, oldValue, newValue) {
     if(name === 'autoscroll') {
@@ -161,7 +161,7 @@ class WebApi extends HTMLElement {
 				let isJson = /\sjson\s/.test(` ${template.className} `);
 				if (isJson) {
 					try {
-						this.handleJson(JSON.parse(template.content.textContent));
+						this.handleJson(JSON.parse(template.content.textContent.trim().replace(/\\n/g, '<br/>')));
 						resolve(true);
 					} catch(exception) {
 						resolve(false);
@@ -172,7 +172,7 @@ class WebApi extends HTMLElement {
 					xhr.onreadystatechange = () => {
 						if (xhr.readyState === 4 && xhr.status === 200) {
 							try {
-								this.handleJson(JSON.parse(xhr.responseText));
+								this.handleJson(JSON.parse(xhr.responseText.trim().replace(/\\n/g, '<br/>')));
 								resolve(true);
 							} catch (exception) {
 								resolve(false);
