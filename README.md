@@ -132,39 +132,39 @@ Below is the list of all currently available style hooks with their explanations
 
 | Property | Description |
 | :-------------------------------| :----------|
-| --mb-hem | This is basically CSS rem unit for the component. Default value is set to page's 1rem. If you wish to scale up or down text size of the component, use this property. |
-| --mb-widget-font-family | Use to define component's font family. Default value: `Helvetica, Tahoma, Verdana, Arial, sans-serif` |
-| --mb-widget-border-width | Border width of the entire component. Default value: `0` |
-| --mb-widget-border-color | Border color of the component. Default value: `black` |
-| --mb-widget-background-color | Background color of the component. Default value: `transparent` |
-| --mb-alt-font-color | This property is used to set font color of the initial display labels. Default value: `black` |
-| --mb-btn-font-color | Use to set buttons' font color. Default: `white` |
-| --mb-btn-background-color | Background color of buttons. Default: `black` |
-| --mb-btn-background-color-hover | Background color of hovered buttons. Default: `dimgrey` |
-| --mb-btn-flip-image-color | Color of the camera flip button. Default: `black` |
-| --mb-btn-border-radius | Set the buttons' border radius. Default values is `5px`  |
-| --mb-dropzone-hover-color | Background color of drag and drop area when hovered with some dragged document. Default value: `rgba(0, 0, 0, .25)` |
-| --mb-loader-font-color | Font color of the loader dialog during file upload and processing. If not set, fallback to --mb-dialog-font-color. |
-| --mb-loader-background-color | Background color of the loader dialog. If not set, fallback to --mb-dialog-background-color. |
-| --mb-dialog-font-color | Use to set font color of the permission and error dialogs. Default value: `black` |
-| --mb-dialog-background-color | Use to set background color of the permission and error dialogs. Default value: `white` |
-| --mb-counter-font-color | Use to set font color of the counter display, shown when capturing frames. Default value: `white` |
-| --mb-counter-background-color | Use to set background color of the counter display. Default value: `rgba(0, 0, 0, 0.7)` |  
+| -\-mb-hem | This is basically CSS rem unit for the component. Default value is set to page's 1rem. If you wish to scale up or down text size of the component, use this property. |
+| -\-mb-widget-font-family | Use to define component's font family. Default value: `Helvetica, Tahoma, Verdana, Arial, sans-serif` |
+| -\-mb-widget-border-width | Border width of the entire component. Default value: `0` |
+| -\-mb-widget-border-color | Border color of the component. Default value: `black` |
+| -\-mb-widget-background-color | Background color of the component. Default value: `transparent` |
+| -\-mb-alt-font-color | This property is used to set font color of the initial display labels. Default value: `black` |
+| -\-mb-btn-font-color | Use to set buttons' font color. Default: `white` |
+| -\-mb-btn-background-color | Background color of buttons. Default: `black` |
+| -\-mb-btn-background-color-hover | Background color of hovered buttons. Default: `dimgrey` |
+| -\-mb-btn-flip-image-color | Color of the camera flip button. Default: `black` |
+| -\-mb-btn-border-radius | Set the buttons' border radius. Default values is `5px`  |
+| -\-mb-dropzone-hover-color | Background color of drag and drop area when hovered with some dragged document. Default value: `rgba(0, 0, 0, .25)` |
+| -\-mb-loader-font-color | Font color of the loader dialog during file upload and processing. If not set, fallback to -\-mb-dialog-font-color. |
+| -\-mb-loader-background-color | Background color of the loader dialog. If not set, fallback to -\-mb-dialog-background-color. |
+| -\-mb-dialog-font-color | Use to set font color of the permission and error dialogs. Default value: `black` |
+| -\-mb-dialog-background-color | Use to set background color of the permission and error dialogs. Default value: `white` |
+| -\-mb-counter-font-color | Use to set font color of the counter display, shown when capturing frames. Default value: `white` |
+| -\-mb-counter-background-color | Use to set background color of the counter display. Default value: `rgba(0, 0, 0, 0.7)` |  
 
 There are additional properties to style component if you are using 'tabs' option to display results inside a component.  
 They are listed below:
 
 | Property | Description |
 | :----------------------------------- | :----------|
-| --mb-tabs-font-color | Font color of tabs. Default value: `white` |
-| --mb-tabs-background-color | Background color of tabs. Default value: `black` |
-| --mb-tabs-border-width | Use to set bottom border width for underlined text inside tabs. Default value: `4px` |
-| --mb-tabs-active-color | Use to set font color of active tab, the one whose corresponding container is displayed. Default value: first fallback to --mb-tabs-hover-color, second to `#ddd` |
-| --mb-tabs-hover-color | Use to set font color of hovered tab. Default value: first fallback to --mb-tabs-active-color, second to `#ddd`|
-| --mb-default-font-color | Use to set the font color of table results display. Default value: `black` |
-| --mb-table-header-background-color | Use to set the background color of table headers in a results display. Default value: `#f2f2f2` |
-| --mb-json-color-key | Inside JSON view, use to set font color of the keys. Default value: `#ff0000` |
-| --mb-json-color-string | Inside JSON view, use to set font color of string values. Default value: `#008000` |
-| --mb-json-color-number | Inside JSON view, use to set font color of number values. Default value: `#ffc000` |
-| --mb-json-color-boolean | Inside JSON view, use to set font color of boolean values. Default value: `#0000FF` |
-| --mb-json-color-null | Inside JSON view, use to set font color of the null values. Default value: `#ff00ff` |
+| -\-mb-tabs-font-color | Font color of tabs. Default value: `white` |
+| -\-mb-tabs-background-color | Background color of tabs. Default value: `black` |
+| -\-mb-tabs-border-width | Use to set bottom border width for underlined text inside tabs. Default value: `4px` |
+| -\-mb-tabs-active-color | Use to set font color of active tab, the one whose corresponding container is displayed. Default value: first fallback to -\-mb-tabs-hover-color, second to `#ddd` |
+| -\-mb-tabs-hover-color | Use to set font color of hovered tab. Default value: first fallback to -\-mb-tabs-active-color, second to `#ddd`|
+| -\-mb-default-font-color | Use to set the font color of table results display. Default value: `black` |
+| -\-mb-table-header-background-color | Use to set the background color of table headers in a results display. Default value: `#f2f2f2` |
+| -\-mb-json-color-key | Inside JSON view, use to set font color of the keys. Default value: `#ff0000` |
+| -\-mb-json-color-string | Inside JSON view, use to set font color of string values. Default value: `#008000` |
+| -\-mb-json-color-number | Inside JSON view, use to set font color of number values. Default value: `#ffc000` |
+| -\-mb-json-color-boolean | Inside JSON view, use to set font color of boolean values. Default value: `#0000FF` |
+| -\-mb-json-color-null | Inside JSON view, use to set font color of the null values. Default value: `#ff00ff` |
