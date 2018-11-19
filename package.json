@@ -1,6 +1,6 @@
 {
   "name": "microblink",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "",
   "keywords": [],
   "main": "dist/microblink.sdk.umd.js",
@@ -83,10 +83,16 @@
     ]
   },
   "devDependencies": {
+    "@babel/core": "^7.1.6",
+    "@babel/plugin-transform-runtime": "^7.1.0",
+    "@babel/preset-env": "^7.1.6",
+    "@babel/runtime": "^7.1.5",
+    "@babel/runtime-corejs2": "^7.1.5",
     "@commitlint/cli": "^7.0.0",
     "@commitlint/config-conventional": "^7.0.1",
     "@types/jest": "^22.0.0",
     "@types/node": "^10.0.3",
+    "babel-plugin-transform-custom-element-classes": "^0.1.0",
     "colors": "^1.1.2",
     "commitizen": "^2.9.6",
     "coveralls": "^3.0.0",
@@ -101,6 +107,7 @@
     "replace-in-file": "^3.0.0-beta.2",
     "rimraf": "^2.6.1",
     "rollup": "^0.66.1",
+    "rollup-plugin-babel": "^4.0.3",
     "rollup-plugin-commonjs": "^9.0.0",
     "rollup-plugin-cpy": "^1.1.0",
     "rollup-plugin-html": "^0.2.1",
