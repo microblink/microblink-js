@@ -16,6 +16,24 @@ This package includes library for image preparation and HTTP integration with Mi
 
 Also, this package has an Microblink API UI web component available as custom HTML tag `<microblink-ui-web></microblink-ui-web>` which has native camera management for mobile and desktop devices with WebRTC support and file management solution.
 
+## How to use
+
+### Install package
+
+```
+npm install microblink
+```
+
+### Using CDN
+
+You can also link the scripts from unpkg: https://unpkg.com/microblink/dist/
+
+If you wish to use only SDK without UI component, use minified version [microblink.sdk.min.js](https://unpkg.com/microblink/dist/microblink.sdk.min.js)
+
+For the whole thing, we recommend using [es6 version](https://unpkg.com/microblink/dist/microblink.min.js) for better performance. 
+If you really want es5, you can find minified version [here](https://unpkg.com/microblink/dist/microblink.es5.min.js). 
+
+
 ## Microblink API Proxy
 
 To avoid the leaking of your credentials (Microblink API Authorization header = API key + API secret) by your visitors in the frontend Javascript application, your frontend application in the production environment should has an access to the backend proxy application and backend proxy application should append the authorization credentials, and also in this proxy application you could execute your additional business logic.

@@ -282,6 +282,7 @@
     table-layout: fixed;
     width: 100%;
     border-collapse: collapse;
+    caption-side: top;
   }
   .results table + table {
     margin-top: calc(1.5 * var(--mb-hem));
@@ -495,7 +496,7 @@
         <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
       </slot>
     </div>
-    <h2><slot name="labels.uploading">Uploading</slot> <span class="progress-bar-value"></span></h2>
+    <h2><slot name="labels.uploading">Uploading</slot>&nbsp;<span class="progress-bar-value"></span></h2>
     <h2><slot name="labels.processing">Processing</slot></h2>
     <h2><slot name="labels.analyzing">Analyzing</slot></h2>
     <h2><slot name="labels.extracting">Extracting data</slot></h2>

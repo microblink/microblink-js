@@ -18,7 +18,7 @@ export default [
     input: `src/${camelCase(libraryName)}.SDK.ts`,
     output: [
       { file: 'dist/' + camelCase(libraryName) + '.sdk.umd.js', name: libraryName, format: 'umd', sourcemap: true },
-      { file: 'dist/' + camelCase(libraryName) + '.sdk.es5.js', format: 'es', sourcemap: true },
+      { file: 'dist/' + camelCase(libraryName) + '.sdk.js', format: 'es', sourcemap: true },
     ],
     // Indicate here external modules you don't wanna include in your bundle (i.e.: 'lodash')
     external: [],
@@ -43,8 +43,8 @@ export default [
   {
     input: `src/${camelCase(libraryName)}.UI.ts`,
     output: [
-      { file: 'dist/' + camelCase(libraryName) + '.ui.umd.js', name: libraryName, format: 'umd', sourcemap: true },
-      { file: 'dist/' + camelCase(libraryName) + '.ui.es5.js', format: 'es', sourcemap: true },
+      { file: 'dist/' + camelCase(libraryName) + '.umd.js', name: libraryName, format: 'umd', sourcemap: true },
+      { file: 'dist/' + camelCase(libraryName) + '.js', format: 'es', sourcemap: true },
     ],
     // Indicate here external modules you don't wanna include in your bundle (i.e.: 'lodash')
     external: [],
@@ -99,24 +99,13 @@ export default [
       // Resolve source maps to the original source
       sourceMaps(),
       // Minify library
-      terser({
-        output: {
-          comments: function(node, comment) {
-            var text = comment.value;
-            var type = comment.type;
-            if (type == "comment2") {
-              // multiline comment
-              return /@preserve|@license|@cc_on/i.test(text);
-            }
-          }
-        }
-      }),
+      terser(),
     ],
   },
   {
     input: `src/${camelCase(libraryName)}.UI.ts`,
     output: [
-      { file: 'dist/' + camelCase(libraryName) + '.ui.min.js', name: libraryName, format: 'iife', sourcemap: false }
+      { file: 'dist/' + camelCase(libraryName) + '.min.js', name: libraryName, format: 'iife', sourcemap: false }
     ],
     // Indicate here external modules you don't wanna include in your bundle (i.e.: 'lodash')
     external: [],

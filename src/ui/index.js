@@ -15,9 +15,6 @@ if (window) {
 	window['Microblink'] = Microblink;
 }
 
-let template = document.createElement('template');
-template.innerHTML = templateHtml;
-
 const ERR_TIMED_OUT = 'Request Timed Out';
 const ERR_UNSUPPORTED_TYPE = 'Unsupported file type';
 const RESULT_MASKED = 'Please notice that your results are masked due to missing Authorization header';
@@ -31,6 +28,10 @@ script.addEventListener('load', function() {
 document.head.insertBefore(script, document.head.querySelector('script[src$="microblink.ui.min.js"]'));
 
 function defineComponent() {
+
+  let template = document.createElement('template');
+  template.innerHTML = templateHtml;
+
   class WebApi extends HTMLElement {
 
     static get observedAttributes() {
