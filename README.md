@@ -186,3 +186,10 @@ They are listed below:
 | -\-mb-json-color-number | Inside JSON view, use to set font color of number values. Default value: `#ffc000` |
 | -\-mb-json-color-boolean | Inside JSON view, use to set font color of boolean values. Default value: `#0000FF` |
 | -\-mb-json-color-null | Inside JSON view, use to set font color of the null values. Default value: `#ff00ff` |
+
+
+## Development
+
+### Realtime build
+
+`npm start`
