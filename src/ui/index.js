@@ -69,11 +69,21 @@ function defineComponent() {
         this.stopCamera();
         this.toggleError();
       });
+      this.shadowRoot.getElementById('cancelBtn').addEventListener('click', () => {
+        this.stopCamera();
+      });
+      document.addEventListener('keydown', (evt) => {
+        evt = evt || window.event;
+        if (evt.key === 'Escape') {
+          this.stopCamera();
+        }
+      });
       this.shadowRoot.querySelector('.dropzone').addEventListener('dragover', event => event.preventDefault());
       this.shadowRoot.querySelector('.dropzone').addEventListener('drop', this.onDrop.bind(this));
       this.shadowRoot.querySelector('.dropzone').addEventListener('dragenter', this.onDragEnter.bind(this));
       this.shadowRoot.querySelector('.dropzone').addEventListener('dragleave', this.onDragLeave.bind(this));
-      this.shadowRoot.getElementById('cameraBtn').addEventListener('click', this.activateCamera.bind(this));
+      this.shadowRoot.getElementById('cameraLocalBtn').addEventListener('click', this.activateCamera.bind(this));
+      this.shadowRoot.querySelector('video').addEventListener('loadedmetadata', function() { this.play(); });
       this.shadowRoot.getElementById('photoBtn').addEventListener('click', () => this.startRecording());
       this.shadowRoot.getElementById('flipBtn').addEventListener('click', this.flipCamera.bind(this));
       let video = this.shadowRoot.getElementById('video');
@@ -123,6 +133,9 @@ function defineComponent() {
         }
         if (initial === true) {
           this.shadowRoot.getElementById('flipBtn').style.setProperty('display', 'none', 'important');
+          this.shadowRoot.getElementById('cameraRemoteBtn').style.setProperty('display', 'none', 'important');
+          this.shadowRoot.getElementById('cameraBtnSeparator').style.setProperty('display', 'none', 'important');
+          this.shadowRoot.getElementById('cameraLocalBtn').innerHTML = 'Use camera';
           Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('#flipBtn, .video video'), elem => toggleClass(elem, 'flipped'));
           Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.dropzone .intro-label'), elem => toggleClass(elem, 'hidden'));
         }
@@ -320,7 +333,7 @@ function defineComponent() {
 
     activateCamera() {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        this.shadowRoot.getElementById('cameraBtn').setAttribute('disabled', '');
+        this.shadowRoot.getElementById('cameraLocalBtn').setAttribute('disabled', '');
         let constraints = { video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: { ideal: 'environment' } } };
         let permissionTimeoutId = setTimeout(() => { permissionTimeoutId = null; this.permissionDialogPresent(); }, 1500); //this is "event" in case of browser's camera allow/block dialog
         navigator.mediaDevices.getUserMedia(constraints).then(stream => {
@@ -346,7 +359,7 @@ function defineComponent() {
           this.toggleError(true);
           this.dispatchEvent('error', new Error('Camera error: ' + error.name));
           console.log(error.name); //NotFoundError, NotAllowedError, PermissionDismissedError
-        }).then(() => this.shadowRoot.getElementById('cameraBtn').removeAttribute('disabled'));
+        }).then(() => this.shadowRoot.getElementById('cameraLocalBtn').removeAttribute('disabled'));
 
       } else {
         alert('WebRTC not supported by your browser'); //should we fallback to flash?
