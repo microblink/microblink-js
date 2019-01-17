@@ -102,7 +102,8 @@ To clarify, we are providing an example with all currently customizable labels a
 		{
 			"buttons": {
 				"browse": "Browse",
-				"camera": "Use camera",
+				"cameraLocal": "Use web camera",
+				"cameraRemote": "Use remote phone camera",
 				"tryAgain": "TRY AGAIN",
 				"takePhoto": "TAKE A PHOTO",
 				"copy": "Copy to clipboard"
@@ -118,11 +119,14 @@ To clarify, we are providing an example with all currently customizable labels a
 					"keys": "Data field from the ID",
 					"values": "Value"
 				},
-     			"uploading" : "Uploading",
-     			"processing" : "Processing",
-     			"analyzing" : "Analyzing",
-     			"extracting" : "Extracting data",
-     			"almostDone" : "Almost done"
+				"uploading" : "Uploading",
+				"processing" : "Processing",
+				"analyzing" : "Analyzing",
+				"extracting" : "Extracting data",
+				"almostDone" : "Almost done",
+				"openLinkAtSmartphone": "Please open exchange link in the browser at smartphone.",
+				"generatingExchangeLink": "Generating exchange link...",
+				"exchangeLinkTitle": "Exchange link is"
 			},
 			"tabs": {
 				"retake": "RETAKE",

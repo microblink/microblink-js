@@ -8,6 +8,7 @@ import {
   StatusCodes as statusCodes
 } from './microblink.SDK.types'
 import { IMicroblink } from './microblink.interface'
+import { ScanExchanger } from './microblink.types'
 
 /**
  * Helper for detecting ScanInputFrame type
@@ -117,4 +118,12 @@ export namespace SDK {
    * Get all SDK status codes
    */
   export const StatusCodes = statusCodes
+
+  /**
+   * Create object to exchange data between devices
+   * @param data is object with ScanExchanger structure
+   */
+  export function CreateScanExchanger(data: ScanExchanger = {}): Promise<ScanExchanger> {
+    return SDK.CreateScanExchanger(data)
+  }
 }

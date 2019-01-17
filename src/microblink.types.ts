@@ -47,3 +47,13 @@ export enum StatusCodes {
   ResultIsNotValidJSON = 'RESULT_IS_NOT_VALID_JSON',
   TimedOut = 'CONNECTION_TIMED_OUT'
 }
+
+/**
+ * Object which is exchanged over network (Firestore) between devices for feature "Desktop to mobile"
+ * ("Use remote phone camera")
+ */
+export interface ScanExchanger {
+  scanId?: string
+  key?: string
+  shortLink?: string
+}

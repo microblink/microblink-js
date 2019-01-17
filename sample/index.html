@@ -4,11 +4,31 @@
     <meta charset="UTF-8">
     <title>WEB API COMPONENT DEMO</title>
     <meta name="viewport" content="initial-scale=1, user-scalable=no"/>
-  <style>
-    @font-face {font-family: 'AvenirNextPro';font-weight: 700;font-style: normal;src: url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_0_0.eot");src: url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_0_0.eot?#iefix") format("embedded-opentype"), url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_0_0.woff2") format("woff2"), url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_0_0.woff") format("woff"), url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_0_0.ttf") format("truetype"), url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_0_0.svg#wf") format("svg");}
-    @font-face {font-family: 'AvenirNextPro';font-weight: 500;font-style: normal;src: url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_2_0.eot");src: url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_2_0.eot?#iefix") format("embedded-opentype"), url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_2_0.woff2") format("woff2"), url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_2_0.woff") format("woff"), url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_2_0.ttf") format("truetype"), url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_2_0.svg#wf") format("svg");}
-    @font-face {font-family: 'AvenirNextPro';font-weight: 400;font-style: normal;src: url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_3_0.eot");src: url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_3_0.eot?#iefix") format("embedded-opentype"), url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_3_0.woff2") format("woff2"), url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_3_0.woff") format("woff"), url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_3_0.ttf") format("truetype"), url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_3_0.svg#wf") format("svg");}
-  </style>
+    <style>
+      @font-face {font-family: 'AvenirNextPro';font-weight: 700;font-style: normal;src: url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_0_0.eot");src: url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_0_0.eot?#iefix") format("embedded-opentype"), url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_0_0.woff2") format("woff2"), url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_0_0.woff") format("woff"), url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_0_0.ttf") format("truetype"), url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_0_0.svg#wf") format("svg");}
+      @font-face {font-family: 'AvenirNextPro';font-weight: 500;font-style: normal;src: url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_2_0.eot");src: url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_2_0.eot?#iefix") format("embedded-opentype"), url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_2_0.woff2") format("woff2"), url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_2_0.woff") format("woff"), url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_2_0.ttf") format("truetype"), url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_2_0.svg#wf") format("svg");}
+      @font-face {font-family: 'AvenirNextPro';font-weight: 400;font-style: normal;src: url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_3_0.eot");src: url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_3_0.eot?#iefix") format("embedded-opentype"), url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_3_0.woff2") format("woff2"), url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_3_0.woff") format("woff"), url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_3_0.ttf") format("truetype"), url("https://storage.googleapis.com/microblink-data-public/general-static-assets/webfonts/3573C4_3_0.svg#wf") format("svg");}
+    </style>
+
+    <!-- For desktop to mobile ("Use remote phone camera" feature) Firebase (Firestore) is required to exchange data between two devices -->
+    <!-- Firebase App is always required and must be first -->
+    <script src="https://www.gstatic.com/firebasejs/5.7.2/firebase-app.js"></script>
+    <!-- Add additional services that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/5.7.2/firebase-firestore.js"></script>
+
+    <script>
+      // Initialize Firebase
+      // TODO: Replace with your project's customized code snippet
+      var config = {
+        apiKey: "<API_KEY>",
+        authDomain: "<PROJECT_ID>.firebaseapp.com",
+        databaseURL: "https://<DATABASE_NAME>.firebaseio.com",
+        projectId: "<PROJECT_ID>",
+        storageBucket: "<BUCKET>.appspot.com",
+        messagingSenderId: "<SENDER_ID>",
+      };
+      firebase.initializeApp(config);
+    </script>
 
     <script src="../dist/microblink.min.js" ></script>
 

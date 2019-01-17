@@ -4,7 +4,7 @@ import templateHtml from './html/component.html';
 import ResizeSensor from './ResizeSensor.js';
 import ElementQueriesFactory from './ElementQueries.js';
 
-import {escapeHtml, labelFromCamelCase, dateFromObject, isMobile, hasClass, addClass, removeClass, toggleClass} from './utils.js';
+import {escapeHtml, labelFromCamelCase, dateFromObject, isMobile, hasClass, addClass, removeClass, toggleClass, isRemotePhoneCameraAvailable} from './utils.js';
 
 const Microblink = {
 	SDK: SDK
@@ -82,7 +82,8 @@ function defineComponent() {
       this.shadowRoot.querySelector('.dropzone').addEventListener('drop', this.onDrop.bind(this));
       this.shadowRoot.querySelector('.dropzone').addEventListener('dragenter', this.onDragEnter.bind(this));
       this.shadowRoot.querySelector('.dropzone').addEventListener('dragleave', this.onDragLeave.bind(this));
-      this.shadowRoot.getElementById('cameraLocalBtn').addEventListener('click', this.activateCamera.bind(this));
+      this.shadowRoot.getElementById('cameraLocalBtn').addEventListener('click', this.activateLocalCamera.bind(this));
+      this.shadowRoot.getElementById('cameraRemoteBtn').addEventListener('click', this.activateRemoteCamera.bind(this));
       this.shadowRoot.querySelector('video').addEventListener('loadedmetadata', function() { this.play(); });
       this.shadowRoot.getElementById('photoBtn').addEventListener('click', () => this.startRecording());
       this.shadowRoot.getElementById('flipBtn').addEventListener('click', this.flipCamera.bind(this));
@@ -135,10 +136,15 @@ function defineComponent() {
           this.shadowRoot.getElementById('flipBtn').style.setProperty('display', 'none', 'important');
           this.shadowRoot.getElementById('cameraRemoteBtn').style.setProperty('display', 'none', 'important');
           this.shadowRoot.getElementById('cameraBtnSeparator').style.setProperty('display', 'none', 'important');
-          this.shadowRoot.getElementById('cameraLocalBtn').innerHTML = 'Use camera';
+          this.shadowRoot.getElementById('cameraLocalBtn').innerHTML = this.shadowRoot.getElementById('cameraLocalBtn').innerHTML.replace('desktop', '').replace('web', '');
           Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('#flipBtn, .video video'), elem => toggleClass(elem, 'flipped'));
           Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.dropzone .intro-label'), elem => toggleClass(elem, 'hidden'));
         }
+      }
+
+      if (!isRemotePhoneCameraAvailable()) {
+        this.shadowRoot.getElementById('cameraRemoteBtn').style.setProperty('display', 'none', 'important');
+        this.shadowRoot.getElementById('cameraBtnSeparator').style.setProperty('display', 'none', 'important');
       }
     }
 
@@ -331,7 +337,33 @@ function defineComponent() {
       this.enableResultShow = true;
     }
 
-    activateCamera() {
+    async activateRemoteCamera() {
+
+      Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container'), elem => toggleClass(elem, 'hidden', !hasClass(elem, 'remote-camera')));
+
+      const _shadowRoot = this.shadowRoot;
+
+      _shadowRoot.getElementById('generating-exchange-link').style.setProperty('display', 'block');
+      _shadowRoot.getElementById('exchange-link-title').style.setProperty('display', 'none', 'important');
+      _shadowRoot.getElementById('exchange-link-notes').style.setProperty('display', 'none', 'important');
+      _shadowRoot.querySelector('.remote-camera .loader-img').style.setProperty('display', 'block');
+      _shadowRoot.getElementById('exchange-link').innerHTML = '';
+
+      const scan = await Microblink.SDK.CreateScanExchanger();
+      scan.onSnapshot(function(scanDoc) { 
+        const scanDocData = scanDoc.data();
+        if (scanDocData.shortLink) {
+          const exchangeLink = scanDocData.shortLink;
+          _shadowRoot.getElementById('exchange-link').innerHTML = `<a href="${exchangeLink}" target="_blank" >${exchangeLink}</a>`;
+          _shadowRoot.querySelector('.remote-camera .loader-img').style.setProperty('display', 'none', 'important');
+          _shadowRoot.getElementById('exchange-link-title').style.setProperty('display', 'block');
+          _shadowRoot.getElementById('exchange-link-notes').style.setProperty('display', 'block');
+          _shadowRoot.getElementById('generating-exchange-link').style.setProperty('display', 'none', 'important');
+        }
+      });
+    }
+
+    activateLocalCamera() {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         this.shadowRoot.getElementById('cameraLocalBtn').setAttribute('disabled', '');
         let constraints = { video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: { ideal: 'environment' } } };

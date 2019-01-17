@@ -15,9 +15,11 @@ import {
   ScanListener,
   ScanOutput,
   StatusCodes,
-  ScanInputFrameWithQuality
+  ScanInputFrameWithQuality,
+  ScanExchanger
 } from './microblink.types'
 import { FrameHelper } from './frameHelper'
+import { ScanExchangeHelper } from './scanExchangeHelper'
 
 export default class Microblink implements IMicroblink {
   private static fromHowManyFramesQualityCalculateBestFrame = 5
@@ -240,5 +242,13 @@ export default class Microblink implements IMicroblink {
           observer.error(err)
         })
     })
+  }
+
+  /**
+   * Create object for exchange data for scan between devices
+   * @param data is object with optional data which will be added to the ScanExchanger object
+   */
+  CreateScanExchanger(data: ScanExchanger): Promise<ScanExchanger> {
+    return ScanExchangeHelper.createScanExchanger(data)
   }
 }

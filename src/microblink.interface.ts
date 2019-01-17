@@ -1,5 +1,11 @@
 import { Observable } from 'rxjs/internal/Observable'
-import { ScanInputFile, ScanInputFrame, ScanListener, ScanOutput } from './microblink.types'
+import {
+  ScanInputFile,
+  ScanInputFrame,
+  ScanListener,
+  ScanOutput,
+  ScanExchanger
+} from './microblink.types'
 
 export interface IMicroblink {
   ScanFile(scanInputFile: ScanInputFile, uploadProgress?: EventListener): Observable<ScanOutput>
@@ -18,4 +24,6 @@ export interface IMicroblink {
 
   SetUserId(userId: string): void
   SetIsDataPersistingEnabled(isEnabled: boolean): void
+
+  CreateScanExchanger(scan: ScanExchanger): Promise<ScanExchanger>
 }
