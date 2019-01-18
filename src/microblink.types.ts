@@ -53,7 +53,10 @@ export enum StatusCodes {
  * ("Use remote phone camera")
  */
 export interface ScanExchanger {
+  status?: string
   scanId?: string
   key?: string
   shortLink?: string
+  recognizers?: string | string[]
+  authorizationHeader?: string
 }

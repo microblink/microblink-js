@@ -53,6 +53,8 @@ function defineComponent() {
       this.startRecording = this.startRecording.bind(this);
       this.autoScrollListener = this.autoScrollListener.bind(this);
       this.getLocalization = this.getLocalization.bind(this);
+      // Current active crypto key for scan protection
+      this.currentScanSecretKey = null;
       document.addEventListener('DOMContentLoaded', this.getLocalization);
       Microblink.SDK.RegisterListener(this);
     }
@@ -350,8 +352,18 @@ function defineComponent() {
       _shadowRoot.getElementById('exchange-link').innerHTML = '';
 
       const scan = await Microblink.SDK.CreateScanExchanger();
+
+
+      
       scan.onSnapshot(function(scanDoc) { 
         const scanDocData = scanDoc.data();
+
+        console.log('scan.data', scanDocData);
+
+        if (scanDocData.key) {
+          this.currentScanSecretKey = scanDocData.key;
+        }
+
         if (scanDocData.shortLink) {
           const exchangeLink = scanDocData.shortLink;
           _shadowRoot.getElementById('exchange-link').innerHTML = `<a href="${exchangeLink}" target="_blank" >${exchangeLink}</a>`;
@@ -359,6 +371,13 @@ function defineComponent() {
           _shadowRoot.getElementById('exchange-link-title').style.setProperty('display', 'block');
           _shadowRoot.getElementById('exchange-link-notes').style.setProperty('display', 'block');
           _shadowRoot.getElementById('generating-exchange-link').style.setProperty('display', 'none', 'important');
+        }
+
+        if (scanDocData.result) {
+          console.log('currentScanSecretKey', this.currentScanSecretKey);
+          console.log('Encrypted:scanDocData.result', scanDocData.result);
+          const scanResultDec = Microblink.SDK.Decrypt(scanDocData.result, this.currentScanSecretKey);
+          console.log('Decrypted:scanDocData.result', scanResultDec);
         }
       });
     }

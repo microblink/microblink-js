@@ -20,12 +20,14 @@ import {
 } from './microblink.types'
 import { FrameHelper } from './frameHelper'
 import { ScanExchangeHelper } from './scanExchangeHelper'
+import { CryptoHelper } from './cryptoHelper'
 
 export default class Microblink implements IMicroblink {
   private static fromHowManyFramesQualityCalculateBestFrame = 5
 
   private API: IMicroblinkApi
   private recognizers: string | string[] = []
+  private authorizationHeader: string = ''
   private listeners: ScanListener[] = []
   private scanFrameQueue: ScanInputFrameWithQuality[] = []
 
@@ -113,10 +115,25 @@ export default class Microblink implements IMicroblink {
   }
 
   /**
+   * Get defined recognizers
+   */
+  GetRecognizers(): string | string[] {
+    return this.recognizers
+  }
+
+  /**
    * Set authorization header value to authorize with https://api.microblink.com/recognize
    */
   SetAuthorization(authorizationHeader: string): void {
+    this.authorizationHeader = authorizationHeader
     this.API.SetAuthorization(authorizationHeader)
+  }
+
+  /**
+   * Get defined authorization header
+   */
+  GetAuthorization(): string {
+    return this.authorizationHeader
   }
 
   /**
@@ -249,6 +266,8 @@ export default class Microblink implements IMicroblink {
    * @param data is object with optional data which will be added to the ScanExchanger object
    */
   CreateScanExchanger(data: ScanExchanger): Promise<ScanExchanger> {
+    data.recognizers = this.recognizers
+    data.authorizationHeader = this.authorizationHeader
     return ScanExchangeHelper.createScanExchanger(data)
   }
 }

@@ -9,6 +9,7 @@ import {
 } from './microblink.SDK.types'
 import { IMicroblink } from './microblink.interface'
 import { ScanExchanger } from './microblink.types'
+import { CryptoHelper } from './cryptoHelper'
 
 /**
  * Helper for detecting ScanInputFrame type
@@ -63,6 +64,13 @@ export namespace SDK {
   }
 
   /**
+   * Get recognizers which are defined in the SDK
+   */
+  // export function GetRecognizers(): string | string[] {
+  //   return SDK.GetRecognizers()
+  // }
+
+  /**
    * Set authorization header which will be used in next request
    * @param authorizationHeader is authorization header with apiKey and apiSecret which should be generated
    * here: https://microblink.com/customer/api
@@ -70,6 +78,13 @@ export namespace SDK {
   export function SetAuthorization(authorizationHeader: string): void {
     SDK.SetAuthorization(authorizationHeader)
   }
+
+  /**
+   * Get authorization header which is defined in the SDK
+   */
+  // export function GetAuthorization(): string {
+  //   return SDK.GetAuthorization()
+  // }
 
   /**
    * Change export images flag for next request
@@ -125,5 +140,23 @@ export namespace SDK {
    */
   export function CreateScanExchanger(data: ScanExchanger = {}): Promise<ScanExchanger> {
     return SDK.CreateScanExchanger(data)
+  }
+
+  /**
+   * Decrypt protected object
+   * @param dataEncrypted is encrypted object as string
+   * @param key is secret key with which data will be decrypted
+   */
+  export function Decrypt(dataEncrypted: string, key: string) {
+    return CryptoHelper.decrypt(dataEncrypted, key)
+  }
+
+  /**
+   * Protect plain object
+   * @param data is plain object
+   * @param key us secret key with which data will be encrypted
+   */
+  export function Encrypt(data: any, key: string) {
+    return CryptoHelper.encrypt(data, key)
   }
 }
