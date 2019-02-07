@@ -1,6 +1,5 @@
 import { ScanExchanger, ScanExchangerCodes } from './microblink.types'
 
-declare var window: any
 declare var firebase: any
 declare var QRCode: any
 
@@ -14,7 +13,9 @@ try {
   firestore = firebase.firestore()
   const settings = { timestampsInSnapshots: true }
   firestore.settings(settings)
-} catch (e) {}
+} catch (e) {
+  /* tslint:disable:no-empty */
+}
 
 export class ScanExchangeHelper {
   /**
@@ -49,7 +50,9 @@ export class ScanExchangeHelper {
         width: 1024,
         margin: 4
       })
-    } catch (err) {}
+    } catch (err) {
+      /* tslint:disable:no-empty */
+    }
 
     return qrCodeAsBase64
   }
