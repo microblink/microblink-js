@@ -3,5 +3,7 @@ export {
   ScanInputFrame,
   ScanOutput,
   ScanListener,
-  StatusCodes
+  StatusCodes,
+  ScanExchanger,
+  ScanExchangerCodes
 } from './microblink.types'

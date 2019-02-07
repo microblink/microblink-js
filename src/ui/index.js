@@ -10,6 +10,8 @@ const Microblink = {
 	SDK: SDK
 };
 
+const CARD_PADDING_FACTOR_TO_THE_COMPONENT = 0.6;
+
 // Expose it to global window object
 if (window) {
 	window['Microblink'] = Microblink;
@@ -71,7 +73,10 @@ function defineComponent() {
         this.stopCamera();
         this.toggleError();
       });
-      this.shadowRoot.getElementById('cancelBtn').addEventListener('click', () => {
+      this.shadowRoot.getElementById('cancelBtnLocalCamera').addEventListener('click', () => {
+        this.stopCamera();
+      });
+      this.shadowRoot.getElementById('cancelBtnRemoteCamera').addEventListener('click', () => {
         this.stopCamera();
       });
       document.addEventListener('keydown', (evt) => {
@@ -344,40 +349,98 @@ function defineComponent() {
       Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container'), elem => toggleClass(elem, 'hidden', !hasClass(elem, 'remote-camera')));
 
       const _shadowRoot = this.shadowRoot;
+      const _onScanSuccess = this.onScanSuccess;
+      const _onScanError = this.onScanError;
+      const _enableResultShow = () => this.enableResultShow = true;
 
       _shadowRoot.getElementById('generating-exchange-link').style.setProperty('display', 'block');
       _shadowRoot.getElementById('exchange-link-title').style.setProperty('display', 'none', 'important');
       _shadowRoot.getElementById('exchange-link-notes').style.setProperty('display', 'none', 'important');
+      _shadowRoot.getElementById('exchange-link-remote-camera-is-pending').style.setProperty('display', 'none', 'important');
+      _shadowRoot.getElementById('exchange-link-remote-camera-is-open').style.setProperty('display', 'none', 'important');
+      _shadowRoot.getElementById('exchange-link-image-is-uploading').style.setProperty('display', 'none', 'important');
       _shadowRoot.querySelector('.remote-camera .loader-img').style.setProperty('display', 'block');
       _shadowRoot.getElementById('exchange-link').innerHTML = '';
+      _shadowRoot.getElementById('exchange-link-as-QR').innerHTML = '';
 
-      const scan = await Microblink.SDK.CreateScanExchanger();
+      // Create Scan exchanger data object
+      Microblink.SDK.CreateScanExchanger({}, (scanDocData) => {
 
-
-      
-      scan.onSnapshot(function(scanDoc) { 
-        const scanDocData = scanDoc.data();
-
+        // Listen for the changes on Scan exchanger object
         console.log('scan.data', scanDocData);
 
-        if (scanDocData.key) {
-          this.currentScanSecretKey = scanDocData.key;
-        }
+        // 1. Step01_RemoteCameraIsRequested
+        // secret key is generated and store as plain string inside of the library
 
-        if (scanDocData.shortLink) {
+        // 2. get short link after create
+        if (
+          scanDocData.status === Microblink.SDK.ScanExchangerCodes.Step02_ExchangeLinkIsGenerated 
+          && scanDocData.shortLink
+        ) {
           const exchangeLink = scanDocData.shortLink;
           _shadowRoot.getElementById('exchange-link').innerHTML = `<a href="${exchangeLink}" target="_blank" >${exchangeLink}</a>`;
           _shadowRoot.querySelector('.remote-camera .loader-img').style.setProperty('display', 'none', 'important');
           _shadowRoot.getElementById('exchange-link-title').style.setProperty('display', 'block');
           _shadowRoot.getElementById('exchange-link-notes').style.setProperty('display', 'block');
           _shadowRoot.getElementById('generating-exchange-link').style.setProperty('display', 'none', 'important');
+          if (scanDocData.qrCodeAsBase64) {
+            _shadowRoot.getElementById('exchange-link-as-QR').innerHTML = '<img src="' + scanDocData.qrCodeAsBase64 + '" />';
+          }
         }
 
-        if (scanDocData.result) {
+        // 3. Remote camera page is prepared - waiting for user to open camera
+        if (scanDocData.status === Microblink.SDK.ScanExchangerCodes.Step03_RemoteCameraIsPending) {
+          // _shadowRoot.getElementById('exchange-link-title').innerHTML = '2/5';
+          _shadowRoot.getElementById('exchange-link').innerHTML = '';
+          _shadowRoot.getElementById('exchange-link-title').style.setProperty('display', 'none', 'important');
+          _shadowRoot.getElementById('exchange-link-notes').style.setProperty('display', 'none', 'important');
+          _shadowRoot.getElementById('exchange-link-remote-camera-is-pending').style.setProperty('display', 'block');
+        } else {
+          _shadowRoot.getElementById('exchange-link-remote-camera-is-pending').style.setProperty('display', 'none', 'important');
+        } 
+
+        // 4. Remote camera is open by user - waiting for shot
+        if (scanDocData.status === Microblink.SDK.ScanExchangerCodes.Step04_RemoteCameraIsOpen) {
+          // _shadowRoot.getElementById('exchange-link-title').innerHTML = '3/5';
+          _shadowRoot.getElementById('exchange-link-remote-camera-is-open').style.setProperty('display', 'block');
+        } else {
+          _shadowRoot.getElementById('exchange-link-remote-camera-is-open').style.setProperty('display', 'none', 'important');
+        }
+
+        // 5. Remote camera - shot is done and device is uploading image and server is processing image
+        if (scanDocData.status === Microblink.SDK.ScanExchangerCodes.Step05_ImageIsUploading) {
+          // _shadowRoot.getElementById('exchange-link-title').innerHTML = '4/5';
+          _shadowRoot.getElementById('exchange-link-image-is-uploading').style.setProperty('display', 'block');
+          _shadowRoot.querySelector('.remote-camera .loader-img').style.setProperty('display', 'block');
+        } else {
+          _shadowRoot.getElementById('exchange-link-image-is-uploading').style.setProperty('display', 'none', 'important');
+        }
+
+        // 
+
+        // 7. get result
+        if (
+          scanDocData.status === Microblink.SDK.ScanExchangerCodes.Step07_ResultIsAvailable && 
+          scanDocData.result
+        ) {
+          // _shadowRoot.getElementById('exchange-link-title').innerHTML = '5/5';
           console.log('currentScanSecretKey', this.currentScanSecretKey);
           console.log('Encrypted:scanDocData.result', scanDocData.result);
           const scanResultDec = Microblink.SDK.Decrypt(scanDocData.result, this.currentScanSecretKey);
           console.log('Decrypted:scanDocData.result', scanResultDec);
+          _shadowRoot.querySelector('.remote-camera .loader-img').style.setProperty('display', 'none', 'important');
+          // Trigger success callback
+          _enableResultShow();
+          _onScanSuccess({ result: scanResultDec });
+        }
+
+        // Handle error
+        if (
+          scanDocData.status === Microblink.SDK.ScanExchangerCodes.ErrorHappened 
+          && scanDocData.error
+        ) {
+          // Trigger error callback
+          _onScanError(scanDocData.error);
         }
       });
     }
@@ -405,6 +468,26 @@ function defineComponent() {
           this.toggleTabs(false);
           this.clearTabs();
           Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container'), elem => toggleClass(elem, 'hidden', !hasClass(elem, 'video')));
+          
+          // Rescale card-layout-rectangle and it's background to the component size
+          // Get current values
+          var componentWidth = this.shadowRoot.getElementById('rootContainer').offsetWidth;
+          var componentHeight = this.shadowRoot.getElementById('rootContainer').offsetHeight;
+          var cardLayoutRectangleWidth = this.shadowRoot.getElementById('card-layout-rectangle').offsetWidth;
+          var cardLayoutRectangleHeight = this.shadowRoot.getElementById('card-layout-rectangle').offsetHeight;
+
+          // Try to scale depends on the component's width
+          var paddingFactor = CARD_PADDING_FACTOR_TO_THE_COMPONENT;
+          var scaleFactor = (componentWidth / cardLayoutRectangleWidth) * paddingFactor;
+          // Fallback to scale depends on the component height if card border is out of the component
+          if ((cardLayoutRectangleHeight * scaleFactor) > (componentHeight * paddingFactor)) {
+            scaleFactor = (componentHeight / cardLayoutRectangleHeight) * paddingFactor;
+          }
+
+          // Update UI
+          this.shadowRoot.getElementById('card-layout-rectangle').style.zoom = scaleFactor;
+          this.shadowRoot.getElementById('card-layout-rectangle-background').style.zoom = scaleFactor;
+          
         }).catch(error => {
           this.permissionDialogAbsent(permissionTimeoutId);
           this.toggleError(true);

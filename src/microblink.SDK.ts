@@ -5,10 +5,11 @@ import {
   ScanOutput,
   ScanInputFile,
   ScanInputFrame,
-  StatusCodes as statusCodes
+  StatusCodes as statusCodes,
+  ScanExchanger,
+  ScanExchangerCodes as scanExchangerCodes
 } from './microblink.SDK.types'
 import { IMicroblink } from './microblink.interface'
-import { ScanExchanger } from './microblink.types'
 import { CryptoHelper } from './cryptoHelper'
 
 /**
@@ -138,9 +139,17 @@ export namespace SDK {
    * Create object to exchange data between devices
    * @param data is object with ScanExchanger structure
    */
-  export function CreateScanExchanger(data: ScanExchanger = {}): Promise<ScanExchanger> {
-    return SDK.CreateScanExchanger(data)
+  export function CreateScanExchanger(
+    data: ScanExchanger = {},
+    onUpdate: (data: ScanExchanger) => void
+  ): Promise<ScanExchanger> {
+    return SDK.CreateScanExchanger(data, onUpdate)
   }
+
+  /**
+   * Get all Scan exchanger status codes
+   */
+  export const ScanExchangerCodes = scanExchangerCodes
 
   /**
    * Decrypt protected object

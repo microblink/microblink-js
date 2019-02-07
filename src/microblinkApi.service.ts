@@ -118,6 +118,7 @@ export default class MicroblinkApi implements IMicroblinkApi {
 
       xhr.withCredentials = true
       if (uploadProgress) {
+        // FIX: timeout should not be set, because some client can have really slow uplink
         // set timeout for file uploading
         xhr.timeout = 40000
       }

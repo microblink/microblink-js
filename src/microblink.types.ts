@@ -60,3 +60,15 @@ export interface ScanExchanger {
   recognizers?: string | string[]
   authorizationHeader?: string
 }
+
+export enum ScanExchangerCodes {
+  Step01_RemoteCameraIsRequested = 'STEP_1_REMOTE_CAMERA_IS_REQUESTED',
+  Step02_ExchangeLinkIsGenerated = 'STEP_2_EXCHANGE_LINK_IS_GENERATED',
+  Step03_RemoteCameraIsPending = 'STEP_3_REMOTE_CAMERA_IS_PENDING',
+  Step04_RemoteCameraIsOpen = 'STEP_4_REMOTE_CAMERA_IS_OPEN',
+  Step05_ImageIsUploading = 'STEP_5_IMAGE_IS_UPLOADING',
+  Step06_ImageIsProcessing = 'STEP_6_IMAGE_IS_PROCESSING',
+  Step07_ResultIsAvailable = 'STEP_7_RESULT_IS_AVAILABLE',
+
+  ErrorHappened = 'ERROR_HAPPENED'
+}

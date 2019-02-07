@@ -164,6 +164,8 @@ Below is the list of all currently available style hooks with their explanations
 | -\-mb-btn-background-color | Background color of buttons. Default: `black` |
 | -\-mb-btn-background-color-hover | Background color of hovered buttons. Default: `dimgrey` |
 | -\-mb-btn-flip-image-color | Color of the camera flip button. Default: `black` |
+| -\-mb-btn-cancel-color | Color of the cancel button (camera exit button). Default: `black` |
+| -\-mb-card-layout-border-color | Border color of the card overlay. Default: `black` |
 | -\-mb-btn-border-radius | Set the buttons' border radius. Default values is `5px`  |
 | -\-mb-dropzone-hover-color | Background color of drag and drop area when hovered with some dragged document. Default value: `rgba(0, 0, 0, .25)` |
 | -\-mb-loader-font-color | Font color of the loader dialog during file upload and processing. If not set, fallback to -\-mb-dialog-font-color. |

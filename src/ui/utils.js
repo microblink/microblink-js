@@ -8,6 +8,7 @@ export function labelFromCamelCase(value) {
 
 export function dateFromObject(object) {
   let { day, month, year } = object;
+  if (day === null && month === null && year === null) return null;
   const number = "number";
   if (typeof day !== number || typeof month !== number || typeof year !== number) return object;
   let date = new Date(year, month - 1, day);

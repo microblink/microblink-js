@@ -16,7 +16,8 @@ import {
   ScanOutput,
   StatusCodes,
   ScanInputFrameWithQuality,
-  ScanExchanger
+  ScanExchanger,
+  ScanExchangerCodes
 } from './microblink.types'
 import { FrameHelper } from './frameHelper'
 import { ScanExchangeHelper } from './scanExchangeHelper'
@@ -265,9 +266,69 @@ export default class Microblink implements IMicroblink {
    * Create object for exchange data for scan between devices
    * @param data is object with optional data which will be added to the ScanExchanger object
    */
-  CreateScanExchanger(data: ScanExchanger): Promise<ScanExchanger> {
+  async CreateScanExchanger(
+    data: ScanExchanger,
+    onChange: (data: ScanExchanger) => void
+  ): Promise<ScanExchanger> {
+    // Get recognizers and authorizationHeader from remote request
     data.recognizers = this.recognizers
-    data.authorizationHeader = this.authorizationHeader
-    return ScanExchangeHelper.createScanExchanger(data)
+    data.authorizationHeader = this.authorizationHeader // it is encrypted
+
+    // Generate Secret key
+    // Generate random 32 long string
+    const secretKey = CryptoHelper.randomString(32)
+    // Key should be part of object during creating shortUrl, Firebase Function will read key, generate link
+    // and delete key set in plain string
+    data.key = secretKey
+
+    // Encrypt authorizationHeader
+    data.authorizationHeader = CryptoHelper.encrypt(data.authorizationHeader, secretKey)
+
+    // Create exchange object at Firestore
+    const scanAsPromise = ScanExchangeHelper.createScanExchanger(data)
+
+    // Fetch exchange object
+    const scan: any = await scanAsPromise
+
+    // Listen for data from Firestore
+    const unsubscribe = scan.onSnapshot(async (scanDoc: any) => {
+      // Get data as JSON
+      const scanDocData = scanDoc.data()
+
+      console.log('scan.data internal', scanDocData)
+
+      // resolve(scanDocData)
+
+      if (scanDocData.status === ScanExchangerCodes.Step01_RemoteCameraIsRequested) {
+      }
+
+      if (
+        scanDocData.status === ScanExchangerCodes.Step02_ExchangeLinkIsGenerated &&
+        scanDocData.shortLink
+      ) {
+        const qrCodeAsBase64 = await ScanExchangeHelper.generateQRCode(scanDocData.shortLink)
+        scanDocData.qrCodeAsBase64 = qrCodeAsBase64
+      }
+
+      if (
+        scanDocData.status === ScanExchangerCodes.Step07_ResultIsAvailable &&
+        scanDocData.result
+      ) {
+        // Decrypt results
+        const scanResultDec = CryptoHelper.decrypt(scanDocData.result, secretKey)
+
+        // Notify success listeners
+        this.notifyOnSuccessListeners({ result: scanResultDec, sourceBlob: new Blob() }, false)
+
+        // On Successful results, stop listening to changes
+        unsubscribe()
+      }
+
+      // Send onUpdate callback
+      onChange(scanDocData)
+    })
+
+    // Return scan object as promise to enable external subscription(s)
+    return scanAsPromise
   }
 }

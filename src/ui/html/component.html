@@ -13,6 +13,7 @@
     --mb-btn-background-color-hover: dimgrey;
     --mb-btn-flip-image-color: black;
     --mb-btn-cancel-color: black;
+    --mb-card-layout-border-color: black;
     --mb-json-color-null: #ff00ff;
     --mb-json-color-number: #ffc000;
     --mb-json-color-string: #008000;
@@ -70,7 +71,7 @@
   #flipBtn svg .fill {
     fill: var(--mb-btn-flip-image-color);
   }
-  button#cancelBtn {
+  button#cancelBtnLocalCamera, button#cancelBtnRemoteCamera {
     background-color: transparent;
     background-size: auto;
     position: absolute;
@@ -84,7 +85,7 @@
     justify-content: center;
     align-items: center;
   }
-  #cancelBtn svg path {
+  #cancelBtnLocalCamera svg path, #cancelBtnRemoteCamera svg path {
     stroke: var(--mb-btn-cancel-color);
     fill: var(--mb-btn-cancel-color);
   }
@@ -404,6 +405,34 @@
   #counter.show {
     display: flex;
   }
+  #card-layout-rectangle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 85.6mm;
+    height: 53.98mm;
+    transform: translate(-50%, -50%);
+    box-sizing: border-box;
+    border: 2px dashed var(--mb-card-layout-border-color);
+    border-radius: 3mm;
+  }
+  #card-layout-rectangle-background {
+    background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiID8+PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAxLjEvL0VOIiAiaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkIj48c3ZnIHdpZHRoPSIxNDQwcHQiIGhlaWdodD0iOTAwcHQiIHZpZXdCb3g9IjAgMCAxNDQwIDkwMCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxnIGlkPSIjMDAwMDAwNGQiPjxwYXRoIGZpbGw9IiMwMDAwMDAiIG9wYWNpdHk9IjAuMzAiIGQ9IiBNIDAuMDAgMC4wMCBMIDE0NDAuMDAgMC4wMCBMIDE0NDAuMDAgOTAwLjAwIEwgMC4wMCA5MDAuMDAgTCAwLjAwIDAuMDAgTSA1NjcuNTEgMzQ4LjQ3IEMgNTYyLjMxIDM0OS42MCA1NTguMjkgMzU0LjU1IDU1OC41OSAzNTkuOTQgQyA1NTguNTcgNDE5Ljk3IDU1OC41NyA0ODAuMDEgNTU4LjU5IDU0MC4wNSBDIDU1OC4xMSA1NDYuODIgNTY0LjU2IDU1Mi4yNiA1NzEuMDYgNTUxLjk5IEMgNjY4LjY4IDU1MS45OCA3NjYuMzAgNTUxLjk5IDg2My45MiA1NTEuOTkgQyA4NjcuNjEgNTUxLjg4IDg3MS41NCA1NTIuNTQgODc0Ljk2IDU1MC43NiBDIDg3OS4zMSA1NDkuMjUgODgyLjIxIDU0NC41NiA4ODIuMDAgNTQwLjA0IEMgODgxLjk3IDQ3OS42OSA4ODIuMDAgNDE5LjM1IDg4MS45OSAzNTkuMDEgQyA4ODEuODQgMzUyLjQzIDg3NS4yOCAzNDcuNjIgODY5LjAwIDM0OC4wMCBDIDc2OS42NyAzNDguMDMgNjcwLjM0IDM0OC4wMCA1NzEuMDAgMzQ4LjAxIEMgNTY5LjgxIDM0Ny45OCA1NjguNjQgMzQ4LjEzIDU2Ny41MSAzNDguNDcgWiIgLz48L2c+PC9zdmc+);
+    background-position: center center;
+    /* It is aligned with #card-layout-rectangle */
+    background-size: 380mm;
+    background-repeat: no-repeat;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+  }
+
+  #exchange-link-as-QR img {
+    max-height: 300px;
+  }
+
 
   .container.root[max-width~="775px"] .intro .inline {
     padding: 0 5%;
@@ -475,7 +504,7 @@
     }
   }
 </style>
-<div class="container root">
+<div class="container root" id="rootContainer">
   <div class="tab-container">
     <div class="tab" id="introTab"><label><slot name="tabs.retake">RETAKE</slot></label></div>
     <div class="tab active" id="resultsTab"><label><slot name="tabs.results">RESULTS</slot></label></div>
@@ -515,7 +544,7 @@
     <h2 id="generating-exchange-link"><slot name="labels.generatingExchangeLink">Generating exchange link...</slot></h2>
     <h2 id="exchange-link-title"><slot name="labels.exchangeLinkTitle">Exchange link is</slot></h2>
     
-    <button type="button" id="cancelBtn" >
+    <button type="button" id="cancelBtnRemoteCamera" >
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" width="30px" height="30px">
         <path d="M 7 4 C 6.744125 4 6.4879687 4.0974687 6.2929688 4.2929688 L 4.2929688 6.2929688 C 3.9019687 6.6839688 3.9019687 7.3170313 4.2929688 7.7070312 L 11.585938 15 L 4.2929688 22.292969 C 3.9019687 22.683969 3.9019687 23.317031 4.2929688 23.707031 L 6.2929688 25.707031 C 6.6839688 26.098031 7.3170313 26.098031 7.7070312 25.707031 L 15 18.414062 L 22.292969 25.707031 C 22.682969 26.098031 23.317031 26.098031 23.707031 25.707031 L 25.707031 23.707031 C 26.098031 23.316031 26.098031 22.682969 25.707031 22.292969 L 18.414062 15 L 25.707031 7.7070312 C 26.098031 7.3170312 26.098031 6.6829688 25.707031 6.2929688 L 23.707031 4.2929688 C 23.316031 3.9019687 22.682969 3.9019687 22.292969 4.2929688 L 15 11.585938 L 7.7070312 4.2929688 C 7.5115312 4.0974687 7.255875 4 7 4 z"/>
       </svg>
@@ -529,14 +558,26 @@
     
     <div id="exchange-link"></div>
 
+    <div id="exchange-link-as-QR" ></div>
+
     <p id="exchange-link-notes"><slot name="labels.openLinkAtSmartphone" >Please open exchange link at the smartphone.</slot></p>
-    
+
+    <p id="exchange-link-remote-camera-is-pending"><slot name="labels.remoteCameraIsPending" >Remote camera is pending...</slot></p>
+
+    <p id="exchange-link-remote-camera-is-open"><slot name="labels.remoteCameraIsOpen" >Remote camera is open...</slot></p>
+
+    <p id="exchange-link-image-is-uploading"><slot name="labels.imageIsUploading" >Image is uploading...</slot></p>
+
     <div id="exchange-link-with">
       <!-- TODO: add send link with email, SMS and copy to clipboard -->
     </div>
   </div>
   <div class="container video hidden">
     <video class="flipped" id="video" muted playsinline>Your browser does not support video tag.</video>
+    
+    <div id="card-layout-rectangle-background" ></div>
+    <div id="card-layout-rectangle" ></div>
+    
     <button type="button" id="photoBtn"><slot name="buttons.takePhoto">TAKE A PHOTO</slot></button>
     <button type="button" id="flipBtn" class="flipped">
       <svg width='44' height='35' viewBox='0 0 44 35' fill='none' xmlns='http://www.w3.org/2000/svg'>
@@ -546,7 +587,7 @@
         <path class="fill" d='M21.4447 1.75C23.851 1.75 26.2572 2.975 28.1082 5.075L26.0721 7H31.625V1.75L29.4038 3.85C27.1827 1.4 24.4063 0 21.4447 0C17.9279 0 14.7812 1.75 12.375 5.075L13.8558 6.125C15.8918 3.325 18.4832 1.75 21.4447 1.75Z'/>
       </svg>
     </button>
-    <button type="button" id="cancelBtn" >
+    <button type="button" id="cancelBtnLocalCamera" >
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" width="30px" height="30px">
         <path d="M 7 4 C 6.744125 4 6.4879687 4.0974687 6.2929688 4.2929688 L 4.2929688 6.2929688 C 3.9019687 6.6839688 3.9019687 7.3170313 4.2929688 7.7070312 L 11.585938 15 L 4.2929688 22.292969 C 3.9019687 22.683969 3.9019687 23.317031 4.2929688 23.707031 L 6.2929688 25.707031 C 6.6839688 26.098031 7.3170313 26.098031 7.7070312 25.707031 L 15 18.414062 L 22.292969 25.707031 C 22.682969 26.098031 23.317031 26.098031 23.707031 25.707031 L 25.707031 23.707031 C 26.098031 23.316031 26.098031 22.682969 25.707031 22.292969 L 18.414062 15 L 25.707031 7.7070312 C 26.098031 7.3170312 26.098031 6.6829688 25.707031 6.2929688 L 23.707031 4.2929688 C 23.316031 3.9019687 22.682969 3.9019687 22.292969 4.2929688 L 15 11.585938 L 7.7070312 4.2929688 C 7.5115312 4.0974687 7.255875 4 7 4 z"/>
       </svg>
