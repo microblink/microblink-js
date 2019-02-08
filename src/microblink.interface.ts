@@ -27,8 +27,5 @@ export interface IMicroblink {
   SetUserId(userId: string): void
   SetIsDataPersistingEnabled(isEnabled: boolean): void
 
-  CreateScanExchanger(
-    scan: ScanExchanger,
-    onUpdate: (scan: ScanExchanger) => void
-  ): Promise<ScanExchanger>
+  CreateScanExchanger(scan: ScanExchanger, onUpdate: (scan: ScanExchanger) => void): any
 }

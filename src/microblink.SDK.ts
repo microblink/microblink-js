@@ -142,7 +142,7 @@ export namespace SDK {
   export function CreateScanExchanger(
     data: ScanExchanger = {},
     onUpdate: (data: ScanExchanger) => void
-  ): Promise<ScanExchanger> {
+  ): any {
     return SDK.CreateScanExchanger(data, onUpdate)
   }
 

@@ -180,7 +180,7 @@ export default class Microblink implements IMicroblink {
   async CreateScanExchanger(
     data: ScanExchanger,
     onChange: (data: ScanExchanger) => void
-  ): Promise<ScanExchanger> {
+  ): Promise<any> {
     // Get recognizers and authorizationHeader from remote request
     data.recognizers = this.recognizers
     data.authorizationHeader = this.authorizationHeader // it is encrypted
@@ -206,10 +206,6 @@ export default class Microblink implements IMicroblink {
       // Get data as JSON
       const scanDocData = scanDoc.data()
 
-      console.log('scan.data internal', scanDocData)
-
-      // resolve(scanDocData)
-
       // if (scanDocData.status === ScanExchangerCodes.Step01_RemoteCameraIsRequested) {
       // }
 
@@ -229,18 +225,19 @@ export default class Microblink implements IMicroblink {
         const scanResultDec = CryptoHelper.decrypt(scanDocData.result, secretKey)
 
         // Notify success listeners
-        this.notifyOnSuccessListeners({ result: scanResultDec, sourceBlob: new Blob() }, false)
+        this.notifyOnSuccessListeners({ result: scanResultDec, sourceBlob: null }, true)
 
+        // External integrator should decide when to unsubscribe!
         // On Successful results, stop listening to changes
-        unsubscribe()
+        // unsubscribe()
       }
 
       // Send onUpdate callback
       onChange(scanDocData)
     })
 
-    // Return scan object as promise to enable external subscription(s)
-    return scanAsPromise
+    // Return scan object subscription to enable external unsubscribe
+    return unsubscribe
   }
 
   /**

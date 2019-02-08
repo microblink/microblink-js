@@ -27,7 +27,7 @@ export interface ScanInputFrameWithQuality {
  * Scan output with results from API
  */
 export interface ScanOutput {
-  sourceBlob: Blob
+  sourceBlob: Blob | null
   result: any
 }
 

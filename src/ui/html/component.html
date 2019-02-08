@@ -221,6 +221,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
   }
   .container.remote-camera a {
     color: black;
@@ -552,6 +553,7 @@
     
     <div class="loader-img">
       <slot name="loader-image">
+        pr1
         <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
       </slot>
     </div>
@@ -567,6 +569,8 @@
     <p id="exchange-link-remote-camera-is-open"><slot name="labels.remoteCameraIsOpen" >Remote camera is open...</slot></p>
 
     <p id="exchange-link-image-is-uploading"><slot name="labels.imageIsUploading" >Image is uploading...</slot></p>
+
+    <p id="exchange-link-image-is-processing"><slot name="labels.imageIsProcessing" >Image is processing...</slot></p>
 
     <div id="exchange-link-with">
       <!-- TODO: add send link with email, SMS and copy to clipboard -->
@@ -600,6 +604,7 @@
   <div class="pending-container">
     <div class="loader-img">
       <slot name="loader-image">
+        pr2
         <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
       </slot>
     </div>
