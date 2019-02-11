@@ -25,7 +25,7 @@ script.src = '//unpkg.com/@webcomponents/webcomponentsjs/webcomponents-loader.js
 script.addEventListener('load', function() {
   window.WebComponents.waitFor(defineComponent); //to make sure all polyfills are loaded
 });
-document.head.insertBefore(script, document.head.querySelector('script[src$="microblink.ui.min.js"]'));
+document.head.insertBefore(script, document.head.querySelector('script[src*="microblink."]'));
 
 function defineComponent() {
 

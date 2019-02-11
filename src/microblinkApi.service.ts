@@ -119,7 +119,7 @@ export default class MicroblinkApi implements IMicroblinkApi {
       xhr.withCredentials = true
       if (uploadProgress) {
         // set timeout for file uploading
-        xhr.timeout = 15000
+        xhr.timeout = 40000
       }
       xhr.open('POST', this.endpoint + '/recognize/execute')
       xhr.setRequestHeader('Content-Type', 'application/json')
