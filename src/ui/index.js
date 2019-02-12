@@ -74,9 +74,13 @@ function defineComponent() {
       this.shadowRoot.querySelector('.dropzone').addEventListener('dragenter', this.onDragEnter.bind(this));
       this.shadowRoot.querySelector('.dropzone').addEventListener('dragleave', this.onDragLeave.bind(this));
       this.shadowRoot.getElementById('cameraBtn').addEventListener('click', this.activateCamera.bind(this));
-      this.shadowRoot.querySelector('video').addEventListener('loadedmetadata', function() { this.play(); });
       this.shadowRoot.getElementById('photoBtn').addEventListener('click', () => this.startRecording());
       this.shadowRoot.getElementById('flipBtn').addEventListener('click', this.flipCamera.bind(this));
+      let video = this.shadowRoot.getElementById('video');
+      video.addEventListener('loadedmetadata', function() { this.controls = false; });
+      video.addEventListener('play', () => {
+        removeClass(this.shadowRoot.getElementById('photoBtn'), 'hidden');
+      });
 
       Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.tab'), elem => {
         elem.addEventListener('click', () => {
@@ -102,7 +106,6 @@ function defineComponent() {
       this.adjustComponent(true);
       this.ElementQueries = ElementQueriesFactory(ResizeSensor, this.shadowRoot);
       this.ElementQueries.listen();
-      this.ElementQueries.init();
       window.addEventListener('resize', this.adjustComponent.bind(this));
     }
 
@@ -323,11 +326,18 @@ function defineComponent() {
         navigator.mediaDevices.getUserMedia(constraints).then(stream => {
           this.permissionDialogAbsent(permissionTimeoutId);
           let video = this.shadowRoot.getElementById('video');
+          video.controls = true;
           if ('srcObject' in video) {
             video.srcObject = stream;
           } else {
             video.src = URL.createObjectURL(stream);
           }
+          setTimeout(() => {
+            video.play().catch(() => {
+              addClass(this.shadowRoot.getElementById('photoBtn'), 'hidden');
+            });
+          }, 0);
+
           this.toggleTabs(false);
           this.clearTabs();
           Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container'), elem => toggleClass(elem, 'hidden', !hasClass(elem, 'video')));

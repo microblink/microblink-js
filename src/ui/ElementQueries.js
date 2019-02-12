@@ -339,17 +339,33 @@ export default function(ResizeSensor, shadowRoot) {
 				cssStyleElement.innerHTML = '[responsive-image] > img, [data-responsive-image] {overflow: hidden; padding: 0; } [responsive-image] > img, [data-responsive-image] > img {width: 100%;}';
 				cssStyleElement.innerHTML += '\n@keyframes element-queries { 0% { visibility: inherit; } }';
 				shadowRoot ? shadowRoot.appendChild(cssStyleElement) : document.getElementsByTagName('head')[0].appendChild(cssStyleElement);
-				defaultCssInjected = true;
-			}
-			for (var i = 0, j = document.styleSheets.length; i < j; i++) {
-				try {
-					if (root.styleSheets[i].href && 0 === root.styleSheets[i].href.indexOf('file://')) {
-						console.log("CssElementQueries: unable to parse local css files, " + root.styleSheets[i].href);
-					}
-					readRules(root.styleSheets[i].cssRules || root.styleSheets[i].rules || root.styleSheets[i].cssText);
-				} catch (e) {
-				}
-			}
+        if (!root.styleSheets) {
+          Array.prototype.forEach.call(root.querySelectorAll('style'), (style, i) => {
+            let styleCpy = document.createElement('style');
+            styleCpy.id = 'elemQueryStyleFix' + i;
+            styleCpy.innerHTML = style.innerHTML;
+            document.head.appendChild(styleCpy);
+          });
+          root = document;
+        }
+        for (var i = 0, j = root.styleSheets.length; i < j; i++) {
+          try {
+            if (root.styleSheets[i].href && 0 === root.styleSheets[i].href.indexOf('file://')) {
+              console.log("CssElementQueries: unable to parse local css files, " + root.styleSheets[i].href);
+            }
+            readRules(root.styleSheets[i].cssRules || root.styleSheets[i].rules || root.styleSheets[i].cssText);
+          } catch (e) {
+          }
+        }
+        if(!root.styleSheets) {
+          Array.prototype.forEach.call(document.head.querySelectorAll('style'), (style) => {
+            if(style.id && style.id.indexOf('elemQueryStyleFix') === 0) {
+              document.head.removeChild(style);
+            }
+          });
+        }
+      }
+      defaultCssInjected = true;
 			findResponsiveImages();
 		};
 
@@ -384,7 +400,10 @@ export default function(ResizeSensor, shadowRoot) {
 	};
 
 	var domLoaded = function (callback) {
-		if (document.addEventListener) {
+    if(/loaded|complete/i.test(document.readyState)) {
+      callback();
+    }
+		else if (document.addEventListener) {
 			document.addEventListener('DOMContentLoaded', callback, false);
 		}
 		else if (/KHTML|WebKit|iCab/i.test(navigator.userAgent)) {
