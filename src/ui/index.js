@@ -10,7 +10,12 @@ const Microblink = {
 	SDK: SDK
 };
 
-const CARD_PADDING_FACTOR_TO_THE_COMPONENT = 0.6;
+// Default for desktop
+let CARD_PADDING_FACTOR_TO_THE_COMPONENT = 0.6;
+// At mobile it looks much better when it is almost at the edge of the component
+if (isMobile()) {
+  CARD_PADDING_FACTOR_TO_THE_COMPONENT = 0.9;
+}
 
 // Expose it to global window object
 if (window) {
@@ -62,6 +67,14 @@ function defineComponent() {
 
       document.addEventListener('DOMContentLoaded', this.getLocalization);
       Microblink.SDK.RegisterListener(this);
+
+      // If required dependencies are not available then hide desktop-to-mobile buttons 
+      Microblink.SDK.IsDesktopToMobileAvailable().then(isAvailable => {
+        if (!isAvailable) {
+          this.shadowRoot.getElementById('cameraRemoteBtn').style.setProperty('display', 'none', 'important');
+          this.shadowRoot.getElementById('cameraBtnSeparator').style.setProperty('display', 'none', 'important');
+        }
+      });      
     }
 
     connectedCallback() {
@@ -149,6 +162,7 @@ function defineComponent() {
           this.shadowRoot.getElementById('cameraLocalBtn').innerHTML = this.shadowRoot.getElementById('cameraLocalBtn').innerHTML.replace('desktop', '').replace('web', '');
           Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('#flipBtn, .video video'), elem => toggleClass(elem, 'flipped'));
           Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.dropzone .intro-label'), elem => toggleClass(elem, 'hidden'));
+         
         }
       }
 
@@ -374,7 +388,7 @@ function defineComponent() {
       this.unsubscribeFromScanExchangerChanges = await Microblink.SDK.CreateScanExchanger({}, (scanDocData) => {
 
         // Listen for the changes on Scan exchanger object
-        console.log('scan.data', scanDocData);
+        console.log('scan.data', scanDocData, Date.now());
 
         // 1. Step01_RemoteCameraIsRequested
         // secret key is generated and store as plain string inside of the library

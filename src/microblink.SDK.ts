@@ -168,4 +168,11 @@ export namespace SDK {
   export function Encrypt(data: any, key: string) {
     return CryptoHelper.encrypt(data, key)
   }
+
+  /**
+   * Check if all requirements for desktop-to-mobile feature are available
+   */
+  export async function IsDesktopToMobileAvailable(): Promise<boolean> {
+    return await SDK.IsDesktopToMobileAvailable()
+  }
 }

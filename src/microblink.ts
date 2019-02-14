@@ -23,6 +23,8 @@ import { FrameHelper } from './frameHelper'
 import { ScanExchangeHelper } from './scanExchangeHelper'
 import { CryptoHelper } from './cryptoHelper'
 
+declare var firebase: any
+
 export default class Microblink implements IMicroblink {
   private static fromHowManyFramesQualityCalculateBestFrame = 5
 
@@ -174,6 +176,13 @@ export default class Microblink implements IMicroblink {
   }
 
   /**
+   * Check is all requirement for desktop-to-mobile feature are available
+   */
+  async IsDesktopToMobileAvailable(): Promise<boolean> {
+    return await this.isDesktopToMobileAvailable()
+  }
+
+  /**
    * Create object for exchange data for scan between devices
    * @param data is object with optional data which will be added to the ScanExchanger object
    */
@@ -227,6 +236,11 @@ export default class Microblink implements IMicroblink {
         // Notify success listeners
         this.notifyOnSuccessListeners({ result: scanResultDec, sourceBlob: null }, true)
 
+        // After successfully read 'result', remove it from the Firestore
+        scan.update({
+          result: null
+        })
+
         // External integrator should decide when to unsubscribe!
         // On Successful results, stop listening to changes
         // unsubscribe()
@@ -238,6 +252,28 @@ export default class Microblink implements IMicroblink {
 
     // Return scan object subscription to enable external unsubscribe
     return unsubscribe
+  }
+
+  private async isDesktopToMobileAvailable() {
+    try {
+      // Try to fetch any document
+      await firebase
+        .app()
+        .firestore()
+        .doc('scans/any-document')
+        .get()
+    } catch (err) {
+      // Only if Firestore is not available then desktop-to-mobile is not available
+      if (err.name === 'FirebaseError' && err.code === 'unavailable') {
+        console.error(
+          'Microblink.SDK: feature desktop-to-mobile is not available because connection to the Firebase.Firestore is not available!'
+        )
+        return false
+      } else {
+        console.log('IsDesktopToMobileAvailable.error', err)
+      }
+    }
+    return true
   }
 
   /**

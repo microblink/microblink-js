@@ -12,6 +12,10 @@ export function dateFromObject(object) {
   const number = "number";
   if (typeof day !== number || typeof month !== number || typeof year !== number) return object;
   let date = new Date(year, month - 1, day);
+  // If day is 0 then this could be result from BLINK_CARD_FRONT for field validThru
+  if (day === 0) {
+    date = new Date(year, month, day);
+  }
   let language = navigator.userLanguage || navigator.language || (navigator.languages && navigator.languages[0]);
   return date.toLocaleDateString(language ? language : undefined);
 }

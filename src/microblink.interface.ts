@@ -28,4 +28,5 @@ export interface IMicroblink {
   SetIsDataPersistingEnabled(isEnabled: boolean): void
 
   CreateScanExchanger(scan: ScanExchanger, onUpdate: (scan: ScanExchanger) => void): any
+  IsDesktopToMobileAvailable(): Promise<boolean>
 }

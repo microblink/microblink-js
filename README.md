@@ -193,6 +193,25 @@ They are listed below:
 | -\-mb-json-color-boolean | Inside JSON view, use to set font color of boolean values. Default value: `#0000FF` |
 | -\-mb-json-color-null | Inside JSON view, use to set font color of the null values. Default value: `#ff00ff` |
 
+### Feature: desktop-to-mobile
+
+With this feature component is able to starts at the browser on the desktop computer and use remote camera on the smartphone to capture document, call API and returns results to the desktop where component was initially started.  
+
+All data by default is exchanged over Firebase project through Firestore collection, this can be replaced by modifying the component and Microblink SDK internaly.  
+
+#### How it works
+
+1. component is loaded at the browser on desktop
+2. user requests feature by click to the button `Use remote phone camera`
+3. component at the desktop generate exchange link with QR code and secret key for AES encryption
+4. user at smartphone should open generated exchange link (link contains scan identificator and AES secret key for encryption), recommended way is to scan QR code with QR reader integrated in native camera app on the iOS and Android or with custom QR reader
+5. at mobile user takes document with native camera
+6. component loaded at smartphone calls Microblink API, encrypt result and store it to the exchanged object at `Firebase.Firestore`
+7. component loaded at desktop is subscribed for the changes, reads encrypted results stored in `Firebase.Firestore`, decrypts it and display it to the user
+
+#### Firebase project setup
+
+Look at the (sample/index.html)[./sample/index.html] and replace Firebase app configuration with your project's credentials. To exchange data through database which you are the owner.
 
 ## Development
 

@@ -42,6 +42,7 @@ export class ScanExchangeHelper {
   public static async generateQRCode(url: string): Promise<string> {
     let qrCodeAsBase64 = null
 
+    // Dependency to https://github.com/soldair/node-qrcode is required!
     // If `QRCode` is not available or any error happened then skip creating of QRCode
     try {
       qrCodeAsBase64 = await QRCode.toDataURL(url, {

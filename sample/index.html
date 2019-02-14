@@ -19,21 +19,33 @@
     <script>
       // Initialize Firebase
       // TODO: Replace with your project's customized code snippet
+      // var config = {
+      //   apiKey: "<API_KEY>",
+      //   authDomain: "<PROJECT_ID>.firebaseapp.com",
+      //   databaseURL: "https://<DATABASE_NAME>.firebaseio.com",
+      //   projectId: "<PROJECT_ID>",
+      //   storageBucket: "<BUCKET>.appspot.com",
+      //   messagingSenderId: "<SENDER_ID>",
+      // };
       var config = {
-        apiKey: "<API_KEY>",
-        authDomain: "<PROJECT_ID>.firebaseapp.com",
-        databaseURL: "https://<DATABASE_NAME>.firebaseio.com",
-        projectId: "<PROJECT_ID>",
-        storageBucket: "<BUCKET>.appspot.com",
-        messagingSenderId: "<SENDER_ID>",
+        apiKey: "AIzaSyDX05s2f5QEreP67ouF2uBz-gTEFN996ig",
+        authDomain: "microblink-api-exchanger-dev.firebaseapp.com",
+        databaseURL: "https://microblink-api-exchanger-dev.firebaseio.com",
+        projectId: "microblink-api-exchanger-dev",
+        storageBucket: "microblink-api-exchanger-dev.appspot.com",
+        messagingSenderId: "653689852629"
       };
       firebase.initializeApp(config);
     </script>
 
+    <!-- In desktop to mobile feature exchange link can be delivered as QR code if dependency to the `soldair/node-qrcode` is present, otherwise link as QR code will not be generated -->
+    <script src="https://unpkg.com/qrcode@1.3.3/build/qrcode.min.js" ></script>
+
+    <!-- Include dependency to the Microblink SDK  -->
     <script src="../dist/microblink.min.js" ></script>
 
     <script>
-      Microblink.SDK.SetRecognizers(['MRTD', 'QR', 'CRO_ID_FRONT', 'CRO_ID_BACK'/*, 'QR', 'USDL', 'PDF417', 'CODE128', 'CODE39', 'AZTEC', 'DATA_MATRIX', 'EAN13', 'EAN8', 'ITF', 'QR', 'UPCA', 'UPCE', 'SIM', 'VIN', 'UAE_ID_FRONT', 'UAE_ID_BACK', 'CYP_ID_FRONT', 'CYP_ID_BACK'*/]);
+      Microblink.SDK.SetRecognizers([/*'MRTD', 'QR', 'CRO_ID_FRONT', 'CRO_ID_BACK', 'QR', 'USDL', 'PDF417', 'CODE128', 'CODE39', 'AZTEC', 'DATA_MATRIX', 'EAN13', 'EAN8', 'ITF', 'QR', 'UPCA', 'UPCE', 'SIM', 'VIN', 'UAE_ID_FRONT', 'UAE_ID_BACK', 'CYP_ID_FRONT', 'CYP_ID_BACK'*/'BLINK_CARD_FRONT']);
       /*  Microblink.SDK.SetAuthorization('Bearer MDY0YWNlMGNiN2IzNGUwZTk4YWVmMDVhZDEyOGJjY2E6Mzk5NzNkNDUtYjg4MS00OWE1LTlhMTItYmEzYTRkNmYzY2Fj');  */
       Microblink.SDK.SetUserId('test-user-id@microblink.com');
 
@@ -47,8 +59,10 @@
         font-size: 20px;
       }
       .microblink-ui-component-wrapper {
-        max-width: 901px;
-        height: 545px;
+        /* max-width: 901px; */
+        /* height: 545px; */
+        width: 100vw;
+        height: 100vh;
         position: relative;
         margin: 0;
         box-sizing: border-box;
@@ -85,6 +99,21 @@
         --mb-progress-bar-color: rgba(72, 128, 232, 0.25);*/
       }
     </style>
+
+    <!-- Remove bad UI of the flashed loader-image which will be injected on the 
+    slot name "loader-image" when component is ready -->
+    <style>    
+      microblink-ui-web .hide-until-component-is-loaded {
+        visibility: hidden;
+      }
+    </style>
+    <script>
+      setTimeout(function () {
+        document.querySelectorAll('.hide-until-component-is-loaded').forEach(function(element) {
+          element.classList.remove('hide-until-component-is-loaded');
+        })
+      }, 1000)
+    </script>
 
 </head>
 <body>
@@ -124,7 +153,8 @@
 					}
  				}
 			</template> -->
-        <img slot="loader-image" src="https://microblink.com/bundles/microblinkmicroblink/images/loading-animation-on-blue.gif" />
+        <img slot="loader-image" class="hide-until-component-is-loaded" src="https://microblink.com/bundles/microblinkmicroblink/images/loading-animation-on-blue.gif" />
+        <span slot="labels.openLinkAtSmartphone" class="hide-until-component-is-loaded"  >Please open <b>exchange link</b> at the smartphone with <b>QR</b> reader.</span>
     </microblink-ui-web>
   </div>
 </body>
