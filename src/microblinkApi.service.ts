@@ -168,6 +168,7 @@ export default class MicroblinkApi implements IMicroblinkApi {
 
       if (uploadProgress) {
         xhr.upload.addEventListener('progress', uploadProgress, false)
+        xhr.upload.addEventListener('load', uploadProgress, false)
       }
 
       xhr.send(data)
