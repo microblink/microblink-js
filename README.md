@@ -6,7 +6,7 @@ Javascript SDK for integrating with Microblink API
 
 <!-- ./sample/demo-at-docs.md -->
 
-App implementation is available on [Codepen](https://codepen.io/microblink/pen/WaYReG/).  
+Demo app. implementation is available on [Codepen](https://codepen.io/microblink/pen/WaYReG/).  
 
 More details about product with demo page are available [here](https://microblink.com/products/blinkid/web-api).
 
