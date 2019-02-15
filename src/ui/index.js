@@ -388,7 +388,6 @@ function defineComponent() {
       this.unsubscribeFromScanExchangerChanges = await Microblink.SDK.CreateScanExchanger({}, (scanDocData) => {
 
         // Listen for the changes on Scan exchanger object
-        console.log('scan.data', scanDocData, Date.now());
 
         // 1. Step01_RemoteCameraIsRequested
         // secret key is generated and store as plain string inside of the library

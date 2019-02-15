@@ -28,12 +28,12 @@
       //   messagingSenderId: "<SENDER_ID>",
       // };
       var config = {
-        apiKey: "AIzaSyDX05s2f5QEreP67ouF2uBz-gTEFN996ig",
-        authDomain: "microblink-api-exchanger-dev.firebaseapp.com",
-        databaseURL: "https://microblink-api-exchanger-dev.firebaseio.com",
-        projectId: "microblink-api-exchanger-dev",
-        storageBucket: "microblink-api-exchanger-dev.appspot.com",
-        messagingSenderId: "653689852629"
+        apiKey: "AIzaSyC2EeRiAwTGj4Gv28RVjYLkU_sUYLafCqg",
+        authDomain: "microblink-api-exchanger.firebaseapp.com",
+        databaseURL: "https://microblink-api-exchanger.firebaseio.com",
+        projectId: "microblink-api-exchanger",
+        storageBucket: "microblink-api-exchanger.appspot.com",
+        messagingSenderId: "902458803135"
       };
       firebase.initializeApp(config);
     </script>
@@ -45,11 +45,9 @@
     <script src="../dist/microblink.min.js" ></script>
 
     <script>
-      Microblink.SDK.SetRecognizers([/*'MRTD', 'QR', 'CRO_ID_FRONT', 'CRO_ID_BACK', 'QR', 'USDL', 'PDF417', 'CODE128', 'CODE39', 'AZTEC', 'DATA_MATRIX', 'EAN13', 'EAN8', 'ITF', 'QR', 'UPCA', 'UPCE', 'SIM', 'VIN', 'UAE_ID_FRONT', 'UAE_ID_BACK', 'CYP_ID_FRONT', 'CYP_ID_BACK'*/'BLINK_CARD_FRONT']);
+      Microblink.SDK.SetRecognizers(['MRTD', /*'QR', 'CRO_ID_FRONT', 'CRO_ID_BACK', 'QR', 'USDL', 'PDF417', 'CODE128', 'CODE39', 'AZTEC', 'DATA_MATRIX', 'EAN13', 'EAN8', 'ITF', 'QR', 'UPCA', 'UPCE', 'SIM', 'VIN', 'UAE_ID_FRONT', 'UAE_ID_BACK', 'CYP_ID_FRONT', 'CYP_ID_BACK'*/'BLINK_CARD_FRONT']);
       /*  Microblink.SDK.SetAuthorization('Bearer MDY0YWNlMGNiN2IzNGUwZTk4YWVmMDVhZDEyOGJjY2E6Mzk5NzNkNDUtYjg4MS00OWE1LTlhMTItYmEzYTRkNmYzY2Fj');  */
       Microblink.SDK.SetUserId('test-user-id@microblink.com');
-
-
     </script>
 
     <style type="text/css" >

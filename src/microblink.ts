@@ -179,7 +179,7 @@ export default class Microblink implements IMicroblink {
    * Check is all requirement for desktop-to-mobile feature are available
    */
   async IsDesktopToMobileAvailable(): Promise<boolean> {
-    return await this.isDesktopToMobileAvailable()
+    return this.isDesktopToMobileAvailable()
   }
 
   /**
