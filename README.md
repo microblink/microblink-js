@@ -215,7 +215,7 @@ All data by default is exchanged over Firebase project through Firestore collect
 
 #### Firebase project setup
 
-Look at the (sample/index.html)[./sample/index.html] and replace Firebase app configuration with your project's credentials. To exchange data through database which you are the owner.
+Look at the [sample/index.html](./sample/index.html) and replace Firebase app configuration with your project's credentials. To exchange data through database which you are the owner.
 
 ## Development
 
