@@ -5,6 +5,38 @@
     <title>WEB API COMPONENT DEMO</title>
     <meta name="viewport" content="initial-scale=1, user-scalable=no"/>
 
+    <!-- For desktop to mobile ("Use remote phone camera" feature) Firebase (Firestore) is required to exchange data between two devices -->
+    <!-- Firebase App is always required and must be first -->
+    <script src="https://www.gstatic.com/firebasejs/5.7.2/firebase-app.js"></script>
+    <!-- Add additional services that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/5.7.2/firebase-firestore.js"></script>
+
+    <script>
+      // Initialize Firebase
+      // TODO: Replace with your project's customized code snippet
+      // var config = {
+      //   apiKey: "<API_KEY>",
+      //   authDomain: "<PROJECT_ID>.firebaseapp.com",
+      //   databaseURL: "https://<DATABASE_NAME>.firebaseio.com",
+      //   projectId: "<PROJECT_ID>",
+      //   storageBucket: "<BUCKET>.appspot.com",
+      //   messagingSenderId: "<SENDER_ID>",
+      // };
+      var config = {
+        apiKey: "AIzaSyC2EeRiAwTGj4Gv28RVjYLkU_sUYLafCqg",
+        authDomain: "microblink-api-exchanger.firebaseapp.com",
+        databaseURL: "https://microblink-api-exchanger.firebaseio.com",
+        projectId: "microblink-api-exchanger",
+        storageBucket: "microblink-api-exchanger.appspot.com",
+        messagingSenderId: "902458803135"
+      };
+      firebase.initializeApp(config);
+    </script>
+
+    <!-- In desktop to mobile feature exchange link can be delivered as QR code if dependency to the `soldair/node-qrcode` is present, otherwise link as QR code will not be generated -->
+    <script src="https://unpkg.com/qrcode@1.3.3/build/qrcode.min.js" ></script>
+
+    <!-- Include dependency to the Microblink SDK  -->
     <script src="https://unpkg.com/microblink/dist/microblink.min.js" ></script>
 
     <script>
@@ -33,7 +65,7 @@
         --mb-default-font-color: #48b2e8;
         --mb-btn-font-color: white;
         --mb-btn-background-color: #48b2e8;
-        --mb-btn-background-color-hover: #26a4e4;
+        --mb-btn-background-color-hover: #4a94b9;
         --mb-btn-flip-image-color: #48b2e8;
         --mb-btn-cancel-color: #48b2e8;
         --mb-json-color-key: black;

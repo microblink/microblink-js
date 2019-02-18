@@ -2,6 +2,10 @@
 
 Javascript SDK for integrating with Microblink API
 
+[![npm version](https://badge.fury.io/js/microblink.svg)](https://badge.fury.io/js/microblink)
+
+[![NPM](https://nodei.co/npm/microblink.png?compact=true)](https://nodei.co/npm/microblink/)
+
 ## Demo
 
 <!-- ./sample/demo-at-docs.md -->
