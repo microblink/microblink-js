@@ -3,16 +3,15 @@ import { ScanExchanger, ScanExchangerCodes } from './microblink.types'
 declare var firebase: any
 declare var QRCode: any
 
-let firestore: any
-
 const FIRESTORE_COLLECTION_ID = 'scans'
 
 // This should be in try/catch block because firebase could not be configured
 // this is helper only for optional feature "Desktop to mobile"
 try {
-  firestore = firebase.firestore()
+  // NOTE: avoid use of shortcut `firestore` instead of `firebase.firestore()` beacause this produce error in
+  // Codepen and jsFiddle environment!
   const settings = { timestampsInSnapshots: true }
-  firestore.settings(settings)
+  firebase.firestore().settings(settings)
 } catch (e) {
   /* tslint:disable:no-empty */
 }
@@ -24,7 +23,10 @@ export class ScanExchangeHelper {
    */
   public static async createScanExchanger(data: ScanExchanger = {}): Promise<ScanExchanger> {
     // Get reference to the Firestore document
-    const scan = firestore.collection(FIRESTORE_COLLECTION_ID).doc()
+    const scan = firebase
+      .firestore()
+      .collection(FIRESTORE_COLLECTION_ID)
+      .doc()
     // Define default status STEP_01...
     data.status = ScanExchangerCodes.Step01_RemoteCameraIsRequested
     // For easier scanId fetching append it to the document

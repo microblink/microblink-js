@@ -385,73 +385,78 @@ function defineComponent() {
       _shadowRoot.getElementById('exchange-link-as-QR').innerHTML = '';
 
       // Create Scan exchanger data object
-      this.unsubscribeFromScanExchangerChanges = await Microblink.SDK.CreateScanExchanger({}, (scanDocData) => {
+      try {
 
-        // Listen for the changes on Scan exchanger object
-
-        // 1. Step01_RemoteCameraIsRequested
-        // secret key is generated and store as plain string inside of the library
-
-        // 2. get short link after create
-        if (
-          scanDocData.status === Microblink.SDK.ScanExchangerCodes.Step02_ExchangeLinkIsGenerated 
-          && scanDocData.shortLink
-        ) {
-          const exchangeLink = scanDocData.shortLink;
-          _shadowRoot.getElementById('exchange-link').innerHTML = `<a href="${exchangeLink}" target="_blank" >${exchangeLink}</a>`;
-          _shadowRoot.querySelector('.remote-camera .loader-img').style.setProperty('display', 'none', 'important');
-          _shadowRoot.getElementById('exchange-link-title').style.setProperty('display', 'block');
-          _shadowRoot.getElementById('exchange-link-notes').style.setProperty('display', 'block');
-          _shadowRoot.getElementById('generating-exchange-link').style.setProperty('display', 'none', 'important');
-          if (scanDocData.qrCodeAsBase64) {
-            _shadowRoot.getElementById('exchange-link-as-QR').innerHTML = '<img src="' + scanDocData.qrCodeAsBase64 + '" />';
+        this.unsubscribeFromScanExchangerChanges = await Microblink.SDK.CreateScanExchanger({}, (scanDocData) => {
+  
+          // Listen for the changes on Scan exchanger object
+  
+          // 1. Step01_RemoteCameraIsRequested
+          // secret key is generated and store as plain string inside of the library
+  
+          // 2. get short link after create
+          if (
+            scanDocData.status === Microblink.SDK.ScanExchangerCodes.Step02_ExchangeLinkIsGenerated 
+            && scanDocData.shortLink
+          ) {
+            const exchangeLink = scanDocData.shortLink;
+            _shadowRoot.getElementById('exchange-link').innerHTML = `<a href="${exchangeLink}" target="_blank" >${exchangeLink}</a>`;
+            _shadowRoot.querySelector('.remote-camera .loader-img').style.setProperty('display', 'none', 'important');
+            _shadowRoot.getElementById('exchange-link-title').style.setProperty('display', 'block');
+            _shadowRoot.getElementById('exchange-link-notes').style.setProperty('display', 'block');
+            _shadowRoot.getElementById('generating-exchange-link').style.setProperty('display', 'none', 'important');
+            if (scanDocData.qrCodeAsBase64) {
+              _shadowRoot.getElementById('exchange-link-as-QR').innerHTML = '<img src="' + scanDocData.qrCodeAsBase64 + '" />';
+            }
+          } else {
+            _shadowRoot.getElementById('exchange-link-as-QR').innerHTML = '';
           }
-        } else {
-          _shadowRoot.getElementById('exchange-link-as-QR').innerHTML = '';
-        }
-
-        // 3. Remote camera page is prepared - waiting for user to open camera
-        if (scanDocData.status === Microblink.SDK.ScanExchangerCodes.Step03_RemoteCameraIsPending) {
-          _shadowRoot.getElementById('exchange-link').innerHTML = '';
-          _shadowRoot.getElementById('exchange-link-title').style.setProperty('display', 'none', 'important');
-          _shadowRoot.getElementById('exchange-link-notes').style.setProperty('display', 'none', 'important');
-          _shadowRoot.getElementById('exchange-link-remote-camera-is-pending').style.setProperty('display', 'block');
-        } else {
-          _shadowRoot.getElementById('exchange-link-remote-camera-is-pending').style.setProperty('display', 'none', 'important');
-        } 
-
-        // 4. Remote camera is open by user - waiting for shot
-        if (scanDocData.status === Microblink.SDK.ScanExchangerCodes.Step04_RemoteCameraIsOpen) {
-          _shadowRoot.getElementById('exchange-link-remote-camera-is-open').style.setProperty('display', 'block');
-        } else {
-          _shadowRoot.getElementById('exchange-link-remote-camera-is-open').style.setProperty('display', 'none', 'important');
-        }
-
-        // 5. Remote camera - shot is done and device is uploading image and server is processing image
-        if (scanDocData.status === Microblink.SDK.ScanExchangerCodes.Step05_ImageIsUploading) {
-          _shadowRoot.getElementById('exchange-link-image-is-uploading').style.setProperty('display', 'block');
-          _shadowRoot.querySelector('.remote-camera .loader-img').style.setProperty('display', 'block');
-        } else {
-          _shadowRoot.getElementById('exchange-link-image-is-uploading').style.setProperty('display', 'none', 'important');
-        }
-
-        // 6. Remote camera - upload is done and waiting for the server to process image
-        if (scanDocData.status === Microblink.SDK.ScanExchangerCodes.Step06_ImageIsProcessing) {
-          _shadowRoot.getElementById('exchange-link-image-is-processing').style.setProperty('display', 'block');
-          _shadowRoot.querySelector('.remote-camera .loader-img').style.setProperty('display', 'block');
-        } else {
-          _shadowRoot.getElementById('exchange-link-image-is-processing').style.setProperty('display', 'none', 'important');
-        }
-
-        // 7. Get result from exchabge object, result taken from Microblink API set by remote camera
-        if (
-          scanDocData.status === Microblink.SDK.ScanExchangerCodes.Step07_ResultIsAvailable && 
-          scanDocData.result
-        ) {
-          _shadowRoot.querySelector('.remote-camera .loader-img').style.setProperty('display', 'none', 'important');
-          _enableResultShow();
-        }
-      });
+  
+          // 3. Remote camera page is prepared - waiting for user to open camera
+          if (scanDocData.status === Microblink.SDK.ScanExchangerCodes.Step03_RemoteCameraIsPending) {
+            _shadowRoot.getElementById('exchange-link').innerHTML = '';
+            _shadowRoot.getElementById('exchange-link-title').style.setProperty('display', 'none', 'important');
+            _shadowRoot.getElementById('exchange-link-notes').style.setProperty('display', 'none', 'important');
+            _shadowRoot.getElementById('exchange-link-remote-camera-is-pending').style.setProperty('display', 'block');
+          } else {
+            _shadowRoot.getElementById('exchange-link-remote-camera-is-pending').style.setProperty('display', 'none', 'important');
+          } 
+  
+          // 4. Remote camera is open by user - waiting for shot
+          if (scanDocData.status === Microblink.SDK.ScanExchangerCodes.Step04_RemoteCameraIsOpen) {
+            _shadowRoot.getElementById('exchange-link-remote-camera-is-open').style.setProperty('display', 'block');
+          } else {
+            _shadowRoot.getElementById('exchange-link-remote-camera-is-open').style.setProperty('display', 'none', 'important');
+          }
+  
+          // 5. Remote camera - shot is done and device is uploading image and server is processing image
+          if (scanDocData.status === Microblink.SDK.ScanExchangerCodes.Step05_ImageIsUploading) {
+            _shadowRoot.getElementById('exchange-link-image-is-uploading').style.setProperty('display', 'block');
+            _shadowRoot.querySelector('.remote-camera .loader-img').style.setProperty('display', 'block');
+          } else {
+            _shadowRoot.getElementById('exchange-link-image-is-uploading').style.setProperty('display', 'none', 'important');
+          }
+  
+          // 6. Remote camera - upload is done and waiting for the server to process image
+          if (scanDocData.status === Microblink.SDK.ScanExchangerCodes.Step06_ImageIsProcessing) {
+            _shadowRoot.getElementById('exchange-link-image-is-processing').style.setProperty('display', 'block');
+            _shadowRoot.querySelector('.remote-camera .loader-img').style.setProperty('display', 'block');
+          } else {
+            _shadowRoot.getElementById('exchange-link-image-is-processing').style.setProperty('display', 'none', 'important');
+          }
+  
+          // 7. Get result from exchabge object, result taken from Microblink API set by remote camera
+          if (
+            scanDocData.status === Microblink.SDK.ScanExchangerCodes.Step07_ResultIsAvailable && 
+            scanDocData.result
+          ) {
+            _shadowRoot.querySelector('.remote-camera .loader-img').style.setProperty('display', 'none', 'important');
+            _enableResultShow();
+          }
+        });
+      } catch (e) {
+        console.error('Microblink.SDK.CreateScanExchanger.error', e);
+      }
     }
 
     activateLocalCamera() {
