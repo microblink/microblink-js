@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" style="font-size:20px;">
+<head>
+    <meta charset="UTF-8">
+    <title>WEB API COMPONENT DEMO</title>
+    <meta name="viewport" content="initial-scale=1, user-scalable=no"/>
+
+    <!-- For desktop to mobile ("Use remote phone camera" feature) Firebase (Firestore) is required to exchange data between two devices -->
+    <!-- Firebase App is always required and must be first -->
+    <script src="https://www.gstatic.com/firebasejs/5.7.2/firebase-app.js"></script>
+    <!-- Add additional services that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/5.7.2/firebase-firestore.js"></script>
+
+    <script>
+      // Initialize Firebase
+      // TODO: Replace with your project's customized code snippet
+      // var config = {
+      //   apiKey: "<API_KEY>",
+      //   authDomain: "<PROJECT_ID>.firebaseapp.com",
+      //   databaseURL: "https://<DATABASE_NAME>.firebaseio.com",
+      //   projectId: "<PROJECT_ID>",
+      //   storageBucket: "<BUCKET>.appspot.com",
+      //   messagingSenderId: "<SENDER_ID>",
+      // };
+      var config = {
+        apiKey: "AIzaSyC2EeRiAwTGj4Gv28RVjYLkU_sUYLafCqg",
+        authDomain: "microblink-api-exchanger.firebaseapp.com",
+        databaseURL: "https://microblink-api-exchanger.firebaseio.com",
+        projectId: "microblink-api-exchanger",
+        storageBucket: "microblink-api-exchanger.appspot.com",
+        messagingSenderId: "902458803135"
+      };
+      firebase.initializeApp(config);
+    </script>
+
+    <!-- In desktop to mobile feature exchange link can be delivered as QR code if dependency to the `soldair/node-qrcode` is present, otherwise link as QR code will not be generated -->
+    <script src="https://unpkg.com/qrcode@1.3.3/build/qrcode.min.js" ></script>
+
+    <!-- Include dependency to the Microblink SDK  -->
+    <script src="https://unpkg.com/microblink/dist/microblink.min.js" ></script>
+
+    <script>
+      Microblink.SDK.SetRecognizers(['MRTD', 'USDL']);
+      Microblink.SDK.SetIsDataPersistingEnabled(false);
+      
+      Microblink.SDK.RegisterListener({
+        onScanSuccess: (data) => {
+          console.log('Data from Microblink API is', data);
+        },
+        onScanError: (error) => {
+          console.error('Error from Microblink API is', error);
+
+          // Display generic alert
+          if (error.summary) {
+            alert(error.summary);
+          }
+        }
+      });
+    </script>
+
+    <style type="text/css" >
+      body {
+        margin: 0;
+        padding: 0;
+        font-size: 20px;
+      }
+      .microblink-ui-component-wrapper {
+        max-width: 901px;
+        height: 545px;
+        position: relative;
+        margin: 0;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+
+      microblink-ui-web {
+        --mb-widget-border-width: 4px;
+        --mb-widget-border-color: black;
+        --mb-default-font-color: #48b2e8;
+        --mb-btn-font-color: white;
+        --mb-btn-background-color: #48b2e8;
+        --mb-btn-background-color-hover: #4a94b9;
+        --mb-btn-flip-image-color: #48b2e8;
+        --mb-btn-cancel-color: #48b2e8;
+        --mb-json-color-key: black;
+        --mb-json-color-string: #48b2e8;
+        --mb-json-color-boolean: black;
+        --mb-json-color-number: black;
+      }
+    </style>
+
+</head>
+<body>
+  <div class="microblink-ui-component-wrapper">
+    <microblink-ui-web tabs autoscroll></microblink-ui-web>
+  </div>
+</body>
+</html>
