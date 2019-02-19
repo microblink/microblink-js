@@ -50,6 +50,20 @@
       Microblink.SDK.SetUserId('test-user-id@microblink.com');
       // Microblink.SDK.SetRecognizers(['MRTD', 'USDL', 'PDF417', 'CODE128', 'CODE39', 'AZTEC', 'DATA_MATRIX', 'EAN13', 'EAN8', 'ITF', 'QR', 'UPCA', 'UPCE', 'UAE_ID_FRONT', 'UAE_ID_BACK', 'UAE_DL_FRONT', 'VIN', 'SIM', 'CYP_ID_FRONT', 'CYP_ID_BACK', 'CRO_ID_FRONT', 'CRO_ID_BACK', 'KWT_ID_FRONT', 'KWT_ID_BACK', 'ESP_DL_FRONT', 'UK_DL_FRONT', 'MYKAD_FRONT', 'MYTENTERA_FRONT', 'MYPR_FRONT', 'MYKAS_FRONT', 'INDONESIA_ID_FRONT', 'SGP_ID_FRONT', 'SGP_ID_BACK', 'IRL_DL_FRONT', 'HKG_ID_FRONT', 'BLINK_CARD_FRONT']);    
       // Microblink.SDK.SetAuthorization('Bearer MDY0YWNlMGNiN2IzNGUwZTk4YWVmMDVhZDEyOGJjY2E6Mzk5NzNkNDUtYjg4MS00OWE1LTlhMTItYmEzYTRkNmYzY2Fj');
+
+      Microblink.SDK.RegisterListener({
+        onScanSuccess: (data) => {
+          console.log('Data from Microblink API is', data);
+        },
+        onScanError: (error) => {
+          console.error('Error from Microblink API is', error);
+
+          // Display generic alert
+          if (error.summary) {
+            alert(error.summary);
+          }
+        }
+      });
     </script>
 
     <style type="text/css" >

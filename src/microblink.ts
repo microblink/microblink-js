@@ -246,6 +246,12 @@ export default class Microblink implements IMicroblink {
         // unsubscribe()
       }
 
+      // Error handling
+      if (scanDocData.status === ScanExchangerCodes.ErrorHappened && scanDocData.error) {
+        // Notify error listeners
+        this.notifyOnErrorListeners(scanDocData.error)
+      }
+
       // Send onUpdate callback
       onChange(scanDocData)
     })
@@ -320,7 +326,7 @@ export default class Microblink implements IMicroblink {
   private notifyOnErrorListeners(err: any): void {
     this.TerminateActiveRequests()
 
-    // Make silent if JSON is not prasable becaue this error will happen when request is aborted
+    // Make silent if JSON is not prasable because this error will happen when request is aborted
     if (err.code === StatusCodes.ResultIsNotValidJSON) {
       return
     }

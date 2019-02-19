@@ -41,7 +41,21 @@
 
     <script>
       Microblink.SDK.SetRecognizers(['MRTD', 'USDL']);
-		  Microblink.SDK.SetIsDataPersistingEnabled(false);
+      Microblink.SDK.SetIsDataPersistingEnabled(false);
+      
+      Microblink.SDK.RegisterListener({
+        onScanSuccess: (data) => {
+          console.log('Data from Microblink API is', data);
+        },
+        onScanError: (error) => {
+          console.error('Error from Microblink API is', error);
+
+          // Display generic alert
+          if (error.summary) {
+            alert(error.summary);
+          }
+        }
+      });
     </script>
 
     <style type="text/css" >

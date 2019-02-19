@@ -390,6 +390,7 @@ function defineComponent() {
         this.unsubscribeFromScanExchangerChanges = await Microblink.SDK.CreateScanExchanger({}, (scanDocData) => {
   
           // Listen for the changes on Scan exchanger object
+          // console.log('scanDocData', scanDocData);
   
           // 1. Step01_RemoteCameraIsRequested
           // secret key is generated and store as plain string inside of the library
@@ -727,6 +728,13 @@ function defineComponent() {
     }
 
     onScanError(error) {
+
+      if (this.unsubscribeFromScanExchangerChanges) {
+        // If error happened then unsubscribe from the exchange object, 
+        // this will force user to create new exchange object
+        this.unsubscribeFromScanExchangerChanges();
+      }
+
       this.clearTimers();
       this.toggleLoader(false);
       this.stopCamera();
