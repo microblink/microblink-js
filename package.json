@@ -59,6 +59,9 @@
       "tsx",
       "js"
     ],
+    "testPathIgnorePatterns" : [
+      "/scan/"
+    ],
     "coveragePathIgnorePatterns": [
       "/node_modules/",
       "/test/"
