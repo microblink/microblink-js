@@ -1,0 +1,3 @@
+[submodule "scan"]
+	path = scan
+	url = git@github.com:microblink/microblink-scan-web.git
