@@ -205,7 +205,7 @@ All data by default is exchanged over Firebase project through Firestore collect
 
 #### Source
 
-Microblink Scan Web is standalone Angular application available as GIT submodule at [scan](./scan) directory.
+Microblink Scan Web is a standalone Angular application available as GIT submodule at [scan](https://github.com/microblink/microblink-scan-web) directory.
 
 #### How it works
 
