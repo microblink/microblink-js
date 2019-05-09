@@ -201,7 +201,11 @@ They are listed below:
 
 With this feature component is able to starts at the browser on the desktop computer and use remote camera on the smartphone to capture document, call API and returns results to the desktop where component was initially started.  
 
-All data by default is exchanged over Firebase project through Firestore collection, this can be replaced by modifying the component and Microblink SDK internaly.  
+All data by default is exchanged over Firebase project through Firestore collection, this can be replaced by modifying the component and Microblink SDK internaly. 
+
+#### Source
+
+Microblink Scan Web is standalone Angular application available as GIT submodule at [scan](./scan) directory.
 
 #### How it works
 
