@@ -223,6 +223,14 @@ Look at the [sample/index.html](./sample/index.html) and replace Firebase app co
 
 ## Development
 
-### Realtime build
+`npm install`
+
+### Realtime watch & build
 
 `npm start`
+
+### Build release
+
+`npm build` and fetch files from `dist` directory
+
+
