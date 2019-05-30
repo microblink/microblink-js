@@ -3,6 +3,7 @@ import { SDK } from '../microblink.SDK';
 import templateHtml from './html/component.html';
 import ResizeSensor from './ResizeSensor.js';
 import ElementQueriesFactory from './ElementQueries.js';
+import { FrameHelper } from '../frameHelper'
 
 import {escapeHtml, labelFromCamelCase, dateFromObject, isMobile, hasClass, addClass, removeClass, toggleClass, isRemotePhoneCameraAvailable} from './utils.js';
 
@@ -22,7 +23,6 @@ if (window) {
 	window['Microblink'] = Microblink;
 }
 
-const ERR_TIMED_OUT = 'Request Timed Out';
 const ERR_UNSUPPORTED_TYPE = 'Unsupported file type';
 const RESULT_MASKED = 'Please notice that your results are masked due to missing Authorization header';
 
@@ -42,7 +42,7 @@ function defineComponent() {
   class WebApi extends HTMLElement {
 
     static get observedAttributes() {
-      return ['tabs', 'autoscroll'];
+      return ['tabs', 'autoscroll', 'webcam'];
     }
 
     get tabs() { return this.hasAttribute('tabs'); }
@@ -50,6 +50,9 @@ function defineComponent() {
 
     get autoscroll() { return this.hasAttribute('autoscroll'); }
     set autoscroll(value) { value === true ? this.setAttribute('autoscroll', '') : this.removeAttribute('autoscroll'); }
+
+    get webcam() { return this.getAttribute('webcam'); }
+    set webcam(value) { value === false ? this.setAttribute('webcam', 'false') : this.removeAttribute('webcam'); }
 
     constructor() {
       super();
@@ -141,6 +144,18 @@ function defineComponent() {
       this.ElementQueries = ElementQueriesFactory(ResizeSensor, this.shadowRoot);
       this.ElementQueries.listen();
       window.addEventListener('resize', this.adjustComponent.bind(this));
+
+      this.shadowRoot.getElementById('webcamConfirmBtn').addEventListener('click', () => {
+        Microblink.SDK.SendImage(this.webcamImage, this.onScanProgress);
+        this.toggleLoader(true);
+        this.restart();
+        this.stopCamera();
+      })
+      this.shadowRoot.getElementById('webcamRetakeBtn').addEventListener('click', () => {
+        this.activateLocalCamera.apply(this);
+        removeClass(this.shadowRoot.querySelector('.confirm-image'), 'show');
+        addClass(this.shadowRoot.querySelector('.confirm-image'), 'hidden');
+      })
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
@@ -291,16 +306,14 @@ function defineComponent() {
 
     toggleError(show, message) {
       let errDialog = this.shadowRoot.querySelector('.error-container');
-      let p = errDialog.querySelector('p:not(:first-child)');
-      if (p) errDialog.removeChild(p);
+      errDialog.querySelectorAll('p').forEach(el => el.remove());
+      let element = document.createElement('p');
       if (show && message) {
-        let element = document.createElement('p');
         element.textContent = message;
-        errDialog.insertBefore(element, errDialog.querySelector('button'));
-        addClass(errDialog.querySelector('p:first-child'), 'hidden');
       } else {
-        removeClass(errDialog.querySelector('p:first-child'), 'hidden');
+        element.textContent = errDialog.querySelector('slot[name="labels.errorMsg"]').textContent;
       }
+      errDialog.insertBefore(element, errDialog.querySelector('button'));
       toggleClass(errDialog, 'show', show);
     }
 
@@ -463,7 +476,7 @@ function defineComponent() {
     activateLocalCamera() {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         this.shadowRoot.getElementById('cameraLocalBtn').setAttribute('disabled', '');
-        let constraints = { video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: { ideal: 'environment' } } };
+        let constraints = { video: { width: { ideal: 3840 }, height: { ideal: 2160 }, facingMode: { ideal: 'environment' } } };
         let permissionTimeoutId = setTimeout(() => { permissionTimeoutId = null; this.permissionDialogPresent(); }, 1500); //this is "event" in case of browser's camera allow/block dialog
         navigator.mediaDevices.getUserMedia(constraints).then(stream => {
           this.permissionDialogAbsent(permissionTimeoutId);
@@ -505,9 +518,20 @@ function defineComponent() {
           
         }).catch(error => {
           this.permissionDialogAbsent(permissionTimeoutId);
-          this.toggleError(true);
+
+          let errorMessage;
+          switch(error.name) {
+            case 'NotFoundError':
+              errorMessage = this.shadowRoot.querySelector('slot[name="labels.notFoundErrorMsg"]').textContent;
+              break;
+            case 'NotAllowedError':
+              errorMessage = this.shadowRoot.querySelector('slot[name="labels.notAllowedErrorMsg"]').textContent;
+              break;
+          }
+
+          this.toggleError(true, errorMessage);
           this.dispatchEvent('error', new Error('Camera error: ' + error.name));
-          console.log(error.name); //NotFoundError, NotAllowedError, PermissionDismissedError
+          console.log(error.name); //NotFoundError, NotAllowedError
         }).then(() => this.shadowRoot.getElementById('cameraLocalBtn').removeAttribute('disabled'));
 
       } else {
@@ -539,41 +563,52 @@ function defineComponent() {
 
     startRecording() {
       this.enableResultShow = false;
-      this.stopSendingFrames = false;
       let countdown = 3;
       addClass(this.shadowRoot.getElementById('photoBtn'), 'hidden');
       addClass(this.shadowRoot.getElementById('counter'), 'show');
       let numberNode = this.shadowRoot.querySelector('.counter-number');
+      removeClass(numberNode, 'hidden');
       numberNode.textContent = String(countdown);
-      this.frameSendingIntervalId = setInterval(() => {
-        this.captureFrame().then(data => {
-          if (this.stopSendingFrames) return;
-          Microblink.SDK.SendImage(data);
-        });
-      }, 200);
+      let frames = [];
       let counterIntervalId = setInterval(() => {
-        if(countdown > 1) {
-          numberNode.textContent = String(--countdown);
-        } else {
-          addClass(numberNode, 'hidden');
-          removeClass(this.shadowRoot.querySelector('.counter-alt'), 'hidden');
+        numberNode.textContent = String(--countdown);
+        if (countdown == 1) {
+          this.frameSendingIntervalId = setInterval(() => {
+            this.captureFrameAndAddToArray(frames);
+          }, 200);
+        }
+        if (countdown == 0) {
           clearInterval(counterIntervalId);
+          clearInterval(this.frameSendingIntervalId);
+          this.captureFrameAndAddToArray(frames); // So that even the picture on 0 countdown mark would be included
+          this.hideCounter();
+
           this.enableResultShow = true;
-          setTimeout(() => {
-            this.hideCounter();
-          }, 2500);
+          let bestFrame = frames.reduce((prev, current) => (prev.frameQuality > current.frameQuality) ? prev : current);
+
+          this.userImageConfirmation(bestFrame.data);
         }
       }, 1000);
-      this.recordingTimeoutId = setTimeout(() => {
-        this.stopSendingFrames = true;
-        clearInterval(this.frameSendingIntervalId);
-        Microblink.SDK.TerminateRequest();
-        this.stopCamera();
-        this.restartCounter();
-        this.restart();
-        this.toggleError(true, ERR_TIMED_OUT);
-        this.dispatchEvent('error', ERR_TIMED_OUT);
-      }, 18000);
+    }
+
+    userImageConfirmation(scanInputFile) {
+      this.webcamImage = scanInputFile;
+      let image = new Image();
+      image.src = URL.createObjectURL(scanInputFile.blob);
+      let imageContainerNode = this.shadowRoot.querySelector('.confirm-image .image-container');
+      if (imageContainerNode.hasChildNodes())
+        imageContainerNode.firstChild.remove();
+      imageContainerNode.appendChild(image);
+      addClass(this.shadowRoot.querySelector('.confirm-image'), 'show');
+      removeClass(this.shadowRoot.querySelector('.confirm-image'), 'hidden');
+    }
+
+    captureFrameAndAddToArray(frames) {
+      this.captureFrame().then(data => {
+        let frameQuality = FrameHelper.getFrameQuality(data.pixelData);
+        delete data.pixelData; // So Microblink.SDK.SendImage will recognize it as ScanInputFile instead of ScanInputFrame
+        frames.push({data, frameQuality});
+      });
     }
 
     captureFrame() {
@@ -605,7 +640,6 @@ function defineComponent() {
       removeClass(this.shadowRoot.getElementById('photoBtn'), 'hidden');
       removeClass(this.shadowRoot.getElementById('counter'), 'show');
       removeClass(this.shadowRoot.querySelector('.counter-number'), 'hidden');
-      addClass(this.shadowRoot.querySelector('.counter-alt'), 'hidden');
     }
 
     hideCounter() {
@@ -656,7 +690,7 @@ function defineComponent() {
         this.shadowRoot.querySelector('.container.results').innerHTML = innerHtml;
       } else {
         this.shadowRoot.querySelector('.container.results').innerHTML = `<span class="no-result">
-        Scanning is finished, but we could not extract the data. Please check if you uploaded the right document type
+        Scanning is finished, but we could not extract the data. Please check if you uploaded the right document type.
       </span>`;
       }
     }
@@ -713,7 +747,6 @@ function defineComponent() {
 
     onScanSuccess(response) {
       if (!response) return;
-      this.stopSendingFrames = true;
       this.clearTimers();
       let showIntervalId = setInterval(() => {
         if (this.enableResultShow) {
@@ -745,7 +778,6 @@ function defineComponent() {
 
     clearTimers() {
       clearInterval(this.frameSendingIntervalId);
-      clearTimeout(this.recordingTimeoutId);
       clearTimeout(this.messageTimeoutId);
     }
 

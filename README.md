@@ -94,6 +94,8 @@ table view of the results, preview of a JSON response from the server and previe
 
 **autoscroll** - this is a feature for mobile devices intended to improve UX. When scrolling through your page with this option enabled, the vertical positioning of the page will be set to the start of the component when distance of the component's top edge is near to the top edge of the viewport. This could help mobile users to have the whole component placed inside a viewport.
 
+**webcam** - this is for enabling or disabling the option to use web camera. To disable the use of webcam set the `webcam` attribute to `false`.
+
 ### Localization
 
 If you wish to change textual contents inside a component, we are offering you an easy way to do this without the need for you to do cumbersome additional javascript manipulation. Maybe you want your page in a different language than English or you just don't like our default English labels.  
@@ -110,15 +112,18 @@ To clarify, we are providing an example with all currently customizable labels a
 				"cameraRemote": "Use remote phone camera",
 				"tryAgain": "TRY AGAIN",
 				"takePhoto": "TAKE A PHOTO",
-				"copy": "Copy to clipboard"
+				"copy": "Copy to clipboard",
+				"confirm": "CONFIRM",
+				"retake": "RETAKE"
 			},
 			"labels": {
 				"dragDrop": "Drag and Drop\ndocument here OR",
      			"nativeCamera": "Choose image from \ndevice or camera app:",
 				"cameraActivate": "Activate your camera to capture the ID document:",
 				"errorMsg": "We're sorry, but something went wrong. Please try again.",
+				"notFoundErrorMsg": "No camera was found on your device.",
+				"notAllowedErrorMsg": "You have denied camera access permission.",
      			"permissionMsg": "Enable camera please",
-				"holdStill": "HOLD STILL",
 				"table": {
 					"keys": "Data field from the ID",
 					"values": "Value"
@@ -169,6 +174,8 @@ Below is the list of all currently available style hooks with their explanations
 | -\-mb-btn-background-color-hover | Background color of hovered buttons. Default: `dimgrey` |
 | -\-mb-btn-flip-image-color | Color of the camera flip button. Default: `black` |
 | -\-mb-btn-cancel-color | Color of the cancel button (camera exit button). Default: `black` |
+| -\-mb-btn-webcam-confirm-color | Color of the webcam confirm button. Default: `black` |
+| -\-mb-btn-webcam-retake-color | Color of the webcam retake button. Default: `black` |
 | -\-mb-card-layout-border-color | Border color of the card overlay. Default: `black` |
 | -\-mb-btn-border-radius | Set the buttons' border radius. Default values is `5px`  |
 | -\-mb-dropzone-hover-color | Background color of drag and drop area when hovered with some dragged document. Default value: `rgba(0, 0, 0, .25)` |

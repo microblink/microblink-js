@@ -13,6 +13,8 @@
     --mb-btn-background-color-hover: dimgrey;
     --mb-btn-flip-image-color: black;
     --mb-btn-cancel-color: black;
+    --mb-btn-webcam-confirm-color: black;
+    --mb-btn-webcam-retake-color: black;
     --mb-card-layout-border-color: black;
     --mb-json-color-null: #ff00ff;
     --mb-json-color-number: #ffc000;
@@ -185,7 +187,7 @@
   video {
     height: 100%;
   }
-  .pending-container, .error-container, .permission {
+  .pending-container, .error-container, .permission, .confirm-image {
     display: none;
     position: absolute;
     z-index: 1000;
@@ -204,7 +206,7 @@
     margin: calc(1.4 *var(--mb-hem)) 0 0;
     font-weight: 500;
   }
-  .pending-container.show, .error-container.show, .permission.show {
+  .pending-container.show, .error-container.show, .permission.show, .confirm-image.show {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -358,7 +360,7 @@
     line-height: 1.5;
     font-weight: 500;
   }
-  .container.image img {
+  .container.image img, .container.confirm-image .image-container img {
     width: 100%;
     height: auto;
     position: absolute;
@@ -390,16 +392,10 @@
     justify-content: center;
     align-items: center;
   }
-  .counter-number, .counter-alt {
+  .counter-number {
     margin: 0;
     padding: 0;
     font-weight: 500;
-  }
-  .counter-alt {
-    line-height: 1.25;
-    font-size: calc(2.5 * var(--mb-hem));
-  }
-  .counter-number {
     line-height: 1;
     font-size: calc(4 * var(--mb-hem));
   }
@@ -464,7 +460,7 @@
   }
 
   @media only screen and (orientation: portrait) {
-    .container.image img {
+    .container.image img, .container.confirm-image .image-container img {
       width: auto;
       height: 100%;
     }
@@ -503,6 +499,39 @@
     100% {
       transform: rotate(360deg);
     }
+  }
+  :host([webcam="false"]) #cameraLocalBtn, :host([webcam="false"]) #cameraBtnSeparator {
+    display: none;
+  }
+  #cameraLocalBtn, #cameraBtnSeparator {
+    display: block;
+  }
+  .container.confirm-image .image-container {
+    width: 100%;
+    height: calc(100% - 66px);
+    background-color: white;
+    position: absolute;
+    bottom: 66px;
+  }
+  .container.confirm-image .button-container {
+    position: absolute;
+    bottom: 0;
+    box-sizing: border-box;
+    width: 100%;
+    height: 66px;
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    border-top: 1px solid lightgrey;
+  }
+  .container.confirm-image .button-container button {
+    margin: 10px;
+  }
+  #webcamConfirmBtn {
+    background-color: var(--mb-btn-webcam-confirm-color);
+  }
+  #webcamRetakeBtn {
+    background-color: var(--mb-btn-webcam-retake-color);
   }
 </style>
 <div class="container root" id="rootContainer">
@@ -598,7 +627,6 @@
     </button>
     <div id="counter">
       <p class="counter-number"></p>
-      <p class="counter-alt hidden"><slot name="labels.holdStill">HOLD STILL</slot></p>
     </div>
   </div>
   <div class="pending-container">
@@ -618,10 +646,21 @@
     </div> -->
   </div>
   <div class="error-container">
-    <p><slot name="labels.errorMsg">We're sorry, but something went wrong. Please try again.</slot></p>
+    <div class="hidden">
+        <slot name="labels.errorMsg">We're sorry, but something went wrong. Please try again.</slot>
+        <slot name="labels.notFoundErrorMsg">No camera was found on your device.</slot>
+        <slot name="labels.notAllowedErrorMsg">You have denied camera access permission.</slot>
+    </div>
     <button type="button" id="againBtn"><slot name="buttons.tryAgain">TRY AGAIN</slot></button>
   </div>
   <div class="permission">
     <p><slot name="labels.permissionMsg">Enable camera please</slot></p>
+  </div>
+  <div class="container confirm-image">
+    <div class="image-container"></div>
+    <div class="button-container">
+      <button type="button" id="webcamConfirmBtn"><slot name="buttons.confirm">CONFIRM</slot></button>
+      <button type="button" id="webcamRetakeBtn"><slot name="buttons.retake">RETAKE</slot></button>
+    </div>
   </div>
 </div>
