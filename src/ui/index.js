@@ -325,7 +325,8 @@ function defineComponent() {
         file = event.dataTransfer.files && event.dataTransfer.files[0];
       }
       if (file) {
-        if (file.type && (file.type.indexOf('image') !== -1)) {
+        let supportedImageTypes = this.shadowRoot.getElementById('file').getAttribute('accept').split(',');
+        if (file.type && supportedImageTypes.includes(file.type)) {
           this.setFile(file);
         } else {
           this.toggleError(true, ERR_UNSUPPORTED_TYPE);
