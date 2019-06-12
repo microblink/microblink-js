@@ -70,14 +70,6 @@ function defineComponent() {
 
       document.addEventListener('DOMContentLoaded', this.getLocalization);
       Microblink.SDK.RegisterListener(this);
-
-      // If required dependencies are not available then hide desktop-to-mobile buttons 
-      Microblink.SDK.IsDesktopToMobileAvailable().then(isAvailable => {
-        if (!isAvailable) {
-          this.shadowRoot.getElementById('cameraRemoteBtn').style.setProperty('display', 'none', 'important');
-          this.shadowRoot.getElementById('cameraBtnSeparator').style.setProperty('display', 'none', 'important');
-        }
-      });      
     }
 
     connectedCallback() {
@@ -139,7 +131,8 @@ function defineComponent() {
         document.execCommand('copy');
         this.shadowRoot.removeChild(textarea);
       });
-      this.handleWebRTCSupport();
+      this.checkWebRTCSupport();
+      this.checkRemoteCameraSupport();
       this.adjustComponent(true);
       this.ElementQueries = ElementQueriesFactory(ResizeSensor, this.shadowRoot);
       this.ElementQueries.listen();
@@ -150,12 +143,25 @@ function defineComponent() {
         this.toggleLoader(true);
         this.restart();
         this.stopCamera();
-      })
-      this.shadowRoot.getElementById('webcamRetakeBtn').addEventListener('click', () => {
-        this.activateLocalCamera.apply(this);
         removeClass(this.shadowRoot.querySelector('.confirm-image'), 'show');
-        addClass(this.shadowRoot.querySelector('.confirm-image'), 'hidden');
-      })
+      });
+      this.shadowRoot.getElementById('webcamRetakeBtn').addEventListener('click', () => {
+        this.activateLocalCamera();
+        removeClass(this.shadowRoot.querySelector('.confirm-image'), 'show');
+      });
+      this.shadowRoot.querySelector('slot[name="loader-image"]').addEventListener('slotchange', event => {
+        let loaderElements = event.target.assignedElements();
+        let loaderSlots = Array.prototype.map.call(this.shadowRoot.querySelectorAll('slot[name="loader-image"]'), el => el);
+        loaderSlots.shift();
+        if (loaderSlots.length) {
+          loaderSlots.forEach(slot => {
+              slot.innerHTML = '';
+              loaderElements.forEach(element => {
+                slot.appendChild(element.cloneNode(true));
+              });
+          });
+        }
+      });
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
@@ -177,7 +183,6 @@ function defineComponent() {
           this.shadowRoot.getElementById('cameraLocalBtn').innerHTML = this.shadowRoot.getElementById('cameraLocalBtn').innerHTML.replace('desktop', '').replace('web', '');
           Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('#flipBtn, .video video'), elem => toggleClass(elem, 'flipped'));
           Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.dropzone .intro-label'), elem => toggleClass(elem, 'hidden'));
-         
         }
       }
 
@@ -213,11 +218,25 @@ function defineComponent() {
       }
     }
 
-    handleWebRTCSupport() {
+    checkWebRTCSupport() {
       if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) {
-        let cameraPart = this.shadowRoot.querySelector('.container.intro .inline + .inline');
-        cameraPart.parentNode.removeChild(cameraPart);
+        let cameraLocalBtn = this.shadowRoot.getElementById('cameraLocalBtn');
+        cameraLocalBtn.parentNode.removeChild(cameraLocalBtn);
+        this.shadowRoot.getElementById('cameraBtnSeparator').style.setProperty('display', 'none', 'important');
       }
+    }
+
+    checkRemoteCameraSupport() {
+      Microblink.SDK.IsDesktopToMobileAvailable().then(isAvailable => {
+        if (!isAvailable) {
+          this.shadowRoot.getElementById('cameraRemoteBtn').style.setProperty('display', 'none', 'important');
+          this.shadowRoot.getElementById('cameraBtnSeparator').style.setProperty('display', 'none', 'important');
+          if (!this.shadowRoot.getElementById('cameraLocalBtn')) {
+            let cameraPart = this.shadowRoot.querySelector('.container.intro .inline + .inline');
+            cameraPart.parentNode.removeChild(cameraPart);
+          }
+        }
+      });
     }
 
     getLocalization() {
@@ -306,7 +325,7 @@ function defineComponent() {
 
     toggleError(show, message) {
       let errDialog = this.shadowRoot.querySelector('.error-container');
-      errDialog.querySelectorAll('p').forEach(el => el.remove());
+      Array.prototype.forEach.call(errDialog.querySelectorAll('p'), el => errDialog.removeChild(el));
       let element = document.createElement('p');
       if (show && message) {
         element.textContent = message;
@@ -381,6 +400,8 @@ function defineComponent() {
         this.unsubscribeFromScanExchangerChanges();
       }
 
+      this.toggleTabs(false);
+      this.clearTabs();
       Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container'), elem => toggleClass(elem, 'hidden', !hasClass(elem, 'remote-camera')));
 
       const _shadowRoot = this.shadowRoot;
@@ -401,16 +422,16 @@ function defineComponent() {
       try {
 
         this.unsubscribeFromScanExchangerChanges = await Microblink.SDK.CreateScanExchanger({}, (scanDocData) => {
-  
+
           // Listen for the changes on Scan exchanger object
           // console.log('scanDocData', scanDocData);
-  
+
           // 1. Step01_RemoteCameraIsRequested
           // secret key is generated and store as plain string inside of the library
-  
+
           // 2. get short link after create
           if (
-            scanDocData.status === Microblink.SDK.ScanExchangerCodes.Step02_ExchangeLinkIsGenerated 
+            scanDocData.status === Microblink.SDK.ScanExchangerCodes.Step02_ExchangeLinkIsGenerated
             && scanDocData.shortLink
           ) {
             const exchangeLink = scanDocData.shortLink;
@@ -425,7 +446,7 @@ function defineComponent() {
           } else {
             _shadowRoot.getElementById('exchange-link-as-QR').innerHTML = '';
           }
-  
+
           // 3. Remote camera page is prepared - waiting for user to open camera
           if (scanDocData.status === Microblink.SDK.ScanExchangerCodes.Step03_RemoteCameraIsPending) {
             _shadowRoot.getElementById('exchange-link').innerHTML = '';
@@ -434,15 +455,15 @@ function defineComponent() {
             _shadowRoot.getElementById('exchange-link-remote-camera-is-pending').style.setProperty('display', 'block');
           } else {
             _shadowRoot.getElementById('exchange-link-remote-camera-is-pending').style.setProperty('display', 'none', 'important');
-          } 
-  
+          }
+
           // 4. Remote camera is open by user - waiting for shot
           if (scanDocData.status === Microblink.SDK.ScanExchangerCodes.Step04_RemoteCameraIsOpen) {
             _shadowRoot.getElementById('exchange-link-remote-camera-is-open').style.setProperty('display', 'block');
           } else {
             _shadowRoot.getElementById('exchange-link-remote-camera-is-open').style.setProperty('display', 'none', 'important');
           }
-  
+
           // 5. Remote camera - shot is done and device is uploading image and server is processing image
           if (scanDocData.status === Microblink.SDK.ScanExchangerCodes.Step05_ImageIsUploading) {
             _shadowRoot.getElementById('exchange-link-image-is-uploading').style.setProperty('display', 'block');
@@ -450,7 +471,7 @@ function defineComponent() {
           } else {
             _shadowRoot.getElementById('exchange-link-image-is-uploading').style.setProperty('display', 'none', 'important');
           }
-  
+
           // 6. Remote camera - upload is done and waiting for the server to process image
           if (scanDocData.status === Microblink.SDK.ScanExchangerCodes.Step06_ImageIsProcessing) {
             _shadowRoot.getElementById('exchange-link-image-is-processing').style.setProperty('display', 'block');
@@ -458,10 +479,10 @@ function defineComponent() {
           } else {
             _shadowRoot.getElementById('exchange-link-image-is-processing').style.setProperty('display', 'none', 'important');
           }
-  
+
           // 7. Get result from exchabge object, result taken from Microblink API set by remote camera
           if (
-            scanDocData.status === Microblink.SDK.ScanExchangerCodes.Step07_ResultIsAvailable && 
+            scanDocData.status === Microblink.SDK.ScanExchangerCodes.Step07_ResultIsAvailable &&
             scanDocData.result
           ) {
             _shadowRoot.querySelector('.remote-camera .loader-img').style.setProperty('display', 'none', 'important');
@@ -496,7 +517,7 @@ function defineComponent() {
           this.toggleTabs(false);
           this.clearTabs();
           Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container'), elem => toggleClass(elem, 'hidden', !hasClass(elem, 'video')));
-          
+
           // Rescale card-layout-rectangle and it's background to the component size
           // Get current values
           var componentWidth = this.shadowRoot.getElementById('rootContainer').offsetWidth;
@@ -515,7 +536,7 @@ function defineComponent() {
           // Update UI
           this.shadowRoot.getElementById('card-layout-rectangle').style.zoom = scaleFactor;
           this.shadowRoot.getElementById('card-layout-rectangle-background').style.zoom = scaleFactor;
-          
+
         }).catch(error => {
           this.permissionDialogAbsent(permissionTimeoutId);
 
@@ -572,23 +593,22 @@ function defineComponent() {
       let frames = [];
       let counterIntervalId = setInterval(() => {
         numberNode.textContent = String(--countdown);
-        if (countdown == 1) {
+        if (countdown === 1) {
           this.frameSendingIntervalId = setInterval(() => {
             this.captureFrameAndAddToArray(frames);
           }, 200);
         }
-        if (countdown == 0) {
+        if (countdown === 0) {
           clearInterval(counterIntervalId);
           clearInterval(this.frameSendingIntervalId);
           this.hideCounter();
           this.enableResultShow = true;
-          
+
           // So that even the picture on 0 countdown mark would be included
           this.captureFrameAndAddToArray(frames).then(() => {
             let bestFrame = frames.reduce((prev, current) => (prev.frameQuality > current.frameQuality) ? prev : current);
             this.userImageConfirmation(bestFrame.data);
           });
-          
         }
       }, 1000);
     }
@@ -598,11 +618,9 @@ function defineComponent() {
       let image = new Image();
       image.src = URL.createObjectURL(scanInputFile.blob);
       let imageContainerNode = this.shadowRoot.querySelector('.confirm-image .image-container');
-      if (imageContainerNode.hasChildNodes())
-        imageContainerNode.firstChild.remove();
+      imageContainerNode.innerHTML = '';
       imageContainerNode.appendChild(image);
       addClass(this.shadowRoot.querySelector('.confirm-image'), 'show');
-      removeClass(this.shadowRoot.querySelector('.confirm-image'), 'hidden');
     }
 
     captureFrameAndAddToArray(frames) {
@@ -768,7 +786,7 @@ function defineComponent() {
     onScanError(error) {
 
       if (this.unsubscribeFromScanExchangerChanges) {
-        // If error happened then unsubscribe from the exchange object, 
+        // If error happened then unsubscribe from the exchange object,
         // this will force user to create new exchange object
         this.unsubscribeFromScanExchangerChanges();
       }

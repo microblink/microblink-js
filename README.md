@@ -94,7 +94,7 @@ table view of the results, preview of a JSON response from the server and previe
 
 **autoscroll** - this is a feature for mobile devices intended to improve UX. When scrolling through your page with this option enabled, the vertical positioning of the page will be set to the start of the component when distance of the component's top edge is near to the top edge of the viewport. This could help mobile users to have the whole component placed inside a viewport.
 
-**webcam** - this is for enabling or disabling the option to use web camera. To disable the use of webcam set the `webcam` attribute to `false`.
+**webcam** - this is for enabling or disabling the option to use web camera. To disable the use of webcam set the `webcam` attribute to "off".
 
 ### Localization
 
