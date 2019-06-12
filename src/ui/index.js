@@ -580,13 +580,15 @@ function defineComponent() {
         if (countdown == 0) {
           clearInterval(counterIntervalId);
           clearInterval(this.frameSendingIntervalId);
-          this.captureFrameAndAddToArray(frames); // So that even the picture on 0 countdown mark would be included
           this.hideCounter();
-
           this.enableResultShow = true;
-          let bestFrame = frames.reduce((prev, current) => (prev.frameQuality > current.frameQuality) ? prev : current);
-
-          this.userImageConfirmation(bestFrame.data);
+          
+          // So that even the picture on 0 countdown mark would be included
+          this.captureFrameAndAddToArray(frames).then(() => {
+            let bestFrame = frames.reduce((prev, current) => (prev.frameQuality > current.frameQuality) ? prev : current);
+            this.userImageConfirmation(bestFrame.data);
+          });
+          
         }
       }, 1000);
     }
@@ -604,10 +606,13 @@ function defineComponent() {
     }
 
     captureFrameAndAddToArray(frames) {
-      this.captureFrame().then(data => {
-        let frameQuality = FrameHelper.getFrameQuality(data.pixelData);
-        delete data.pixelData; // So Microblink.SDK.SendImage will recognize it as ScanInputFile instead of ScanInputFrame
-        frames.push({data, frameQuality});
+      return new Promise(resolve => {
+        this.captureFrame().then(data => {
+          let frameQuality = FrameHelper.getFrameQuality(data.pixelData);
+          delete data.pixelData; // So Microblink.SDK.SendImage will recognize it as ScanInputFile instead of ScanInputFrame
+          frames.push({data, frameQuality});
+          resolve();
+        });
       });
     }
 
