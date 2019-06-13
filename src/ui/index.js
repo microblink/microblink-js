@@ -151,16 +151,13 @@ function defineComponent() {
       });
       this.shadowRoot.querySelector('slot[name="loader-image"]').addEventListener('slotchange', event => {
         let loaderElements = event.target.assignedElements();
+        if (loaderElements.length === 0) return;
         let loaderSlots = Array.prototype.map.call(this.shadowRoot.querySelectorAll('slot[name="loader-image"]'), el => el);
         loaderSlots.shift();
-        if (loaderSlots.length) {
-          loaderSlots.forEach(slot => {
-              slot.innerHTML = '';
-              loaderElements.forEach(element => {
-                slot.appendChild(element.cloneNode(true));
-              });
-          });
-        }
+        loaderSlots.forEach(slot => {
+          slot.innerHTML = ''
+          loaderElements.forEach(element => slot.appendChild(element.cloneNode(true)));
+        });
       });
     }
 
