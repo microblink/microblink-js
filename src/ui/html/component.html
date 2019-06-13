@@ -13,6 +13,8 @@
     --mb-btn-background-color-hover: dimgrey;
     --mb-btn-flip-image-color: black;
     --mb-btn-cancel-color: black;
+    --mb-btn-webcam-confirm-color: black;
+    --mb-btn-webcam-retake-color: black;
     --mb-card-layout-border-color: black;
     --mb-json-color-null: #ff00ff;
     --mb-json-color-number: #ffc000;
@@ -185,7 +187,7 @@
   video {
     height: 100%;
   }
-  .pending-container, .error-container, .permission {
+  .pending-container, .error-container, .permission, .confirm-image {
     display: none;
     position: absolute;
     z-index: 1000;
@@ -204,7 +206,7 @@
     margin: calc(1.4 *var(--mb-hem)) 0 0;
     font-weight: 500;
   }
-  .pending-container.show, .error-container.show, .permission.show {
+  .pending-container.show, .error-container.show, .permission.show, .confirm-image.show {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -226,7 +228,7 @@
   .container.remote-camera a {
     color: black;
     font-weight: bold;
-  } 
+  }
   /*.progress-bar {
     background-color: var(--mb-progress-bar-color, lightgrey);
     width: 37.5%;
@@ -358,7 +360,7 @@
     line-height: 1.5;
     font-weight: 500;
   }
-  .container.image img {
+  .container.image img, .confirm-image .image-container img {
     width: 100%;
     height: auto;
     position: absolute;
@@ -390,16 +392,10 @@
     justify-content: center;
     align-items: center;
   }
-  .counter-number, .counter-alt {
+  .counter-number {
     margin: 0;
     padding: 0;
     font-weight: 500;
-  }
-  .counter-alt {
-    line-height: 1.25;
-    font-size: calc(2.5 * var(--mb-hem));
-  }
-  .counter-number {
     line-height: 1;
     font-size: calc(4 * var(--mb-hem));
   }
@@ -464,7 +460,7 @@
   }
 
   @media only screen and (orientation: portrait) {
-    .container.image img {
+    .container.image img, .confirm-image .image-container img {
       width: auto;
       height: 100%;
     }
@@ -504,6 +500,39 @@
       transform: rotate(360deg);
     }
   }
+  :host([webcam="off"]) #cameraLocalBtn, :host([webcam="off"]) #cameraBtnSeparator {
+    display: none;
+  }
+  #cameraLocalBtn, #cameraBtnSeparator {
+    display: block;
+  }
+  .confirm-image .image-container {
+    width: 100%;
+    height: calc(100% - 66px);
+    background-color: white;
+    position: absolute;
+    bottom: 66px;
+  }
+  .confirm-image .button-container {
+    position: absolute;
+    bottom: 0;
+    box-sizing: border-box;
+    width: 100%;
+    height: 66px;
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    border-top: 1px solid lightgrey;
+  }
+  .confirm-image .button-container button {
+    margin: 10px;
+  }
+  #webcamConfirmBtn {
+    background-color: var(--mb-btn-webcam-confirm-color);
+  }
+  #webcamRetakeBtn {
+    background-color: var(--mb-btn-webcam-retake-color);
+  }
 </style>
 <div class="container root" id="rootContainer">
   <div class="tab-container">
@@ -528,8 +557,6 @@
           <button type="button" id="cameraRemoteBtn"><slot name="buttons.cameraRemote">Use remote phone camera</slot></button>
           <div id="cameraBtnSeparator">OR</div>
           <button type="button" id="cameraLocalBtn"><slot name="buttons.cameraLocal">Use web camera</slot></button>
-        
-        
         </div>
       </div>
     </div>
@@ -541,23 +568,22 @@
     </div>
   </div>
   <div class="container remote-camera" >
-    
     <h2 id="generating-exchange-link"><slot name="labels.generatingExchangeLink">Generating exchange link...</slot></h2>
     <h2 id="exchange-link-title"><slot name="labels.exchangeLinkTitle">Exchange link is</slot></h2>
-    
+
     <button type="button" id="cancelBtnRemoteCamera" >
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" width="30px" height="30px">
         <path d="M 7 4 C 6.744125 4 6.4879687 4.0974687 6.2929688 4.2929688 L 4.2929688 6.2929688 C 3.9019687 6.6839688 3.9019687 7.3170313 4.2929688 7.7070312 L 11.585938 15 L 4.2929688 22.292969 C 3.9019687 22.683969 3.9019687 23.317031 4.2929688 23.707031 L 6.2929688 25.707031 C 6.6839688 26.098031 7.3170313 26.098031 7.7070312 25.707031 L 15 18.414062 L 22.292969 25.707031 C 22.682969 26.098031 23.317031 26.098031 23.707031 25.707031 L 25.707031 23.707031 C 26.098031 23.316031 26.098031 22.682969 25.707031 22.292969 L 18.414062 15 L 25.707031 7.7070312 C 26.098031 7.3170312 26.098031 6.6829688 25.707031 6.2929688 L 23.707031 4.2929688 C 23.316031 3.9019687 22.682969 3.9019687 22.292969 4.2929688 L 15 11.585938 L 7.7070312 4.2929688 C 7.5115312 4.0974687 7.255875 4 7 4 z"/>
       </svg>
     </button>
-    
+
     <div class="loader-img">
       <slot name="loader-image">
         pr1
         <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
       </slot>
     </div>
-    
+
     <div id="exchange-link"></div>
 
     <div id="exchange-link-as-QR" ></div>
@@ -578,10 +604,10 @@
   </div>
   <div class="container video hidden">
     <video class="flipped" id="video" muted playsinline>Your browser does not support video tag.</video>
-    
+
     <div id="card-layout-rectangle-background" ></div>
     <div id="card-layout-rectangle" ></div>
-    
+
     <button type="button" id="photoBtn"><slot name="buttons.takePhoto">TAKE A PHOTO</slot></button>
     <button type="button" id="flipBtn" class="flipped">
       <svg width='44' height='35' viewBox='0 0 44 35' fill='none' xmlns='http://www.w3.org/2000/svg'>
@@ -598,7 +624,6 @@
     </button>
     <div id="counter">
       <p class="counter-number"></p>
-      <p class="counter-alt hidden"><slot name="labels.holdStill">HOLD STILL</slot></p>
     </div>
   </div>
   <div class="pending-container">
@@ -618,10 +643,21 @@
     </div> -->
   </div>
   <div class="error-container">
-    <p><slot name="labels.errorMsg">We're sorry, but something went wrong. Please try again.</slot></p>
+    <div class="hidden">
+        <slot name="labels.errorMsg">We're sorry, but something went wrong. Please try again.</slot>
+        <slot name="labels.notFoundErrorMsg">No camera was found on your device.</slot>
+        <slot name="labels.notAllowedErrorMsg">You have denied camera access permission.</slot>
+    </div>
     <button type="button" id="againBtn"><slot name="buttons.tryAgain">TRY AGAIN</slot></button>
   </div>
   <div class="permission">
     <p><slot name="labels.permissionMsg">Enable camera please</slot></p>
+  </div>
+  <div class="confirm-image">
+    <div class="image-container"></div>
+    <div class="button-container">
+      <button type="button" id="webcamConfirmBtn"><slot name="buttons.confirm">CONFIRM</slot></button>
+      <button type="button" id="webcamRetakeBtn"><slot name="buttons.retake">RETAKE</slot></button>
+    </div>
   </div>
 </div>
