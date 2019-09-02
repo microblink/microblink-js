@@ -49,6 +49,15 @@ export enum StatusCodes {
 }
 
 /**
+ * API boolean properties for extracting document images from document
+ */
+export enum ExportImageTypes {
+  Face = 'exportFaceImage',
+  FullDocument = 'exportFullDocumentImage',
+  Signature = 'exportSignatureImage'
+}
+
+/**
  * Object which is exchanged over network (Firestore) between devices for feature "Desktop to mobile"
  * ("Use remote phone camera")
  */
@@ -59,6 +68,8 @@ export interface ScanExchanger {
   shortLink?: string
   recognizers?: string | string[]
   authorizationHeader?: string
+  exportImages?: boolean | string | string[]
+  detectGlare?: boolean
 }
 
 export enum ScanExchangerCodes {

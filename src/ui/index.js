@@ -4,8 +4,10 @@ import templateHtml from './html/component.html';
 import ResizeSensor from './ResizeSensor.js';
 import ElementQueriesFactory from './ElementQueries.js';
 import { FrameHelper } from '../frameHelper'
+import screenfull from 'screenfull';
+import copy from 'copy-to-clipboard';
 
-import {escapeHtml, labelFromCamelCase, dateFromObject, isMobile, hasClass, addClass, removeClass, toggleClass, isRemotePhoneCameraAvailable} from './utils.js';
+import {escapeHtml, labelFromCamelCase, dateFromObject, isMobile, hasClass, addClass, removeClass, toggleClass, isRemotePhoneCameraAvailable, getImageTypeFromBase64} from './utils.js';
 
 const Microblink = {
 	SDK: SDK
@@ -23,9 +25,6 @@ if (window) {
 	window['Microblink'] = Microblink;
 }
 
-const ERR_UNSUPPORTED_TYPE = 'Unsupported file type';
-const RESULT_MASKED = 'Please notice that your results are masked due to missing Authorization header';
-
 //insert web components light polyfill for cross-browser compatibility
 let script = document.createElement('script');
 script.src = '//unpkg.com/@webcomponents/webcomponentsjs/webcomponents-loader.js';
@@ -42,7 +41,7 @@ function defineComponent() {
   class WebApi extends HTMLElement {
 
     static get observedAttributes() {
-      return ['tabs', 'autoscroll', 'webcam'];
+      return ['tabs', 'autoscroll', 'webcam', 'fullscreen'];
     }
 
     get tabs() { return this.hasAttribute('tabs'); }
@@ -51,8 +50,11 @@ function defineComponent() {
     get autoscroll() { return this.hasAttribute('autoscroll'); }
     set autoscroll(value) { value === true ? this.setAttribute('autoscroll', '') : this.removeAttribute('autoscroll'); }
 
-    get webcam() { return this.getAttribute('webcam'); }
+    get webcam() { return this.getAttribute('webcam') !== 'off'; }
     set webcam(value) { value === false ? this.setAttribute('webcam', 'false') : this.removeAttribute('webcam'); }
+
+    get fullscreen() { return this.getAttribute('fullscreen') !== 'off'; }
+    set fullscreen(value) { value === false ? this.setAttribute('fullscreen', 'false') : this.removeAttribute('fullscreen'); }
 
     constructor() {
       super();
@@ -67,25 +69,26 @@ function defineComponent() {
       this.currentScanSecretKey = null;
       // Subscription to the exchange object changes
       this.unsubscribeFromScanExchangerChanges = null;
+      // For copy to clipboard functionality
+      this.executionResult = null;
 
-      document.addEventListener('DOMContentLoaded', this.getLocalization);
       Microblink.SDK.RegisterListener(this);
     }
 
     connectedCallback() {
       if(this.shadowRoot.innerHTML) this.shadowRoot.innerHTML = '';
       this.shadowRoot.appendChild(template.content.cloneNode(true));
+      this.getLocalization();
       this.shadowRoot.getElementById('fileBtn').addEventListener('click', () => this.shadowRoot.getElementById('file').click());
       this.shadowRoot.getElementById('file').addEventListener('click', function() { this.value = ''; });
       this.shadowRoot.getElementById('file').addEventListener('touchstart', function() { this.value = ''; });
       this.shadowRoot.getElementById('file').addEventListener('change', this.fileChosen.bind(this));
-      this.shadowRoot.getElementById('againBtn').addEventListener('click', () => {
-        this.restart();
-        this.stopCamera();
-        this.toggleError();
-      });
       this.shadowRoot.getElementById('cancelBtnLocalCamera').addEventListener('click', () => {
         this.stopCamera();
+      });
+      this.shadowRoot.getElementById('cancelBtnConfirmImage').addEventListener('click', () => {
+        this.stopCamera();
+        removeClass(this.shadowRoot.querySelector('.confirm-image'), 'show');
       });
       this.shadowRoot.getElementById('cancelBtnRemoteCamera').addEventListener('click', () => {
         this.stopCamera();
@@ -114,6 +117,9 @@ function defineComponent() {
       Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.tab'), elem => {
         elem.addEventListener('click', () => {
           let tabId = elem.id;
+          if (tabId === 'introTab') {
+            this.toggleTabs(false);
+          }
           Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.tab'), elem => toggleClass(elem, 'active', tabId === elem.id));
           Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.main > .container'), elem => {
             toggleClass(elem, 'active', hasClass(elem, tabId.substring(0, tabId.length - 3)));
@@ -122,15 +128,9 @@ function defineComponent() {
       });
 
       this.shadowRoot.getElementById('copyBtn').addEventListener('click', () => {
-        let text = this.shadowRoot.querySelector('.main > .json > div').textContent;
-        let textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.className += 'cpyTxtArea';
-        this.shadowRoot.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        this.shadowRoot.removeChild(textarea);
+        copy(JSON.stringify(this.executionResult, null, 2));
       });
+      this.checkRecognizersSet();
       this.checkWebRTCSupport();
       this.checkRemoteCameraSupport();
       this.adjustComponent(true);
@@ -176,16 +176,15 @@ function defineComponent() {
         if (initial === true) {
           this.shadowRoot.getElementById('flipBtn').style.setProperty('display', 'none', 'important');
           this.shadowRoot.getElementById('cameraRemoteBtn').style.setProperty('display', 'none', 'important');
-          this.shadowRoot.getElementById('cameraBtnSeparator').style.setProperty('display', 'none', 'important');
-          this.shadowRoot.getElementById('cameraLocalBtn').innerHTML = this.shadowRoot.getElementById('cameraLocalBtn').innerHTML.replace('desktop', '').replace('web', '');
+          toggleClass(this.shadowRoot.getElementById('cameraLocalDesktopLabel'), 'hidden', true);
+          toggleClass(this.shadowRoot.getElementById('cameraLocalMobileLabel'), 'hidden', false);
+          this.shadowRoot.querySelector('#cameraLocalBtn .circle').innerHTML = this.shadowRoot.querySelector('#cameraRemoteBtn .circle').innerHTML;
           Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('#flipBtn, .video video'), elem => toggleClass(elem, 'flipped'));
-          Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.dropzone .intro-label'), elem => toggleClass(elem, 'hidden'));
         }
       }
 
       if (!isRemotePhoneCameraAvailable()) {
         this.shadowRoot.getElementById('cameraRemoteBtn').style.setProperty('display', 'none', 'important');
-        this.shadowRoot.getElementById('cameraBtnSeparator').style.setProperty('display', 'none', 'important');
       }
     }
 
@@ -215,11 +214,23 @@ function defineComponent() {
       }
     }
 
+    getSlotText(name) {
+      if (this.querySelector('span[slot="' + name + '"]')) {
+        return this.querySelector('span[slot="' + name + '"]').textContent;
+      }
+      return this.shadowRoot.querySelector('slot[name="' + name + '"]').textContent;
+    }
+
+    checkRecognizersSet() {
+      if (!Microblink.SDK.IsRecognizerArraySet()) {
+        this.toggleError(true, getSlotText('labels.selectRecognizers'), getSlotText('labels.noRecognizersSelected'), true);
+      }
+    }
+
     checkWebRTCSupport() {
       if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) {
         let cameraLocalBtn = this.shadowRoot.getElementById('cameraLocalBtn');
         cameraLocalBtn.parentNode.removeChild(cameraLocalBtn);
-        this.shadowRoot.getElementById('cameraBtnSeparator').style.setProperty('display', 'none', 'important');
       }
     }
 
@@ -227,7 +238,6 @@ function defineComponent() {
       Microblink.SDK.IsDesktopToMobileAvailable().then(isAvailable => {
         if (!isAvailable) {
           this.shadowRoot.getElementById('cameraRemoteBtn').style.setProperty('display', 'none', 'important');
-          this.shadowRoot.getElementById('cameraBtnSeparator').style.setProperty('display', 'none', 'important');
           if (!this.shadowRoot.getElementById('cameraLocalBtn')) {
             let cameraPart = this.shadowRoot.querySelector('.container.intro .inline + .inline');
             cameraPart.parentNode.removeChild(cameraPart);
@@ -320,16 +330,37 @@ function defineComponent() {
       toggleClass(loader, 'show', show);
     }
 
-    toggleError(show, message) {
+    toggleError(show, message, title, hideTryAgainButton) {
       let errDialog = this.shadowRoot.querySelector('.error-container');
-      Array.prototype.forEach.call(errDialog.querySelectorAll('p'), el => errDialog.removeChild(el));
-      let element = document.createElement('p');
-      if (show && message) {
-        element.textContent = message;
-      } else {
-        element.textContent = errDialog.querySelector('slot[name="labels.errorMsg"]').textContent;
+      errDialog.innerHTML = '';
+      
+      if (title) {
+        let titleElement = document.createElement('div');
+        titleElement.classList.add('title');
+        titleElement.textContent = title;
+        errDialog.appendChild(titleElement);
       }
-      errDialog.insertBefore(element, errDialog.querySelector('button'));
+
+      let messageElement = document.createElement('div');
+      messageElement.classList.add('message');
+      if (message) {
+        messageElement.textContent = message;
+      } else {
+        messageElement.textContent = this.getSlotText('labels.errorMsg');
+      }
+      errDialog.appendChild(messageElement);
+
+      if (!hideTryAgainButton) {
+        let againButton = document.createElement('button');
+        againButton.textContent = this.getSlotText('buttons.tryAgain');
+        againButton.addEventListener('click', () => {
+          this.restart();
+          this.stopCamera();
+          this.toggleError();
+        });
+        errDialog.appendChild(againButton);
+      }
+
       toggleClass(errDialog, 'show', show);
     }
 
@@ -358,20 +389,21 @@ function defineComponent() {
         if (file.type && supportedImageTypes.includes(file.type)) {
           this.setFile(file);
         } else {
-          this.toggleError(true, ERR_UNSUPPORTED_TYPE);
-          this.dispatchEvent('error', new Error(ERR_UNSUPPORTED_TYPE));
+          let message = this.getSlotText('labels.unsupportedFileType');
+          this.toggleError(true, message);
+          this.dispatchEvent('error', new Error(message));
         }
       }
     }
 
     onDragEnter() {
       addClass(this.shadowRoot.querySelector('.dropzone'), 'draghover');
-      this.shadowRoot.getElementById('fileBtn').style.pointerEvents = 'none';
+      this.shadowRoot.querySelectorAll('.dropzone button').forEach(el => el.style.pointerEvents = 'none');
     }
 
     onDragLeave() {
       removeClass(this.shadowRoot.querySelector('.dropzone'), 'draghover');
-      this.shadowRoot.getElementById('fileBtn').style.pointerEvents = '';
+      this.shadowRoot.querySelectorAll('.dropzone button').forEach(el => el.style.pointerEvents = '');
     }
 
     fileChosen(event) {
@@ -398,10 +430,6 @@ function defineComponent() {
         this.unsubscribeFromScanExchangerChanges();
       }
 
-      this.toggleTabs(false);
-      this.clearTabs();
-      Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container'), elem => toggleClass(elem, 'hidden', !hasClass(elem, 'remote-camera')));
-
       const _shadowRoot = this.shadowRoot;
       const _enableResultShow = () => this.enableResultShow = true;
 
@@ -420,6 +448,11 @@ function defineComponent() {
       try {
 
         this.unsubscribeFromScanExchangerChanges = await Microblink.SDK.CreateScanExchanger({}, (scanDocData) => {
+          
+          this.toggleTabs(false);
+          this.clearTabs();
+          Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container, .permission, .confirm-image'), elem => toggleClass(elem, 'hidden', !hasClass(elem, 'remote-camera')));
+          Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container, .permission, .confirm-image'), elem => toggleClass(elem, 'show', hasClass(elem, 'remote-camera')));
 
           // Listen for the changes on Scan exchanger object
           // console.log('scanDocData', scanDocData);
@@ -492,11 +525,22 @@ function defineComponent() {
       }
     }
 
+    openFullscreen() {
+      if (this.fullscreen)
+        screenfull.request(this);
+    }
+
+    closeFullscreen() {
+      if (this.fullscreen)
+        screenfull.exit();
+    }
+
     activateLocalCamera() {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         this.shadowRoot.getElementById('cameraLocalBtn').setAttribute('disabled', '');
         let constraints = { video: { width: { ideal: 3840 }, height: { ideal: 2160 }, facingMode: { ideal: 'environment' } } };
         let permissionTimeoutId = setTimeout(() => { permissionTimeoutId = null; this.permissionDialogPresent(); }, 1500); //this is "event" in case of browser's camera allow/block dialog
+        this.openFullscreen();
         navigator.mediaDevices.getUserMedia(constraints).then(stream => {
           this.permissionDialogAbsent(permissionTimeoutId);
           let video = this.shadowRoot.getElementById('video');
@@ -514,7 +558,8 @@ function defineComponent() {
 
           this.toggleTabs(false);
           this.clearTabs();
-          Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container'), elem => toggleClass(elem, 'hidden', !hasClass(elem, 'video')));
+          Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container, .permission, .confirm-image'), elem => toggleClass(elem, 'hidden', !hasClass(elem, 'video')));
+          Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container, .permission, .confirm-image'), elem => toggleClass(elem, 'show', hasClass(elem, 'video')));
 
           // Rescale card-layout-rectangle and it's background to the component size
           // Get current values
@@ -532,19 +577,20 @@ function defineComponent() {
           }
 
           // Update UI
-          this.shadowRoot.getElementById('card-layout-rectangle').style.zoom = scaleFactor;
-          this.shadowRoot.getElementById('card-layout-rectangle-background').style.zoom = scaleFactor;
+          this.shadowRoot.getElementById('card-layout-rectangle').style.transform = `translate(-50%, -50%) scale(${scaleFactor})`;
+          this.shadowRoot.getElementById('card-layout-rectangle-background').style.transform = `scale(${scaleFactor})`;
 
         }).catch(error => {
+          this.closeFullscreen();
           this.permissionDialogAbsent(permissionTimeoutId);
 
           let errorMessage;
           switch(error.name) {
             case 'NotFoundError':
-              errorMessage = this.shadowRoot.querySelector('slot[name="labels.notFoundErrorMsg"]').textContent;
+              errorMessage = this.getSlotText('labels.notFoundErrorMsg');
               break;
             case 'NotAllowedError':
-              errorMessage = this.shadowRoot.querySelector('slot[name="labels.notAllowedErrorMsg"]').textContent;
+              errorMessage = this.getSlotText('labels.notAllowedErrorMsg');
               break;
           }
 
@@ -554,7 +600,7 @@ function defineComponent() {
         }).then(() => this.shadowRoot.getElementById('cameraLocalBtn').removeAttribute('disabled'));
 
       } else {
-        alert('WebRTC not supported by your browser'); //should we fallback to flash?
+        this.toggleError(true, this.getSlotText('labels.webRtcUnsupported')); //should we fallback to flash?
       }
     }
 
@@ -563,6 +609,7 @@ function defineComponent() {
     }
 
     stopCamera() {
+      this.closeFullscreen();
       let video = this.shadowRoot.getElementById('video');
       video.pause();
       if (video.srcObject) {
@@ -577,7 +624,9 @@ function defineComponent() {
         }
       }
       video.load();
-      Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container'), elem => toggleClass(elem, 'hidden', !hasClass(elem, 'main')));
+      Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container, .permission, .confirm-image'), elem => toggleClass(elem, 'hidden', !hasClass(elem, 'main')));
+      Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container, .permission, .confirm-image'), elem => toggleClass(elem, 'show', hasClass(elem, 'main')));
+
     }
 
     startRecording() {
@@ -585,8 +634,7 @@ function defineComponent() {
       let countdown = 3;
       addClass(this.shadowRoot.getElementById('photoBtn'), 'hidden');
       addClass(this.shadowRoot.getElementById('counter'), 'show');
-      let numberNode = this.shadowRoot.querySelector('.counter-number');
-      removeClass(numberNode, 'hidden');
+      let numberNode = this.shadowRoot.getElementById('counter-number');
       numberNode.textContent = String(countdown);
       let frames = [];
       let counterIntervalId = setInterval(() => {
@@ -654,13 +702,13 @@ function defineComponent() {
     restart() {
       this.toggleTabs(false);
       this.clearTabs();
-      Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container'), elem => toggleClass(elem, 'hidden', !hasClass(elem, 'main')));
+      Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container, .permission, .confirm-image'), elem => toggleClass(elem, 'hidden', !hasClass(elem, 'main')));
+      Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container, .permission, .confirm-image'), elem => toggleClass(elem, 'show', hasClass(elem, 'main')));
     }
 
     restartCounter() {
       removeClass(this.shadowRoot.getElementById('photoBtn'), 'hidden');
       removeClass(this.shadowRoot.getElementById('counter'), 'show');
-      removeClass(this.shadowRoot.querySelector('.counter-number'), 'hidden');
     }
 
     hideCounter() {
@@ -668,17 +716,6 @@ function defineComponent() {
     }
 
     fillTabs(response) {
-      const imageTabElement = this.shadowRoot.getElementById('imageTab');
-
-      if (response.sourceBlob) {
-        let image = new Image();
-        image.src = URL.createObjectURL(response.sourceBlob);
-        this.shadowRoot.querySelector('.main > .image').appendChild(image);
-        imageTabElement.style.setProperty('display', 'block');
-      } else {
-        imageTabElement.style.setProperty('display', 'none', 'important');
-      }
-
       this.fillResultTable(response.result);
       this.fillJson(response.result);
       this.toggleTabs(true);
@@ -686,33 +723,74 @@ function defineComponent() {
 
     fillResultTable(json) {
       if (!json || !json.data) return;
+      removeClass(this.shadowRoot.querySelector('.error-container'), 'show');
       let data = json.data instanceof Array ? json.data : [json.data];
       let innerHtml = '';
+      let resultsMasked = json.summary.search(/Authorization header is missing/gi) !== -1;
       data.forEach(({ recognizer, result }) => {
         if (!result) return;
-        innerHtml += `<table>
-							<caption>${recognizer}</caption>
-							<thead><tr>
-								<th><slot name="labels.table.keys">Data field from the ID</slot></th>
-								<th><slot name="labels.table.values">Value</slot></th>
-							</tr></thead>
-							<tbody>`;
+
+        let faceImageElement = '';
+        if (result.faceImageBase64 !== undefined) {
+          if (resultsMasked) {
+            faceImageElement = '<div class="placeholder"></div>'
+          } else {
+            faceImageElement = `<img src="data:image/${getImageTypeFromBase64(result.faceImageBase64)};base64,${result.faceImageBase64}" />`;
+          }
+        }
+
+        let fullName;
+        if (result.lastName !== undefined && result.firstName !== undefined) {
+          fullName = result.lastName + ' ' + result.firstName;
+        } else if (result.primaryID !== undefined && result.secondaryID !== undefined) {
+          fullName = result.primaryID + ' ' + result.secondaryID;
+        } else {
+          fullName = '';
+        }
+
+        innerHtml += `<div class="resultTable">
+              <div class="row heading">
+                <div class="faceImage">${faceImageElement}</div>
+                <div class="headingText">
+                  <div class="fullName">${fullName}</div>
+                  <div class="recognizerType">${recognizer}</div>
+                </div>
+              </div>`;
+              
         Object.keys(result).forEach(key => {
-          innerHtml += `<tr><td>${labelFromCamelCase(key)}</td>
-								  <td>${result[key] instanceof Object ? dateFromObject(result[key]) : escapeHtml(result[key])}</td>
-							  </tr>`;
+          if (!key.includes('Base64')) {
+            innerHtml += `<div class="row"><div class="label">${labelFromCamelCase(key)}</div>
+                    <div class="content">${result[key] instanceof Object ? dateFromObject(result[key]) : escapeHtml(result[key])}</div>
+                  </div>`;
+          }
         });
-        innerHtml += '</tbody></table>';
+
+        if (result.signatureImageBase64 !== undefined) {
+          if (resultsMasked) {
+            innerHtml += `<div class="row"><div class="label">Signature</div><div class="content signature"><div class="placeholder"></div></div></div>`
+          } else {
+            innerHtml += `<div class="row"><div class="label">Signature</div>
+                <div class="content signature"><img src="data:image/${getImageTypeFromBase64(result.signatureImageBase64)};base64,${result.signatureImageBase64}" /></div>
+              </div>`;
+          }
+        }
+        if (result.fullDocumentImageBase64 !== undefined) {
+          if (resultsMasked) {
+            innerHtml += `<div class="row"><div class="label"></div><div class="content fullDocument"><div class="placeholder"></div></div></div>`
+          } else {
+            innerHtml += `<div class="row"><div class="label"></div>
+                    <div class="content fullDocument"><img src="data:image/${getImageTypeFromBase64(result.fullDocumentImageBase64)};base64,${result.fullDocumentImageBase64}" /></div>
+                  </div>`;
+          }
+        }
+
+        innerHtml += '</div>';
       });
       if (innerHtml) {
-        if (json.summary.search(/Authorization header is missing/gi) !== -1) {
-          innerHtml = `<p class="masked-label">${RESULT_MASKED}</p>${innerHtml}`;
-        }
         this.shadowRoot.querySelector('.container.results').innerHTML = innerHtml;
       } else {
-        this.shadowRoot.querySelector('.container.results').innerHTML = `<span class="no-result">
-        Scanning is finished, but we could not extract the data. Please check if you uploaded the right document type.
-      </span>`;
+        this.toggleError(true, this.getSlotText('labels.scanningFinishedNoDataMessage'), 
+        this.getSlotText('labels.scanningFinishedNoDataTitle'), false);
       }
     }
 
@@ -734,6 +812,9 @@ function defineComponent() {
         switch(typeof value) {
           case "undefined": case "function": case "symbol": break;
           case "string":
+            if (key.includes('Base64')) {
+              value = value.substring(0, 50) + '...';
+            }
             jsonHtml += `<span class="string">"${escapeHtml(value)}"</span>,`; break;
           case "number":
             jsonHtml += `<span class="number">${value}</span>,`; break;
@@ -768,6 +849,7 @@ function defineComponent() {
 
     onScanSuccess(response) {
       if (!response) return;
+      this.executionResult = response.result;
       this.clearTimers();
       let showIntervalId = setInterval(() => {
         if (this.enableResultShow) {
@@ -794,7 +876,7 @@ function defineComponent() {
       this.stopCamera();
       this.restartCounter();
       this.toggleError(true, error && error.message);
-      this.dispatchEvent('error', (error && error.message) || 'We\'re sorry, but something went wrong. Please try again.' );
+      this.dispatchEvent('error', (error && error.message) || this.getSlotText('labels.errorMsg'));
     }
 
     clearTimers() {

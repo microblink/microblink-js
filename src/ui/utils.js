@@ -3,7 +3,8 @@ export function escapeHtml(txt) {
 }
 
 export function labelFromCamelCase(value) {
-  return value.replace(/([A-Z]+)/g, " $1").replace(/([A-Z][a-z])/g, " $1");
+  let label = value.replace(/([A-Z]+)/g, " $1").replace(/([A-Z][a-z])/g, " $1");
+  return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
 export function dateFromObject(object) {
@@ -57,4 +58,27 @@ export function toggleClass(elem, className, add) {
   if (add === true) return addClass(elem, className);
   if (add === false) return removeClass(elem, className);
   return hasClass(elem, className) ? removeClass(elem, className) : addClass(elem, className);
+}
+
+export function getImageTypeFromBase64(base64Image) {
+  if (!base64Image) {
+    return;
+  }
+  let imageType;
+  switch (base64Image.charAt(0)) {
+    case '/':
+      imageType = 'jpg';
+      break;
+    case 'i':
+    default:
+      imageType = 'png';
+      break;
+    case 'R':
+      imageType = 'gif';
+      break;
+    case 'U':
+      imageType = 'webp';
+      break;
+  }
+  return imageType;
 }

@@ -137,7 +137,9 @@
   },
   "dependencies": {
     "blob-util": "^2.0.2",
+    "copy-to-clipboard": "^3.2.0",
     "crypto-ts": "^1.0.2",
-    "rxjs": "^6.3.2"
+    "rxjs": "^6.3.2",
+    "screenfull": "^4.2.1"
   }
 }
