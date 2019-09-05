@@ -147,7 +147,7 @@ To clarify, we are providing an example with all currently customizable labels a
 				"scanningFinishedNoDataTitle": "Document not recognized",
 				"scanningFinishedNoDataMessage": "Please try again with a supported document or select a different recognizer",
 				"unsupportedFileType": "Unsupported file type",
-				"selectRecognizers": "Please select one or more recognizers above to start scanning",
+				"selectRecognizers": "Please select one or more recognizers to start scanning",
 				"noRecognizersSelected": "No recognizers selected",
 				"webRtcUnsupported": "WebRTC not supported by your browser"
 			},
