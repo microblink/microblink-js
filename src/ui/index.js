@@ -223,7 +223,7 @@ function defineComponent() {
 
     checkRecognizersSet() {
       if (!Microblink.SDK.IsRecognizerArraySet()) {
-        this.toggleError(true, getSlotText('labels.selectRecognizers'), getSlotText('labels.noRecognizersSelected'), true);
+        this.toggleError(true, this.getSlotText('labels.selectRecognizers'), this.getSlotText('labels.noRecognizersSelected'), true);
       }
     }
 
