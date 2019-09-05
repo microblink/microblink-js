@@ -265,14 +265,15 @@ export default class Microblink implements IMicroblink {
         if (scanDocData.result) {
           scanResultDec = CryptoHelper.decrypt(scanDocData.result, secretKey)
         } else if (scanDocData.resultUrl) {
-          const response = await fetch(scanDocData.resultUrl)
+          const resultUrl = CryptoHelper.decrypt(scanDocData.resultUrl, secretKey)
+          const response = await fetch(resultUrl)
           const blob = await response.blob()
           const text = await blobToBase64String(blob)
           scanDocData.result = text
           scanResultDec = CryptoHelper.decrypt(text, secretKey)
           firebase
             .storage()
-            .refFromURL(scanDocData.resultUrl)
+            .refFromURL(resultUrl)
             .delete()
         }
         // Notify success listeners
