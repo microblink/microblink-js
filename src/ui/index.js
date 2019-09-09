@@ -71,6 +71,8 @@ function defineComponent() {
       this.unsubscribeFromScanExchangerChanges = null;
       // For copy to clipboard functionality
       this.executionResult = null;
+      // For hiding no recognizers set error dialog if it is changed after component loaded
+      this.noRecognizersSelectedErrorShown = false;
 
       Microblink.SDK.RegisterListener(this);
     }
@@ -112,6 +114,14 @@ function defineComponent() {
       video.addEventListener('loadedmetadata', function() { this.controls = false; });
       video.addEventListener('play', () => {
         removeClass(this.shadowRoot.getElementById('photoBtn'), 'hidden');
+      });
+      document.addEventListener('recognizersUpdated', () => {
+        if (Microblink.SDK.IsRecognizerArraySet() && this.noRecognizersSelectedErrorShown) {
+          removeClass(this.shadowRoot.querySelector('.error-container'), 'show');
+          this.noRecognizersSelectedErrorShown = false;
+        } else if (!this.noRecognizersSelectedErrorShown) {
+          this.checkRecognizersSet();
+        }
       });
 
       Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.tab'), elem => {
@@ -224,6 +234,7 @@ function defineComponent() {
     checkRecognizersSet() {
       if (!Microblink.SDK.IsRecognizerArraySet()) {
         this.toggleError(true, this.getSlotText('labels.selectRecognizers'), this.getSlotText('labels.noRecognizersSelected'), true);
+        this.noRecognizersSelectedErrorShown = true;
       }
     }
 

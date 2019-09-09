@@ -117,6 +117,13 @@ export default class Microblink implements IMicroblink {
    */
   SetRecognizers(recognizers: string | string[]): void {
     this.recognizers = recognizers
+
+    let event = new CustomEvent('recognizersUpdated', {
+      detail: { recognizers: this.recognizers },
+      cancelable: true,
+      bubbles: true
+    })
+    document.dispatchEvent(event)
   }
 
   /**
