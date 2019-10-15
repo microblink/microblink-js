@@ -3,8 +3,7 @@ export function escapeHtml(txt) {
 }
 
 export function labelFromCamelCase(value) {
-  let label = value.replace(/([A-Z]+)/g, " $1").replace(/([A-Z][a-z])/g, " $1");
-  return label.charAt(0).toUpperCase() + label.slice(1);
+  return value.replace(/([A-Z]+)/g, " $1").replace(/^\w/, c => c.toUpperCase());
 }
 
 export function dateFromObject(object) {
@@ -25,11 +24,15 @@ export function isMobile() {
   return /Mobi|Android/.test(navigator.userAgent);
 }
 
+export function isOpera() {
+  return /Opera|OPR/.test(navigator.userAgent);
+}
+
 function isFirebaseAppConfigured() {
-  try { 
+  try {
     firebase.app();
     return true;
-  } catch (e) { 
+  } catch (e) {
     return false;
   }
 }
@@ -45,6 +48,7 @@ export function hasClass(elem, className) {
 export function addClass(elem, className) {
   if (!hasClass(elem, className)) {
     elem.className += ` ${className}`;
+    elem.className = elem.className.trim();
   }
   return elem;
 }
@@ -61,24 +65,16 @@ export function toggleClass(elem, className, add) {
 }
 
 export function getImageTypeFromBase64(base64Image) {
-  if (!base64Image) {
-    return;
-  }
-  let imageType;
+  if (!base64Image) return;
   switch (base64Image.charAt(0)) {
     case '/':
-      imageType = 'jpg';
-      break;
+      return 'jpg';
+    case 'R':
+      return 'gif';
+    case 'U':
+      return 'webp';
     case 'i':
     default:
-      imageType = 'png';
-      break;
-    case 'R':
-      imageType = 'gif';
-      break;
-    case 'U':
-      imageType = 'webp';
-      break;
+      return 'png';
   }
-  return imageType;
 }

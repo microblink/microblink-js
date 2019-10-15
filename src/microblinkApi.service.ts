@@ -92,7 +92,7 @@ export default class MicroblinkApi implements IMicroblinkApi {
     imageBase64: string,
     uploadProgress?: EventListener
   ): Observable<any> {
-    return Observable.create((observer: Observer<any>) => {
+    return new Observable((observer: Observer<any>) => {
       // Image should be as Base64 encoded file
       const body: any = {
         imageBase64: imageBase64

@@ -6,19 +6,14 @@ import ElementQueriesFactory from './ElementQueries.js';
 import { FrameHelper } from '../frameHelper'
 import screenfull from 'screenfull';
 import copy from 'copy-to-clipboard';
-
-import {escapeHtml, labelFromCamelCase, dateFromObject, isMobile, hasClass, addClass, removeClass, toggleClass, isRemotePhoneCameraAvailable, getImageTypeFromBase64} from './utils.js';
+import {
+  escapeHtml, labelFromCamelCase, dateFromObject, isMobile, isOpera, hasClass, addClass,
+  removeClass, toggleClass, isRemotePhoneCameraAvailable, getImageTypeFromBase64
+} from './utils.js'
 
 const Microblink = {
 	SDK: SDK
 };
-
-// Default for desktop
-let CARD_PADDING_FACTOR_TO_THE_COMPONENT = 0.6;
-// At mobile it looks much better when it is almost at the edge of the component
-if (isMobile()) {
-  CARD_PADDING_FACTOR_TO_THE_COMPONENT = 0.9;
-}
 
 // Expose it to global window object
 if (window) {
@@ -51,7 +46,7 @@ function defineComponent() {
     set autoscroll(value) { value === true ? this.setAttribute('autoscroll', '') : this.removeAttribute('autoscroll'); }
 
     get webcam() { return this.getAttribute('webcam') !== 'off'; }
-    set webcam(value) { value === false ? this.setAttribute('webcam', 'false') : this.removeAttribute('webcam'); }
+    set webcam(value) { value === false ? this.setAttribute('webcam', 'off') : this.removeAttribute('webcam'); }
 
     get fullscreen() { return this.getAttribute('fullscreen') !== 'off'; }
     set fullscreen(value) { value === false ? this.setAttribute('fullscreen', 'false') : this.removeAttribute('fullscreen'); }
@@ -71,8 +66,6 @@ function defineComponent() {
       this.unsubscribeFromScanExchangerChanges = null;
       // For copy to clipboard functionality
       this.executionResult = null;
-      // For hiding no recognizers set error dialog if it is changed after component loaded
-      this.noRecognizersSelectedErrorShown = false;
 
       Microblink.SDK.RegisterListener(this);
     }
@@ -88,18 +81,8 @@ function defineComponent() {
       this.shadowRoot.getElementById('cancelBtnLocalCamera').addEventListener('click', () => {
         this.stopCamera();
       });
-      this.shadowRoot.getElementById('cancelBtnConfirmImage').addEventListener('click', () => {
-        this.stopCamera();
-        removeClass(this.shadowRoot.querySelector('.confirm-image'), 'show');
-      });
       this.shadowRoot.getElementById('cancelBtnRemoteCamera').addEventListener('click', () => {
         this.stopCamera();
-      });
-      document.addEventListener('keydown', (evt) => {
-        evt = evt || window.event;
-        if (evt.key === 'Escape') {
-          this.stopCamera();
-        }
       });
       this.shadowRoot.querySelector('.dropzone').addEventListener('dragover', event => event.preventDefault());
       this.shadowRoot.querySelector('.dropzone').addEventListener('drop', this.onDrop.bind(this));
@@ -107,22 +90,13 @@ function defineComponent() {
       this.shadowRoot.querySelector('.dropzone').addEventListener('dragleave', this.onDragLeave.bind(this));
       this.shadowRoot.getElementById('cameraLocalBtn').addEventListener('click', this.activateLocalCamera.bind(this));
       this.shadowRoot.getElementById('cameraRemoteBtn').addEventListener('click', this.activateRemoteCamera.bind(this));
-      this.shadowRoot.querySelector('video').addEventListener('loadedmetadata', function() { this.play(); });
+      this.shadowRoot.querySelector('video').addEventListener('loadedmetadata', function() { this.play(); this.controls = false; });
+      this.shadowRoot.querySelector('video').addEventListener('play', () => {
+        removeClass(this.shadowRoot.getElementById('photoBtn'), 'hidden');
+        removeClass(this.shadowRoot.getElementById('cardPlacer'), 'hidden');
+      });
       this.shadowRoot.getElementById('photoBtn').addEventListener('click', () => this.startRecording());
       this.shadowRoot.getElementById('flipBtn').addEventListener('click', this.flipCamera.bind(this));
-      let video = this.shadowRoot.getElementById('video');
-      video.addEventListener('loadedmetadata', function() { this.controls = false; });
-      video.addEventListener('play', () => {
-        removeClass(this.shadowRoot.getElementById('photoBtn'), 'hidden');
-      });
-      document.addEventListener('recognizersUpdated', () => {
-        if (Microblink.SDK.IsRecognizerArraySet() && this.noRecognizersSelectedErrorShown) {
-          removeClass(this.shadowRoot.querySelector('.error-container'), 'show');
-          this.noRecognizersSelectedErrorShown = false;
-        } else if (!this.noRecognizersSelectedErrorShown) {
-          this.checkRecognizersSet();
-        }
-      });
 
       Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.tab'), elem => {
         elem.addEventListener('click', () => {
@@ -136,28 +110,44 @@ function defineComponent() {
           });
         });
       });
-
       this.shadowRoot.getElementById('copyBtn').addEventListener('click', () => {
         copy(JSON.stringify(this.executionResult, null, 2));
       });
-      this.checkRecognizersSet();
+
+      this.checkRecognizers();
       this.checkWebRTCSupport();
       this.checkRemoteCameraSupport();
       this.adjustComponent(true);
       this.ElementQueries = ElementQueriesFactory(ResizeSensor, this.shadowRoot);
       this.ElementQueries.listen();
-      window.addEventListener('resize', this.adjustComponent.bind(this));
+      window.addEventListener('resize', this.adjustComponent.bind(this, false));
 
       this.shadowRoot.getElementById('webcamConfirmBtn').addEventListener('click', () => {
         Microblink.SDK.SendImage(this.webcamImage, this.onScanProgress);
+        this.enableResultShow = true;
         this.toggleLoader(true);
         this.restart();
         this.stopCamera();
-        removeClass(this.shadowRoot.querySelector('.confirm-image'), 'show');
+        this.clearConfirmImage();
       });
       this.shadowRoot.getElementById('webcamRetakeBtn').addEventListener('click', () => {
-        this.activateLocalCamera();
-        removeClass(this.shadowRoot.querySelector('.confirm-image'), 'show');
+        this.clearConfirmImage();
+      });
+      this.shadowRoot.getElementById('cancelBtnConfirmImage').addEventListener('click', () => {
+        this.stopCamera();
+        this.clearConfirmImage();
+      });
+
+      document.addEventListener('keydown', (evt) => {
+        evt = evt || window.event;
+        if (evt.key === 'Escape') {
+          this.stopCamera();
+        }
+      });
+      document.addEventListener('recognizersUpdated', () => {
+        if (this.checkRecognizers()) {
+          removeClass(this.shadowRoot.querySelector('.error-container'), 'show');
+        }
       });
       this.shadowRoot.querySelector('slot[name="loader-image"]').addEventListener('slotchange', event => {
         let loaderElements = event.target.assignedElements();
@@ -165,7 +155,7 @@ function defineComponent() {
         let loaderSlots = Array.prototype.map.call(this.shadowRoot.querySelectorAll('slot[name="loader-image"]'), el => el);
         loaderSlots.shift();
         loaderSlots.forEach(slot => {
-          slot.innerHTML = ''
+          slot.innerHTML = '';
           loaderElements.forEach(element => slot.appendChild(element.cloneNode(true)));
         });
       });
@@ -179,23 +169,40 @@ function defineComponent() {
 
     adjustComponent(initial) {
       if (isMobile()) {
-        this.style.height = `${window.innerHeight}px`;
-        if(parseInt(getComputedStyle(this.parentNode).height) < window.innerHeight) {
+        if (parseInt(getComputedStyle(this.parentNode).height) < window.innerHeight) {
           this.style.height = getComputedStyle(this.parentNode).height;
-        }
-        if (initial === true) {
+        } else this.style.height = `${window.innerHeight}px`;
+        if (initial) {
           this.shadowRoot.getElementById('flipBtn').style.setProperty('display', 'none', 'important');
-          this.shadowRoot.getElementById('cameraRemoteBtn').style.setProperty('display', 'none', 'important');
-          toggleClass(this.shadowRoot.getElementById('cameraLocalDesktopLabel'), 'hidden', true);
-          toggleClass(this.shadowRoot.getElementById('cameraLocalMobileLabel'), 'hidden', false);
-          this.shadowRoot.querySelector('#cameraLocalBtn .circle').innerHTML = this.shadowRoot.querySelector('#cameraRemoteBtn .circle').innerHTML;
+          let remoteCamera = this.shadowRoot.getElementById('cameraRemoteBtn');
+          if (remoteCamera) {
+            let localCameraBtnIcon = this.shadowRoot.querySelector('#cameraLocalBtn .circle');
+            if (localCameraBtnIcon) {
+              localCameraBtnIcon.innerHTML = this.shadowRoot.querySelector('#cameraRemoteBtn .circle').innerHTML;
+            } else this.removeChooseLabel();
+            remoteCamera.parentNode.removeChild(remoteCamera);
+          }
+          Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.cameraLocalLabel, .browseLabel'), elem => toggleClass(elem, 'hidden'));
           Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('#flipBtn, .video video'), elem => toggleClass(elem, 'flipped'));
         }
       }
+      this.adjustCardPlacer(isMobile());
+    }
 
-      if (!isRemotePhoneCameraAvailable()) {
-        this.shadowRoot.getElementById('cameraRemoteBtn').style.setProperty('display', 'none', 'important');
-      }
+    adjustCardPlacer(isMobile) {
+      let { offsetWidth: width, offsetHeight: height } = this.shadowRoot.querySelector('.root');
+      let placerToContainerRatio = isMobile && window.innerHeight > window.innerWidth? 0.85 : 0.6;
+      const ASPECT_RATIO = 1.585772508336421;
+
+      let placerWidth = (width / height) > ASPECT_RATIO ? width : height * ASPECT_RATIO;
+      let placerHeight = placerWidth / ASPECT_RATIO;
+      let borderRightLeft = ((1 - placerToContainerRatio) * width + (placerWidth - width)) / 2;
+      let borderTopBottom = borderRightLeft / ASPECT_RATIO;
+
+      let cardPlacer = this.shadowRoot.getElementById('cardPlacer');
+      cardPlacer.style.width = `${placerWidth}px`;
+      cardPlacer.style.height = `${placerHeight}px`;
+      cardPlacer.style.borderWidth = `${borderTopBottom}px ${borderRightLeft}px`;
     }
 
     autoScrollListener(event) {
@@ -228,14 +235,15 @@ function defineComponent() {
       if (this.querySelector('span[slot="' + name + '"]')) {
         return this.querySelector('span[slot="' + name + '"]').textContent;
       }
-      return this.shadowRoot.querySelector('slot[name="' + name + '"]').textContent;
+      return this.shadowRoot.querySelector(`slot[name="${name}"]`).textContent;
     }
 
-    checkRecognizersSet() {
+    checkRecognizers() {
       if (!Microblink.SDK.IsRecognizerArraySet()) {
-        this.toggleError(true, this.getSlotText('labels.selectRecognizers'), this.getSlotText('labels.noRecognizersSelected'), true);
-        this.noRecognizersSelectedErrorShown = true;
+        this.toggleError(true, this.getSlotText('labels.selectDocumentType'), this.getSlotText('labels.noDocumentType'), true);
+        return false;
       }
+      return true;
     }
 
     checkWebRTCSupport() {
@@ -247,14 +255,17 @@ function defineComponent() {
 
     checkRemoteCameraSupport() {
       Microblink.SDK.IsDesktopToMobileAvailable().then(isAvailable => {
-        if (!isAvailable) {
-          this.shadowRoot.getElementById('cameraRemoteBtn').style.setProperty('display', 'none', 'important');
-          if (!this.shadowRoot.getElementById('cameraLocalBtn')) {
-            let cameraPart = this.shadowRoot.querySelector('.container.intro .inline + .inline');
-            cameraPart.parentNode.removeChild(cameraPart);
-          }
+        if (!isAvailable || !isRemotePhoneCameraAvailable()) {
+          let cameraRemoteBtn = this.shadowRoot.getElementById('cameraRemoteBtn');
+          if (cameraRemoteBtn) cameraRemoteBtn.style.setProperty('display', 'none', 'important');
+          if (!this.shadowRoot.getElementById('cameraLocalBtn')) this.removeChooseLabel();
         }
       });
+    }
+
+    removeChooseLabel() {
+      let inputMethodLabels = Array.prototype.map.call(this.shadowRoot.querySelectorAll('.container.intro .intro-label'), el => el);
+      inputMethodLabels.forEach(el => el.parentNode.removeChild(el));
     }
 
     getLocalization() {
@@ -344,21 +355,15 @@ function defineComponent() {
     toggleError(show, message, title, hideTryAgainButton) {
       let errDialog = this.shadowRoot.querySelector('.error-container');
       errDialog.innerHTML = '';
-      
       if (title) {
         let titleElement = document.createElement('div');
-        titleElement.classList.add('title');
         titleElement.textContent = title;
+        addClass(titleElement, 'title');
         errDialog.appendChild(titleElement);
       }
-
       let messageElement = document.createElement('div');
-      messageElement.classList.add('message');
-      if (message) {
-        messageElement.textContent = message;
-      } else {
-        messageElement.textContent = this.getSlotText('labels.errorMsg');
-      }
+      addClass(messageElement, 'message');
+      messageElement.textContent = message || this.getSlotText('labels.errorMsg');
       errDialog.appendChild(messageElement);
 
       if (!hideTryAgainButton) {
@@ -371,7 +376,6 @@ function defineComponent() {
         });
         errDialog.appendChild(againButton);
       }
-
       toggleClass(errDialog, 'show', show);
     }
 
@@ -397,7 +401,7 @@ function defineComponent() {
       }
       if (file) {
         let supportedImageTypes = this.shadowRoot.getElementById('file').getAttribute('accept').split(',');
-        if (file.type && supportedImageTypes.includes(file.type)) {
+        if (file.type && supportedImageTypes.find(type => type === file.type)) {
           this.setFile(file);
         } else {
           let message = this.getSlotText('labels.unsupportedFileType');
@@ -409,12 +413,10 @@ function defineComponent() {
 
     onDragEnter() {
       addClass(this.shadowRoot.querySelector('.dropzone'), 'draghover');
-      this.shadowRoot.querySelectorAll('.dropzone button').forEach(el => el.style.pointerEvents = 'none');
     }
 
     onDragLeave() {
       removeClass(this.shadowRoot.querySelector('.dropzone'), 'draghover');
-      this.shadowRoot.querySelectorAll('.dropzone button').forEach(el => el.style.pointerEvents = '');
     }
 
     fileChosen(event) {
@@ -424,8 +426,9 @@ function defineComponent() {
 
     setFile(file) {
       if (file.size > 15 * 1024 * 1024) {
-        this.toggleError(true, 'Maximum file size is 15 MB');
-        this.dispatchEvent('error', 'Maximum file size is 15 MB');
+        let message = this.getSlotText('labels.fileSizeLimitExceeded');
+        this.toggleError(true, message);
+        this.dispatchEvent('error', new Error(message));
         return;
       }
       this.toggleLoader(true);
@@ -459,11 +462,10 @@ function defineComponent() {
       try {
 
         this.unsubscribeFromScanExchangerChanges = await Microblink.SDK.CreateScanExchanger({}, (scanDocData) => {
-          
           this.toggleTabs(false);
           this.clearTabs();
-          Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container, .permission, .confirm-image'), elem => toggleClass(elem, 'hidden', !hasClass(elem, 'remote-camera')));
-          Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container, .permission, .confirm-image'), elem => toggleClass(elem, 'show', hasClass(elem, 'remote-camera')));
+          Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container, .permission, .confirm-image'),
+              elem => toggleClass(toggleClass(elem, 'hidden', !hasClass(elem, 'remote-camera')), 'show', hasClass(elem, 'remote-camera')));
 
           // Listen for the changes on Scan exchanger object
           // console.log('scanDocData', scanDocData);
@@ -537,23 +539,23 @@ function defineComponent() {
     }
 
     openFullscreen() {
-      if (this.fullscreen)
-        screenfull.request(this);
+      return this.fullscreen && screenfull && screenfull.isEnabled && !isOpera() ? screenfull.request(this) : Promise.resolve(false); //Opera has a fullscreen bug
     }
 
     closeFullscreen() {
-      if (this.fullscreen)
-        screenfull.exit();
+      return this.fullscreen && screenfull && screenfull.isEnabled && !isOpera() ? screenfull.exit() : Promise.resolve(false);
     }
 
     activateLocalCamera() {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         this.shadowRoot.getElementById('cameraLocalBtn').setAttribute('disabled', '');
-        let constraints = { video: { width: { ideal: 3840 }, height: { ideal: 2160 }, facingMode: { ideal: 'environment' } } };
+        let constraints = { video: { width: { ideal: 1920 }, height: { ideal: 1080 }, facingMode: { ideal: 'environment' } } };
         let permissionTimeoutId = setTimeout(() => { permissionTimeoutId = null; this.permissionDialogPresent(); }, 1500); //this is "event" in case of browser's camera allow/block dialog
-        this.openFullscreen();
-        navigator.mediaDevices.getUserMedia(constraints).then(stream => {
+        navigator.mediaDevices.getUserMedia(constraints).then(async stream => {
           this.permissionDialogAbsent(permissionTimeoutId);
+          try {
+            await this.openFullscreen();
+          } catch (e) {}
           let video = this.shadowRoot.getElementById('video');
           video.controls = true;
           if ('srcObject' in video) {
@@ -564,35 +566,15 @@ function defineComponent() {
           setTimeout(() => {
             video.play().catch(() => {
               addClass(this.shadowRoot.getElementById('photoBtn'), 'hidden');
+              addClass(this.shadowRoot.getElementById('cardPlacer'), 'hidden');
             });
           }, 0);
-
           this.toggleTabs(false);
           this.clearTabs();
-          Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container, .permission, .confirm-image'), elem => toggleClass(elem, 'hidden', !hasClass(elem, 'video')));
-          Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container, .permission, .confirm-image'), elem => toggleClass(elem, 'show', hasClass(elem, 'video')));
-
-          // Rescale card-layout-rectangle and it's background to the component size
-          // Get current values
-          var componentWidth = this.shadowRoot.getElementById('rootContainer').offsetWidth;
-          var componentHeight = this.shadowRoot.getElementById('rootContainer').offsetHeight;
-          var cardLayoutRectangleWidth = this.shadowRoot.getElementById('card-layout-rectangle').offsetWidth;
-          var cardLayoutRectangleHeight = this.shadowRoot.getElementById('card-layout-rectangle').offsetHeight;
-
-          // Try to scale depends on the component's width
-          var paddingFactor = CARD_PADDING_FACTOR_TO_THE_COMPONENT;
-          var scaleFactor = (componentWidth / cardLayoutRectangleWidth) * paddingFactor;
-          // Fallback to scale depends on the component height if card border is out of the component
-          if ((cardLayoutRectangleHeight * scaleFactor) > (componentHeight * paddingFactor)) {
-            scaleFactor = (componentHeight / cardLayoutRectangleHeight) * paddingFactor;
-          }
-
-          // Update UI
-          this.shadowRoot.getElementById('card-layout-rectangle').style.transform = `translate(-50%, -50%) scale(${scaleFactor})`;
-          this.shadowRoot.getElementById('card-layout-rectangle-background').style.transform = `scale(${scaleFactor})`;
-
-        }).catch(error => {
-          this.closeFullscreen();
+          Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container, .permission, .confirm-image'),
+              elem => toggleClass(toggleClass(elem, 'hidden', !hasClass(elem, 'video')), 'show', hasClass(elem, 'video')));
+        }).catch(async error => {
+          await this.closeFullscreen();
           this.permissionDialogAbsent(permissionTimeoutId);
 
           let errorMessage;
@@ -602,12 +584,11 @@ function defineComponent() {
               break;
             case 'NotAllowedError':
               errorMessage = this.getSlotText('labels.notAllowedErrorMsg');
-              break;
           }
 
           this.toggleError(true, errorMessage);
           this.dispatchEvent('error', new Error('Camera error: ' + error.name));
-          console.log(error.name); //NotFoundError, NotAllowedError
+          console.log(error.name + ': ' + error.message); //NotFoundError, NotAllowedError
         }).then(() => this.shadowRoot.getElementById('cameraLocalBtn').removeAttribute('disabled'));
 
       } else {
@@ -620,7 +601,6 @@ function defineComponent() {
     }
 
     stopCamera() {
-      this.closeFullscreen();
       let video = this.shadowRoot.getElementById('video');
       video.pause();
       if (video.srcObject) {
@@ -628,72 +608,59 @@ function defineComponent() {
         video.srcObject = null;
       }
       else if (video.src) {
-        if(video.captureStream || video.mozCaptureStream) {
+        if (video.captureStream || video.mozCaptureStream) {
           (video.captureStream || video.mozCaptureStream)().getTracks()[0].stop();
           URL.revokeObjectURL(video.src);
           video.src = null;
         }
       }
       video.load();
-      Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container, .permission, .confirm-image'), elem => toggleClass(elem, 'hidden', !hasClass(elem, 'main')));
-      Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container, .permission, .confirm-image'), elem => toggleClass(elem, 'show', hasClass(elem, 'main')));
-
+      Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container, .permission, .confirm-image'),
+          elem => toggleClass(toggleClass(elem, 'hidden', !hasClass(elem, 'main')), 'show', hasClass(elem, 'main')));
+      this.closeFullscreen();
     }
 
     startRecording() {
       this.enableResultShow = false;
+      this.frame = null;
+      this.canvas = null;
       let countdown = 3;
       addClass(this.shadowRoot.getElementById('photoBtn'), 'hidden');
       addClass(this.shadowRoot.getElementById('counter'), 'show');
       let numberNode = this.shadowRoot.getElementById('counter-number');
       numberNode.textContent = String(countdown);
-      let frames = [];
       let counterIntervalId = setInterval(() => {
         numberNode.textContent = String(--countdown);
         if (countdown === 1) {
-          this.frameSendingIntervalId = setInterval(() => {
-            this.captureFrameAndAddToArray(frames);
+          this.frameSendingIntervalId = setInterval(async() => {
+            if (countdown === 0) {
+              removeClass(this.shadowRoot.getElementById('counter'), 'show');
+              clearInterval(this.frameSendingIntervalId);
+              this.frame = await this.getNextBestFrame();
+              this.showConfirmDialog(this.frame);
+            } else {
+              this.frame = await this.getNextBestFrame();
+            }
           }, 200);
         }
         if (countdown === 0) {
           clearInterval(counterIntervalId);
-          clearInterval(this.frameSendingIntervalId);
-          this.hideCounter();
-          this.enableResultShow = true;
-
-          // So that even the picture on 0 countdown mark would be included
-          this.captureFrameAndAddToArray(frames).then(() => {
-            let bestFrame = frames.reduce((prev, current) => (prev.frameQuality > current.frameQuality) ? prev : current);
-            this.userImageConfirmation(bestFrame.data);
-          });
         }
       }, 1000);
     }
 
-    userImageConfirmation(scanInputFile) {
-      this.webcamImage = scanInputFile;
-      let image = new Image();
-      image.src = URL.createObjectURL(scanInputFile.blob);
-      let imageContainerNode = this.shadowRoot.querySelector('.confirm-image .image-container');
-      imageContainerNode.innerHTML = '';
-      imageContainerNode.appendChild(image);
-      addClass(this.shadowRoot.querySelector('.confirm-image'), 'show');
-    }
-
-    captureFrameAndAddToArray(frames) {
+    getNextBestFrame() {
       return new Promise(resolve => {
-        this.captureFrame().then(data => {
-          let frameQuality = FrameHelper.getFrameQuality(data.pixelData);
-          delete data.pixelData; // So Microblink.SDK.SendImage will recognize it as ScanInputFile instead of ScanInputFrame
-          frames.push({data, frameQuality});
-          resolve();
+        this.captureFrame().then(({ blob, pixelData }) => {
+          let quality = FrameHelper.getFrameQuality(pixelData);
+          resolve(!this.frame || quality > this.frame.quality ? { blob, quality } : this.frame);
         });
       });
     }
 
     captureFrame() {
       let video = this.shadowRoot.getElementById('video');
-      let canvas = document.createElement('canvas');
+      let canvas = this.canvas = this.canvas || document.createElement('canvas');
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -710,19 +677,34 @@ function defineComponent() {
       });
     }
 
+    showConfirmDialog({ blob }) {
+      this.webcamImage = { blob };
+      let image = new Image();
+      image.src = URL.createObjectURL(blob);
+      let imageContainerNode = this.shadowRoot.querySelector('.confirm-image .image-container');
+      imageContainerNode.innerHTML = '';
+      imageContainerNode.appendChild(image);
+      addClass(this.shadowRoot.querySelector('.confirm-image'), 'show');
+      this.restartCounter();
+    }
+
+    clearConfirmImage() {
+      removeClass(this.shadowRoot.querySelector('.confirm-image'), 'show');
+      let imageContainerNode = this.shadowRoot.querySelector('.confirm-image .image-container');
+      let image = imageContainerNode.querySelector('img');
+      if (image) URL.revokeObjectURL(image.src);
+      imageContainerNode.innerHTML = '';
+    }
+
     restart() {
       this.toggleTabs(false);
       this.clearTabs();
-      Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container, .permission, .confirm-image'), elem => toggleClass(elem, 'hidden', !hasClass(elem, 'main')));
-      Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container, .permission, .confirm-image'), elem => toggleClass(elem, 'show', hasClass(elem, 'main')));
+      Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container, .permission, .confirm-image'),
+          elem => toggleClass(toggleClass(elem, 'hidden', !hasClass(elem, 'main')), 'show', hasClass(elem, 'main')));
     }
 
     restartCounter() {
       removeClass(this.shadowRoot.getElementById('photoBtn'), 'hidden');
-      removeClass(this.shadowRoot.getElementById('counter'), 'show');
-    }
-
-    hideCounter() {
       removeClass(this.shadowRoot.getElementById('counter'), 'show');
     }
 
@@ -744,9 +726,9 @@ function defineComponent() {
         let faceImageElement = '';
         if (result.faceImageBase64 !== undefined) {
           if (resultsMasked) {
-            faceImageElement = '<div class="placeholder"></div>'
+            faceImageElement = '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAQAAADa613fAAAAa0lEQVR42u3PMREAAAgEIL9/WwtoBHcPGpCeeiEiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIpcFKjbCiZfrjTwAAAAASUVORK5CYII="/>';
           } else {
-            faceImageElement = `<img src="data:image/${getImageTypeFromBase64(result.faceImageBase64)};base64,${result.faceImageBase64}" />`;
+            faceImageElement = `<img src="data:image/${getImageTypeFromBase64(result.faceImageBase64)};base64,${result.faceImageBase64}"/>`;
           }
         }
 
@@ -767,7 +749,7 @@ function defineComponent() {
                   <div class="recognizerType">${recognizer}</div>
                 </div>
               </div>`;
-              
+
         Object.keys(result).forEach(key => {
           if (!key.includes('Base64')) {
             innerHtml += `<div class="row"><div class="label">${labelFromCamelCase(key)}</div>
@@ -778,30 +760,28 @@ function defineComponent() {
 
         if (result.signatureImageBase64 !== undefined) {
           if (resultsMasked) {
-            innerHtml += `<div class="row"><div class="label">Signature</div><div class="content signature"><div class="placeholder"></div></div></div>`
+            innerHtml += `<div class="row"><div class="label">Signature</div><div class="content signature"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPAAAAA8CAQAAADydv/WAAAAbElEQVR42u3RAQEAAAQDMO/fVgF6sFVYeorDIlgwghGMYAQjGMGCEYxgBCMYwQgWjGAEIxjBCEYwggUjGMEIRjCCESwYwQhGMIIRjGDBCEYwghGMYAQjWDCCEYxgBCMYwYIRjGAEIxjBCP5uAQrmdLkka2HAAAAAAElFTkSuQmCC"></div></div>`;
           } else {
             innerHtml += `<div class="row"><div class="label">Signature</div>
-                <div class="content signature"><img src="data:image/${getImageTypeFromBase64(result.signatureImageBase64)};base64,${result.signatureImageBase64}" /></div>
+                <div class="content signature"><img src="data:image/${getImageTypeFromBase64(result.signatureImageBase64)};base64,${result.signatureImageBase64}"/></div>
               </div>`;
           }
         }
         if (result.fullDocumentImageBase64 !== undefined) {
           if (resultsMasked) {
-            innerHtml += `<div class="row"><div class="label"></div><div class="content fullDocument"><div class="placeholder"></div></div></div>`
+            innerHtml += `<div class="row"><div class="label"></div><div class="content fullDocument"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAjAAAAFUCAQAAACQdc41AAADO0lEQVR42u3UMQEAAAjDMObfLQZABReJhB5NTwGciMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBABgMYDCAwQAYDGAwgMEAGAxgMIDBABgMYDCAwQAYDGAwgMEAGAxgMIDBABgMYDCAwQAYDGAwgMEAGAxgMIDBABgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAYDGAwgMEAGAxgMIDBABgMYDCAwQAYDGAwgMEAGAxgMIDBABgMYDCAwQAYDGAwgMEAGAxgMIDBABgMYDCAwYgAGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAP8sMiWVh63j1TAAAAAASUVORK5CYII="/></div></div>`;
           } else {
             innerHtml += `<div class="row"><div class="label"></div>
-                    <div class="content fullDocument"><img src="data:image/${getImageTypeFromBase64(result.fullDocumentImageBase64)};base64,${result.fullDocumentImageBase64}" /></div>
+                    <div class="content fullDocument"><img src="data:image/${getImageTypeFromBase64(result.fullDocumentImageBase64)};base64,${result.fullDocumentImageBase64}"/></div>
                   </div>`;
           }
         }
-
         innerHtml += '</div>';
       });
       if (innerHtml) {
         this.shadowRoot.querySelector('.container.results').innerHTML = innerHtml;
       } else {
-        this.toggleError(true, this.getSlotText('labels.scanningFinishedNoDataMessage'), 
-        this.getSlotText('labels.scanningFinishedNoDataTitle'), false);
+        this.toggleError(true, this.getSlotText('labels.scanningFinishedNoDataMessage'), this.getSlotText('labels.scanningFinishedNoDataTitle'), false);
       }
     }
 
@@ -887,7 +867,7 @@ function defineComponent() {
       this.stopCamera();
       this.restartCounter();
       this.toggleError(true, error && error.message);
-      this.dispatchEvent('error', (error && error.message) || this.getSlotText('labels.errorMsg'));
+      this.dispatchEvent('error', new Error((error && error.message) || this.getSlotText('labels.errorMsg')));
     }
 
     clearTimers() {

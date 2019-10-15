@@ -397,7 +397,7 @@ export default class Microblink implements IMicroblink {
     isFileScan: boolean,
     uploadProgress?: EventListener
   ): Observable<ScanOutput> {
-    return Observable.create((observer: Observer<ScanOutput>) => {
+    return new Observable((observer: Observer<ScanOutput>) => {
       blobToBase64String(blob)
         .then(blobAsBase64String => {
           this.API.Recognize(this.recognizers, blobAsBase64String, uploadProgress).subscribe(
