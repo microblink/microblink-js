@@ -106,16 +106,8 @@ export default class MicroblinkApi implements IMicroblinkApi {
       }
 
       // Export images flag set if it is enabled
-      if (typeof this.exportImages === 'boolean') {
-        if (this.exportImages) {
-          body['exportImages'] = true
-        }
-      } else if (typeof this.exportImages === 'string') {
-        body[this.exportImages] = true
-      } else if (Array.isArray(this.exportImages)) {
-        for (let prop of this.exportImages) {
-          body[prop] = true
-        }
+      if (this.exportImages) {
+        body['exportImages'] = this.exportImages
       }
 
       // Detect glare flag set if it is enabled
