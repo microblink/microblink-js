@@ -31,6 +31,8 @@ export default class Microblink implements IMicroblink {
   private API: IMicroblinkApi
   private recognizers: string | string[] = []
   private authorizationHeader: string = ''
+  private exportImages: boolean | string | string[] = false
+  private detectGlare: boolean = false
   private listeners: ScanListener[] = []
   private scanFrameQueue: ScanInputFrameWithQuality[] = []
 
@@ -115,6 +117,13 @@ export default class Microblink implements IMicroblink {
    */
   SetRecognizers(recognizers: string | string[]): void {
     this.recognizers = recognizers
+
+    let event = new CustomEvent('recognizersUpdated', {
+      detail: { recognizers: this.recognizers },
+      cancelable: true,
+      bubbles: true
+    })
+    document.dispatchEvent(event)
   }
 
   /**
@@ -140,11 +149,21 @@ export default class Microblink implements IMicroblink {
   }
 
   /**
-   * Change export images flag for next request
-   * @param isExportImagesEnabled is flag which describes does API should return extracted images in next response
+   * Change which images to export for next request
+   * @param exportImages is either a boolean flag which describes whether API should return extracted images in next response or an array of API properties
    */
-  SetExportImages(isExportImagesEnabled: boolean): void {
-    this.API.SetExportImages(isExportImagesEnabled)
+  SetExportImages(exportImages: boolean | string | string[]): void {
+    this.exportImages = exportImages
+    this.API.SetExportImages(exportImages)
+  }
+
+  /**
+   * Set detect glare option for next request
+   * @param detectGlare is a boolean flag which describes whether API should return null for image segments where glare is detected
+   */
+  SetDetectGlare(detectGlare: boolean): void {
+    this.detectGlare = detectGlare
+    this.API.SetDetectGlare(detectGlare)
   }
 
   /**
@@ -183,6 +202,23 @@ export default class Microblink implements IMicroblink {
   }
 
   /**
+   * Check if any recognizer is set in the recognizers array
+   */
+  IsRecognizerArraySet(): boolean {
+    if (this.recognizers) {
+      if (this.recognizers.constructor === Array) {
+        if (this.recognizers.length > 0) {
+          return true
+        } else {
+          return false
+        }
+      }
+      return true
+    }
+    return false
+  }
+
+  /**
    * Create object for exchange data for scan between devices
    * @param data is object with optional data which will be added to the ScanExchanger object
    */
@@ -190,9 +226,11 @@ export default class Microblink implements IMicroblink {
     data: ScanExchanger,
     onChange: (data: ScanExchanger) => void
   ): Promise<any> {
-    // Get recognizers and authorizationHeader from remote request
+    // Get recognizers, authorizationHeader, images to export, and glare detection option from remote request
     data.recognizers = this.recognizers
     data.authorizationHeader = this.authorizationHeader // it is encrypted
+    data.exportImages = this.exportImages
+    data.detectGlare = this.detectGlare
 
     // Generate Secret key
     // Generate random 32 long string
@@ -228,17 +266,30 @@ export default class Microblink implements IMicroblink {
 
       if (
         scanDocData.status === ScanExchangerCodes.Step07_ResultIsAvailable &&
-        scanDocData.result
+        (scanDocData.result || scanDocData.resultUrl)
       ) {
-        // Decrypt results
-        const scanResultDec = CryptoHelper.decrypt(scanDocData.result, secretKey)
-
+        let scanResultDec
+        if (scanDocData.result) {
+          scanResultDec = CryptoHelper.decrypt(scanDocData.result, secretKey)
+        } else if (scanDocData.resultUrl) {
+          const resultUrl = CryptoHelper.decrypt(scanDocData.resultUrl, secretKey)
+          const response = await fetch(resultUrl)
+          const blob = await response.blob()
+          const text = await blobToBase64String(blob)
+          scanDocData.result = text
+          scanResultDec = CryptoHelper.decrypt(text, secretKey)
+          firebase
+            .storage()
+            .refFromURL(resultUrl)
+            .delete()
+        }
         // Notify success listeners
         this.notifyOnSuccessListeners({ result: scanResultDec, sourceBlob: null }, true)
 
         // After successfully read 'result', remove it from the Firestore
         scan.update({
-          result: null
+          result: null,
+          resultUrl: null
         })
 
         // External integrator should decide when to unsubscribe!
@@ -346,7 +397,7 @@ export default class Microblink implements IMicroblink {
     isFileScan: boolean,
     uploadProgress?: EventListener
   ): Observable<ScanOutput> {
-    return Observable.create((observer: Observer<ScanOutput>) => {
+    return new Observable((observer: Observer<ScanOutput>) => {
       blobToBase64String(blob)
         .then(blobAsBase64String => {
           this.API.Recognize(this.recognizers, blobAsBase64String, uploadProgress).subscribe(

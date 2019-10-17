@@ -7,7 +7,8 @@ import {
   ScanInputFrame,
   StatusCodes as statusCodes,
   ScanExchanger,
-  ScanExchangerCodes as scanExchangerCodes
+  ScanExchangerCodes as scanExchangerCodes,
+  ExportImageTypes as exportImageTypes
 } from './microblink.SDK.types'
 import { IMicroblink } from './microblink.interface'
 import { CryptoHelper } from './cryptoHelper'
@@ -88,11 +89,19 @@ export namespace SDK {
   // }
 
   /**
-   * Change export images flag for next request
-   * @param isExportImagesEnabled is flag which describes does API should return extracted images in next response
+   * Change which images to export for next request
+   * @param exportImages is either a boolean flag which describes whether API should return extracted images in next response or an array of API properties
    */
-  export function SetExportImages(isExportImagesEnabled: boolean): void {
-    SDK.SetExportImages(isExportImagesEnabled)
+  export function SetExportImages(exportImages: boolean | string | string[]): void {
+    SDK.SetExportImages(exportImages)
+  }
+
+  /**
+   * Set detect glare option for next request
+   * @param detectGlare is a boolean flag which describes whether API should return null for image segments where glare is detected
+   */
+  export function SetDetectGlare(detectGlare: boolean): void {
+    SDK.SetDetectGlare(detectGlare)
   }
 
   /**
@@ -152,6 +161,11 @@ export namespace SDK {
   export const ScanExchangerCodes = scanExchangerCodes
 
   /**
+   * Get all export image types
+   */
+  export const ExportImageTypes = exportImageTypes
+
+  /**
    * Decrypt protected object
    * @param dataEncrypted is encrypted object as string
    * @param key is secret key with which data will be decrypted
@@ -174,5 +188,12 @@ export namespace SDK {
    */
   export async function IsDesktopToMobileAvailable(): Promise<boolean> {
     return SDK.IsDesktopToMobileAvailable()
+  }
+
+  /**
+   * Check if any recognizer is set in the recognizers array
+   */
+  export function IsRecognizerArraySet(): boolean {
+    return SDK.IsRecognizerArraySet()
   }
 }

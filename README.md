@@ -20,6 +20,12 @@ This package includes library for image preparation and HTTP integration with Mi
 
 Also, this package has an Microblink API UI web component available as custom HTML tag `<microblink-ui-web></microblink-ui-web>` which has native camera management for mobile and desktop devices with WebRTC support and file management solution.
 
+### Browser compatibility
+
+![Chrome](https://raw.githubusercontent.com/alrra/browser-logos/master/src/chrome/chrome_48x48.png) | ![Firefox](https://raw.githubusercontent.com/alrra/browser-logos/master/src/firefox/firefox_48x48.png) | ![IE](https://raw.githubusercontent.com/alrra/browser-logos/master/src/edge/edge_48x48.png) | ![Safari](https://raw.githubusercontent.com/alrra/browser-logos/master/src/safari/safari_48x48.png)
+--- | --- | --- | --- |
+Latest ✔ | Latest ✔ | Latest ✔ | Latest ✔ |
+
 ## How to use
 
 ### Install package
@@ -86,15 +92,17 @@ For better UX, when viewing your page from a mobile browser, the component's hei
 
 ### Attributes
 
-Currently the component supports two additional boolean attributes. These can be set like any other HTML attributes.
+Currently the component supports four additional boolean attributes. These can be set like any other HTML attributes.
 
 **tabs** - this is for enabling results display inside component area after document scan or document file upload. 
-Beside initial screen with action buttons, 3 more sections are rendered to which you can navigate via tab menu: 
-table view of the results, preview of a JSON response from the server and preview of the frame or image from which the results were extracted.
+Beside initial screen with action buttons, 2 more sections are rendered to which you can navigate via tab menu: 
+table view of the results and preview of a JSON response from the server.
 
 **autoscroll** - this is a feature for mobile devices intended to improve UX. When scrolling through your page with this option enabled, the vertical positioning of the page will be set to the start of the component when distance of the component's top edge is near to the top edge of the viewport. This could help mobile users to have the whole component placed inside a viewport.
 
 **webcam** - this is for enabling or disabling the option to use web camera. To disable the use of webcam set the `webcam` attribute to "off".
+
+**fullscreen** - this is for enabling or disabling the option to open web camera video stream fullscreen. To disable the use of fullscreen camera video stream set the `fullscreen` attribute to "off".
 
 ### Localization
 
@@ -106,45 +114,52 @@ To clarify, we are providing an example with all currently customizable labels a
 <microblink-ui-web>
 	<template class="localization json">
 		{
-			"buttons": {
-				"browse": "Browse",
-				"cameraLocal": "Use web camera",
-				"cameraRemote": "Use remote phone camera",
+			"buttons" : {
+				"browse": "Upload image",
+				"cameraRemote": "Use mobile camera",
+				"cameraLocalDesktop": "Use web camera",
+				"cameraLocalMobile": "Use camera",
+				"dropFiles": "Drop files to upload",
 				"tryAgain": "TRY AGAIN",
-				"takePhoto": "TAKE A PHOTO",
+				"takePhoto": "Take a photo",
 				"copy": "Copy to clipboard",
-				"confirm": "CONFIRM",
+				"confirm": "USE PHOTO",
 				"retake": "RETAKE"
 			},
-			"labels": {
-				"dragDrop": "Drag and Drop\ndocument here OR",
-     			"nativeCamera": "Choose image from \ndevice or camera app:",
-				"cameraActivate": "Activate your camera to capture the ID document:",
-				"errorMsg": "We're sorry, but something went wrong. Please try again.",
-				"notFoundErrorMsg": "No camera was found on your device.",
-				"notAllowedErrorMsg": "You have denied camera access permission.",
-     			"permissionMsg": "Enable camera please",
-				"table": {
-					"keys": "Data field from the ID",
-					"values": "Value"
-				},
+			"labels" : {
+				"chooseInputMethod": "Choose input method",
+				"generatingExchangeLink": "Generating exchange link...",
+				"exchangeLinkTitle": "Exchange link is",
+				"remoteCameraIsPending": "Remote camera is pending...",
+				"remoteCameraIsOpen": "Remote camera is open...",
+				"imageIsUploading": "Image is uploading...",
+				"imageIsProcessing": "Image is processing...",
+				"videoTagUnsupported": "Your browser does not support video tag",
 				"uploading" : "Uploading",
 				"processing" : "Processing",
 				"analyzing" : "Analyzing",
 				"extracting" : "Extracting data",
 				"almostDone" : "Almost done",
-				"openLinkAtSmartphone": "Please open exchange link in the browser at smartphone.",
-				"generatingExchangeLink": "Generating exchange link...",
-				"exchangeLinkTitle": "Exchange link is"
+				"errorMsg": "We're sorry, but something went wrong. Please try again.",
+				"permissionMsg": "Enable camera please",
+				"notFoundErrorMsg": "No camera was found on your device",
+				"notAllowedErrorMsg": "You have denied camera access permission",
+				"scanningFinishedNoDataTitle": "Document not recognized",
+				"scanningFinishedNoDataMessage": "Please try again with a supported document or select a different recognizer",
+				"unsupportedFileType": "Unsupported file type",
+				"selectRecognizers": "Please select one or more recognizers to start scanning",
+				"noRecognizersSelected": "No recognizers selected",
+				"webRtcUnsupported": "WebRTC not supported by your browser"
 			},
-			"tabs": {
-				"retake": "RETAKE",
-				"results": "RESULTS",
-				"image": "IMAGE",
+			"tabs" : {
+				"back": "Back",
+				"results": "Results",
 				"json": "JSON"
 			}
 		}
 	</template>
+	<img slot="loader-image" class="hide-until-component-is-loaded" src="https://microblink.com/bundles/microblinkmicroblink/images/loading-animation-on-blue.gif" />
+	<span slot="labels.openLinkAtSmartphone" class="hide-until-component-is-loaded">Please open <b>exchange link</b> at smartphone with <b>QR</b> reader</span>
 </microblink-ui-web>
 ```
 
@@ -163,46 +178,55 @@ Below is the list of all currently available style hooks with their explanations
 
 | Property | Description |
 | :-------------------------------| :----------|
-| -\-mb-hem | This is basically CSS rem unit for the component. Default value is set to page's 1rem. If you wish to scale up or down text size of the component, use this property. |
-| -\-mb-widget-font-family | Use to define component's font family. Default value: `Helvetica, Tahoma, Verdana, Arial, sans-serif` |
-| -\-mb-widget-border-width | Border width of the entire component. Default value: `0` |
-| -\-mb-widget-border-color | Border color of the component. Default value: `black` |
-| -\-mb-widget-background-color | Background color of the component. Default value: `transparent` |
-| -\-mb-alt-font-color | This property is used to set font color of the initial display labels. Default value: `black` |
-| -\-mb-btn-font-color | Use to set buttons' font color. Default: `white` |
-| -\-mb-btn-background-color | Background color of buttons. Default: `black` |
-| -\-mb-btn-background-color-hover | Background color of hovered buttons. Default: `dimgrey` |
-| -\-mb-btn-flip-image-color | Color of the camera flip button. Default: `black` |
-| -\-mb-btn-cancel-color | Color of the cancel button (camera exit button). Default: `black` |
-| -\-mb-btn-webcam-confirm-color | Color of the webcam confirm button. Default: `black` |
-| -\-mb-btn-webcam-retake-color | Color of the webcam retake button. Default: `black` |
+| -\-mb-hem | This is basically CSS rem unit for the component. Default value is set to page's 1rem. If you wish to scale up or down text size of the component, use this property. Default: `1rem` |
+| -\-mb-widget-font-family | Use to define component's font family. Default: `Helvetica, Tahoma, Verdana, Arial, sans-serif` |
+| -\-mb-widget-border-width | Border width of the entire component. Default: `0` |
+| -\-mb-widget-border-color | Border color of the component. Default: `black` |
+| -\-mb-widget-background-color | Background color of the component. Default: `white` |
+| -\-mb-default-font-color | Font color of the choose input label and results display. Default: `black` |
+| -\-mb-alt-font-color | Font color of the initial display labels. Default: `#575757` |
+| -\-mb-btn-font-color | Buttons' font color. Default: `white` |
+| -\-mb-btn-background-color | Background color of buttons. Default: `#48b2e8` |
+| -\-mb-btn-background-color-hover | Background color of hovered buttons. Default: `#26a4e4` |
+| -\-mb-btn-alt-font-color | Font color of the webcam retake button. Default: `black` |
+| -\-mb-btn-alt-background-color | Background color of the webcam retake button. Default: `white` |
+| -\-mb-btn-border-radius | Set the buttons' border radius. Default: `0` |
+| -\-mb-btn-intro-stroke-color | Stroke color of choose input screen icons. Default: `black` |
+| -\-mb-btn-intro-stroke-color-hover | Stroke color of choose input screen icons on hover. Default: `white` |
+| -\-mb-btn-intro-circle-color | Background color of choose input screen icons. Default: `#f2f2f2` |
+| -\-mb-btn-intro-circle-color-hover | Background color of choose input screen icons on hover. Default: `#48b2e8` |
+| -\-mb-btn-container-border-color | Border color of footer on webcam image confirmation screen. Default: `lightgrey` |
+| -\-mb-spinner-border-width | Border width of the mobile camera status spinner.  Default: `6px` |
+| -\-mb-capture-icons-color | Icon color of the flip image and close buttons. Default: `white` |
+| -\-mb-dropzone-hover-color | Background color of drag and drop area when hovered with some dragged document. Default: `rgba(72, 178, 232, 0.2)` |
+| -\-mb-dropzone-circle-color | Background color of drag and drop circle indicator. Default: `#48b2e8` |
+| -\-mb-dropzone-icon-color | Color of drag and drop indicator icon. Default: `black` |
+| -\-mb-loader-font-color | Font color of the loader dialog during file upload and processing. Default: `black` |
+| -\-mb-loader-background-color | Background color of the loader dialog. Default: `#48b2e8` |
 | -\-mb-card-layout-border-color | Border color of the card overlay. Default: `black` |
-| -\-mb-btn-border-radius | Set the buttons' border radius. Default values is `5px`  |
-| -\-mb-dropzone-hover-color | Background color of drag and drop area when hovered with some dragged document. Default value: `rgba(0, 0, 0, .25)` |
-| -\-mb-loader-font-color | Font color of the loader dialog during file upload and processing. If not set, fallback to -\-mb-dialog-font-color. |
-| -\-mb-loader-background-color | Background color of the loader dialog. If not set, fallback to -\-mb-dialog-background-color. |
-| -\-mb-dialog-font-color | Use to set font color of the permission and error dialogs. Default value: `black` |
-| -\-mb-dialog-background-color | Use to set background color of the permission and error dialogs. Default value: `white` |
-| -\-mb-counter-font-color | Use to set font color of the counter display, shown when capturing frames. Default value: `white` |
-| -\-mb-counter-background-color | Use to set background color of the counter display. Default value: `rgba(0, 0, 0, 0.7)` |  
+| -\-mb-dialog-title-color | Font color of the permission and error dialogs title. Default: `black` |
+| -\-mb-dialog-message-color | Font color of the permission and error dialogs message. Default: `#575757` |
+| -\-mb-photo-icon-primary | Background color of webcam photo button and counter. Default: `white` |
+| -\-mb-photo-icon-accent | Accent color of webcam photo button and counter text. Default: `#48b2e8` |
 
 There are additional properties to style component if you are using 'tabs' option to display results inside a component.  
 They are listed below:
 
 | Property | Description |
 | :----------------------------------- | :----------|
-| -\-mb-tabs-font-color | Font color of tabs. Default value: `white` |
-| -\-mb-tabs-background-color | Background color of tabs. Default value: `black` |
-| -\-mb-tabs-border-width | Use to set bottom border width for underlined text inside tabs. Default value: `4px` |
-| -\-mb-tabs-active-color | Use to set font color of active tab, the one whose corresponding container is displayed. Default value: first fallback to -\-mb-tabs-hover-color, second to `#ddd` |
-| -\-mb-tabs-hover-color | Use to set font color of hovered tab. Default value: first fallback to -\-mb-tabs-active-color, second to `#ddd`|
-| -\-mb-default-font-color | Use to set the font color of table results display. Default value: `black` |
-| -\-mb-table-header-background-color | Use to set the background color of table headers in a results display. Default value: `#f2f2f2` |
-| -\-mb-json-color-key | Inside JSON view, use to set font color of the keys. Default value: `#ff0000` |
-| -\-mb-json-color-string | Inside JSON view, use to set font color of string values. Default value: `#008000` |
-| -\-mb-json-color-number | Inside JSON view, use to set font color of number values. Default value: `#ffc000` |
-| -\-mb-json-color-boolean | Inside JSON view, use to set font color of boolean values. Default value: `#0000FF` |
-| -\-mb-json-color-null | Inside JSON view, use to set font color of the null values. Default value: `#ff00ff` |
+| -\-mb-tabs-background-color | Background color of tabs. Default: `black` |
+| -\-mb-tabs-font-color | Font color of tabs. Default: `white` |
+| -\-mb-tabs-border-width | Bottom border width for underlined text inside tabs. Default: `4px` |
+| -\-mb-tabs-hover-color | Font color of hovered tab. Default: `#26a4e4` |
+| -\-mb-tabs-active-color | Font color of active tab, the one whose corresponding container is displayed. Default: `#48b2e8` |
+| -\-mb-json-color-key | Inside JSON view, font color of the keys. Default value: `black` |
+| -\-mb-json-color-string | Inside JSON view, font color of string values. Default value: `#48b2e8` |
+| -\-mb-json-color-boolean | Inside JSON view, font color of boolean values. Default value: `#26a4e4` |
+| -\-mb-json-color-number | Inside JSON view, font color of number values. Default value: `black` |
+| -\-mb-json-color-null | Inside JSON view, font color of the null values. Default value: `#26a4e4` |
+| -\-mb-results-border-color | Border color of results table. Default: `#dee2e6` |
+| -\-mb-results-image-border-radius | Border radius of results table extracted images. Default: `6px` |
+| -\-mb-results-image-background-color | Background color of results table extracted images when results are masked. Default: `#f2f2f2` |
 
 ### Feature: desktop-to-mobile
 
@@ -217,7 +241,7 @@ Microblink Scan Web is a standalone Angular application available as GIT submodu
 #### How it works
 
 1. component is loaded at the browser on desktop
-2. user requests feature by click to the button `Use remote phone camera`
+2. user requests feature by click to the button `Use mobile camera`
 3. component at the desktop generate exchange link with QR code and secret key for AES encryption
 4. user at smartphone should open generated exchange link (link contains scan identificator and AES secret key for encryption), recommended way is to scan QR code with QR reader integrated in native camera app on the iOS and Android or with custom QR reader
 5. at mobile user takes document with native camera

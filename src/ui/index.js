@@ -4,27 +4,21 @@ import templateHtml from './html/component.html';
 import ResizeSensor from './ResizeSensor.js';
 import ElementQueriesFactory from './ElementQueries.js';
 import { FrameHelper } from '../frameHelper'
-
-import {escapeHtml, labelFromCamelCase, dateFromObject, isMobile, hasClass, addClass, removeClass, toggleClass, isRemotePhoneCameraAvailable} from './utils.js';
+import screenfull from 'screenfull';
+import copy from 'copy-to-clipboard';
+import {
+  escapeHtml, labelFromCamelCase, dateFromObject, isMobile, isOpera, hasClass, addClass,
+  removeClass, toggleClass, isRemotePhoneCameraAvailable, getImageTypeFromBase64
+} from './utils.js'
 
 const Microblink = {
 	SDK: SDK
 };
 
-// Default for desktop
-let CARD_PADDING_FACTOR_TO_THE_COMPONENT = 0.6;
-// At mobile it looks much better when it is almost at the edge of the component
-if (isMobile()) {
-  CARD_PADDING_FACTOR_TO_THE_COMPONENT = 0.9;
-}
-
 // Expose it to global window object
 if (window) {
 	window['Microblink'] = Microblink;
 }
-
-const ERR_UNSUPPORTED_TYPE = 'Unsupported file type';
-const RESULT_MASKED = 'Please notice that your results are masked due to missing Authorization header';
 
 //insert web components light polyfill for cross-browser compatibility
 let script = document.createElement('script');
@@ -42,7 +36,7 @@ function defineComponent() {
   class WebApi extends HTMLElement {
 
     static get observedAttributes() {
-      return ['tabs', 'autoscroll', 'webcam'];
+      return ['tabs', 'autoscroll', 'webcam', 'fullscreen'];
     }
 
     get tabs() { return this.hasAttribute('tabs'); }
@@ -51,8 +45,11 @@ function defineComponent() {
     get autoscroll() { return this.hasAttribute('autoscroll'); }
     set autoscroll(value) { value === true ? this.setAttribute('autoscroll', '') : this.removeAttribute('autoscroll'); }
 
-    get webcam() { return this.getAttribute('webcam'); }
-    set webcam(value) { value === false ? this.setAttribute('webcam', 'false') : this.removeAttribute('webcam'); }
+    get webcam() { return this.getAttribute('webcam') !== 'off'; }
+    set webcam(value) { value === false ? this.setAttribute('webcam', 'off') : this.removeAttribute('webcam'); }
+
+    get fullscreen() { return this.getAttribute('fullscreen') !== 'off'; }
+    set fullscreen(value) { value === false ? this.setAttribute('fullscreen', 'false') : this.removeAttribute('fullscreen'); }
 
     constructor() {
       super();
@@ -67,34 +64,25 @@ function defineComponent() {
       this.currentScanSecretKey = null;
       // Subscription to the exchange object changes
       this.unsubscribeFromScanExchangerChanges = null;
+      // For copy to clipboard functionality
+      this.executionResult = null;
 
-      document.addEventListener('DOMContentLoaded', this.getLocalization);
       Microblink.SDK.RegisterListener(this);
     }
 
     connectedCallback() {
       if(this.shadowRoot.innerHTML) this.shadowRoot.innerHTML = '';
       this.shadowRoot.appendChild(template.content.cloneNode(true));
+      this.getLocalization();
       this.shadowRoot.getElementById('fileBtn').addEventListener('click', () => this.shadowRoot.getElementById('file').click());
       this.shadowRoot.getElementById('file').addEventListener('click', function() { this.value = ''; });
       this.shadowRoot.getElementById('file').addEventListener('touchstart', function() { this.value = ''; });
       this.shadowRoot.getElementById('file').addEventListener('change', this.fileChosen.bind(this));
-      this.shadowRoot.getElementById('againBtn').addEventListener('click', () => {
-        this.restart();
-        this.stopCamera();
-        this.toggleError();
-      });
       this.shadowRoot.getElementById('cancelBtnLocalCamera').addEventListener('click', () => {
         this.stopCamera();
       });
       this.shadowRoot.getElementById('cancelBtnRemoteCamera').addEventListener('click', () => {
         this.stopCamera();
-      });
-      document.addEventListener('keydown', (evt) => {
-        evt = evt || window.event;
-        if (evt.key === 'Escape') {
-          this.stopCamera();
-        }
       });
       this.shadowRoot.querySelector('.dropzone').addEventListener('dragover', event => event.preventDefault());
       this.shadowRoot.querySelector('.dropzone').addEventListener('drop', this.onDrop.bind(this));
@@ -102,52 +90,64 @@ function defineComponent() {
       this.shadowRoot.querySelector('.dropzone').addEventListener('dragleave', this.onDragLeave.bind(this));
       this.shadowRoot.getElementById('cameraLocalBtn').addEventListener('click', this.activateLocalCamera.bind(this));
       this.shadowRoot.getElementById('cameraRemoteBtn').addEventListener('click', this.activateRemoteCamera.bind(this));
-      this.shadowRoot.querySelector('video').addEventListener('loadedmetadata', function() { this.play(); });
+      this.shadowRoot.querySelector('video').addEventListener('loadedmetadata', function() { this.play(); this.controls = false; });
+      this.shadowRoot.querySelector('video').addEventListener('play', () => {
+        removeClass(this.shadowRoot.getElementById('photoBtn'), 'hidden');
+        removeClass(this.shadowRoot.getElementById('cardPlacer'), 'hidden');
+      });
       this.shadowRoot.getElementById('photoBtn').addEventListener('click', () => this.startRecording());
       this.shadowRoot.getElementById('flipBtn').addEventListener('click', this.flipCamera.bind(this));
-      let video = this.shadowRoot.getElementById('video');
-      video.addEventListener('loadedmetadata', function() { this.controls = false; });
-      video.addEventListener('play', () => {
-        removeClass(this.shadowRoot.getElementById('photoBtn'), 'hidden');
-      });
 
       Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.tab'), elem => {
         elem.addEventListener('click', () => {
           let tabId = elem.id;
+          if (tabId === 'introTab') {
+            this.toggleTabs(false);
+          }
           Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.tab'), elem => toggleClass(elem, 'active', tabId === elem.id));
           Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.main > .container'), elem => {
             toggleClass(elem, 'active', hasClass(elem, tabId.substring(0, tabId.length - 3)));
           });
         });
       });
-
       this.shadowRoot.getElementById('copyBtn').addEventListener('click', () => {
-        let text = this.shadowRoot.querySelector('.main > .json > div').textContent;
-        let textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.className += 'cpyTxtArea';
-        this.shadowRoot.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        this.shadowRoot.removeChild(textarea);
+        copy(JSON.stringify(this.executionResult, null, 2));
       });
+
+      this.checkRecognizers();
       this.checkWebRTCSupport();
       this.checkRemoteCameraSupport();
       this.adjustComponent(true);
       this.ElementQueries = ElementQueriesFactory(ResizeSensor, this.shadowRoot);
       this.ElementQueries.listen();
-      window.addEventListener('resize', this.adjustComponent.bind(this));
+      window.addEventListener('resize', this.adjustComponent.bind(this, false));
 
       this.shadowRoot.getElementById('webcamConfirmBtn').addEventListener('click', () => {
         Microblink.SDK.SendImage(this.webcamImage, this.onScanProgress);
+        this.enableResultShow = true;
         this.toggleLoader(true);
         this.restart();
         this.stopCamera();
-        removeClass(this.shadowRoot.querySelector('.confirm-image'), 'show');
+        this.clearConfirmImage();
       });
       this.shadowRoot.getElementById('webcamRetakeBtn').addEventListener('click', () => {
-        this.activateLocalCamera();
-        removeClass(this.shadowRoot.querySelector('.confirm-image'), 'show');
+        this.clearConfirmImage();
+      });
+      this.shadowRoot.getElementById('cancelBtnConfirmImage').addEventListener('click', () => {
+        this.stopCamera();
+        this.clearConfirmImage();
+      });
+
+      document.addEventListener('keydown', (evt) => {
+        evt = evt || window.event;
+        if (evt.key === 'Escape') {
+          this.stopCamera();
+        }
+      });
+      document.addEventListener('recognizersUpdated', () => {
+        if (this.checkRecognizers()) {
+          removeClass(this.shadowRoot.querySelector('.error-container'), 'show');
+        }
       });
       this.shadowRoot.querySelector('slot[name="loader-image"]').addEventListener('slotchange', event => {
         let loaderElements = event.target.assignedElements();
@@ -155,7 +155,7 @@ function defineComponent() {
         let loaderSlots = Array.prototype.map.call(this.shadowRoot.querySelectorAll('slot[name="loader-image"]'), el => el);
         loaderSlots.shift();
         loaderSlots.forEach(slot => {
-          slot.innerHTML = ''
+          slot.innerHTML = '';
           loaderElements.forEach(element => slot.appendChild(element.cloneNode(true)));
         });
       });
@@ -169,24 +169,40 @@ function defineComponent() {
 
     adjustComponent(initial) {
       if (isMobile()) {
-        this.style.height = `${window.innerHeight}px`;
-        if(parseInt(getComputedStyle(this.parentNode).height) < window.innerHeight) {
+        if (parseInt(getComputedStyle(this.parentNode).height) < window.innerHeight) {
           this.style.height = getComputedStyle(this.parentNode).height;
-        }
-        if (initial === true) {
+        } else this.style.height = `${window.innerHeight}px`;
+        if (initial) {
           this.shadowRoot.getElementById('flipBtn').style.setProperty('display', 'none', 'important');
-          this.shadowRoot.getElementById('cameraRemoteBtn').style.setProperty('display', 'none', 'important');
-          this.shadowRoot.getElementById('cameraBtnSeparator').style.setProperty('display', 'none', 'important');
-          this.shadowRoot.getElementById('cameraLocalBtn').innerHTML = this.shadowRoot.getElementById('cameraLocalBtn').innerHTML.replace('desktop', '').replace('web', '');
+          let remoteCamera = this.shadowRoot.getElementById('cameraRemoteBtn');
+          if (remoteCamera) {
+            let localCameraBtnIcon = this.shadowRoot.querySelector('#cameraLocalBtn .circle');
+            if (localCameraBtnIcon) {
+              localCameraBtnIcon.innerHTML = this.shadowRoot.querySelector('#cameraRemoteBtn .circle').innerHTML;
+            } else this.removeChooseLabel();
+            remoteCamera.parentNode.removeChild(remoteCamera);
+          }
+          Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.cameraLocalLabel, .browseLabel'), elem => toggleClass(elem, 'hidden'));
           Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('#flipBtn, .video video'), elem => toggleClass(elem, 'flipped'));
-          Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.dropzone .intro-label'), elem => toggleClass(elem, 'hidden'));
         }
       }
+      this.adjustCardPlacer(isMobile());
+    }
 
-      if (!isRemotePhoneCameraAvailable()) {
-        this.shadowRoot.getElementById('cameraRemoteBtn').style.setProperty('display', 'none', 'important');
-        this.shadowRoot.getElementById('cameraBtnSeparator').style.setProperty('display', 'none', 'important');
-      }
+    adjustCardPlacer(isMobile) {
+      let { offsetWidth: width, offsetHeight: height } = this.shadowRoot.querySelector('.root');
+      let placerToContainerRatio = isMobile && window.innerHeight > window.innerWidth? 0.85 : 0.6;
+      const ASPECT_RATIO = 1.585772508336421;
+
+      let placerWidth = (width / height) > ASPECT_RATIO ? width : height * ASPECT_RATIO;
+      let placerHeight = placerWidth / ASPECT_RATIO;
+      let borderRightLeft = ((1 - placerToContainerRatio) * width + (placerWidth - width)) / 2;
+      let borderTopBottom = borderRightLeft / ASPECT_RATIO;
+
+      let cardPlacer = this.shadowRoot.getElementById('cardPlacer');
+      cardPlacer.style.width = `${placerWidth}px`;
+      cardPlacer.style.height = `${placerHeight}px`;
+      cardPlacer.style.borderWidth = `${borderTopBottom}px ${borderRightLeft}px`;
     }
 
     autoScrollListener(event) {
@@ -215,25 +231,41 @@ function defineComponent() {
       }
     }
 
+    getSlotText(name) {
+      if (this.querySelector('span[slot="' + name + '"]')) {
+        return this.querySelector('span[slot="' + name + '"]').textContent;
+      }
+      return this.shadowRoot.querySelector(`slot[name="${name}"]`).textContent;
+    }
+
+    checkRecognizers() {
+      if (!Microblink.SDK.IsRecognizerArraySet()) {
+        this.toggleError(true, this.getSlotText('labels.selectDocumentType'), this.getSlotText('labels.noDocumentType'), true);
+        return false;
+      }
+      return true;
+    }
+
     checkWebRTCSupport() {
       if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) {
         let cameraLocalBtn = this.shadowRoot.getElementById('cameraLocalBtn');
         cameraLocalBtn.parentNode.removeChild(cameraLocalBtn);
-        this.shadowRoot.getElementById('cameraBtnSeparator').style.setProperty('display', 'none', 'important');
       }
     }
 
     checkRemoteCameraSupport() {
       Microblink.SDK.IsDesktopToMobileAvailable().then(isAvailable => {
-        if (!isAvailable) {
-          this.shadowRoot.getElementById('cameraRemoteBtn').style.setProperty('display', 'none', 'important');
-          this.shadowRoot.getElementById('cameraBtnSeparator').style.setProperty('display', 'none', 'important');
-          if (!this.shadowRoot.getElementById('cameraLocalBtn')) {
-            let cameraPart = this.shadowRoot.querySelector('.container.intro .inline + .inline');
-            cameraPart.parentNode.removeChild(cameraPart);
-          }
+        if (!isAvailable || !isRemotePhoneCameraAvailable()) {
+          let cameraRemoteBtn = this.shadowRoot.getElementById('cameraRemoteBtn');
+          if (cameraRemoteBtn) cameraRemoteBtn.style.setProperty('display', 'none', 'important');
+          if (!this.shadowRoot.getElementById('cameraLocalBtn')) this.removeChooseLabel();
         }
       });
+    }
+
+    removeChooseLabel() {
+      let inputMethodLabels = Array.prototype.map.call(this.shadowRoot.querySelectorAll('.container.intro .intro-label'), el => el);
+      inputMethodLabels.forEach(el => el.parentNode.removeChild(el));
     }
 
     getLocalization() {
@@ -320,16 +352,30 @@ function defineComponent() {
       toggleClass(loader, 'show', show);
     }
 
-    toggleError(show, message) {
+    toggleError(show, message, title, hideTryAgainButton) {
       let errDialog = this.shadowRoot.querySelector('.error-container');
-      Array.prototype.forEach.call(errDialog.querySelectorAll('p'), el => errDialog.removeChild(el));
-      let element = document.createElement('p');
-      if (show && message) {
-        element.textContent = message;
-      } else {
-        element.textContent = errDialog.querySelector('slot[name="labels.errorMsg"]').textContent;
+      errDialog.innerHTML = '';
+      if (title) {
+        let titleElement = document.createElement('div');
+        titleElement.textContent = title;
+        addClass(titleElement, 'title');
+        errDialog.appendChild(titleElement);
       }
-      errDialog.insertBefore(element, errDialog.querySelector('button'));
+      let messageElement = document.createElement('div');
+      addClass(messageElement, 'message');
+      messageElement.textContent = message || this.getSlotText('labels.errorMsg');
+      errDialog.appendChild(messageElement);
+
+      if (!hideTryAgainButton) {
+        let againButton = document.createElement('button');
+        againButton.textContent = this.getSlotText('buttons.tryAgain');
+        againButton.addEventListener('click', () => {
+          this.restart();
+          this.stopCamera();
+          this.toggleError();
+        });
+        errDialog.appendChild(againButton);
+      }
       toggleClass(errDialog, 'show', show);
     }
 
@@ -355,23 +401,22 @@ function defineComponent() {
       }
       if (file) {
         let supportedImageTypes = this.shadowRoot.getElementById('file').getAttribute('accept').split(',');
-        if (file.type && supportedImageTypes.includes(file.type)) {
+        if (file.type && supportedImageTypes.find(type => type === file.type)) {
           this.setFile(file);
         } else {
-          this.toggleError(true, ERR_UNSUPPORTED_TYPE);
-          this.dispatchEvent('error', new Error(ERR_UNSUPPORTED_TYPE));
+          let message = this.getSlotText('labels.unsupportedFileType');
+          this.toggleError(true, message);
+          this.dispatchEvent('error', new Error(message));
         }
       }
     }
 
     onDragEnter() {
       addClass(this.shadowRoot.querySelector('.dropzone'), 'draghover');
-      this.shadowRoot.getElementById('fileBtn').style.pointerEvents = 'none';
     }
 
     onDragLeave() {
       removeClass(this.shadowRoot.querySelector('.dropzone'), 'draghover');
-      this.shadowRoot.getElementById('fileBtn').style.pointerEvents = '';
     }
 
     fileChosen(event) {
@@ -381,8 +426,9 @@ function defineComponent() {
 
     setFile(file) {
       if (file.size > 15 * 1024 * 1024) {
-        this.toggleError(true, 'Maximum file size is 15 MB');
-        this.dispatchEvent('error', 'Maximum file size is 15 MB');
+        let message = this.getSlotText('labels.fileSizeLimitExceeded');
+        this.toggleError(true, message);
+        this.dispatchEvent('error', new Error(message));
         return;
       }
       this.toggleLoader(true);
@@ -397,10 +443,6 @@ function defineComponent() {
         // On every new Remote Camera activation, unsubscribe from the previous listener if it is subscribed
         this.unsubscribeFromScanExchangerChanges();
       }
-
-      this.toggleTabs(false);
-      this.clearTabs();
-      Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container'), elem => toggleClass(elem, 'hidden', !hasClass(elem, 'remote-camera')));
 
       const _shadowRoot = this.shadowRoot;
       const _enableResultShow = () => this.enableResultShow = true;
@@ -420,6 +462,10 @@ function defineComponent() {
       try {
 
         this.unsubscribeFromScanExchangerChanges = await Microblink.SDK.CreateScanExchanger({}, (scanDocData) => {
+          this.toggleTabs(false);
+          this.clearTabs();
+          Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container, .permission, .confirm-image'),
+              elem => toggleClass(toggleClass(elem, 'hidden', !hasClass(elem, 'remote-camera')), 'show', hasClass(elem, 'remote-camera')));
 
           // Listen for the changes on Scan exchanger object
           // console.log('scanDocData', scanDocData);
@@ -492,13 +538,24 @@ function defineComponent() {
       }
     }
 
+    openFullscreen() {
+      return this.fullscreen && screenfull && screenfull.isEnabled && !isOpera() ? screenfull.request(this) : Promise.resolve(false); //Opera has a fullscreen bug
+    }
+
+    closeFullscreen() {
+      return this.fullscreen && screenfull && screenfull.isEnabled && !isOpera() ? screenfull.exit() : Promise.resolve(false);
+    }
+
     activateLocalCamera() {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         this.shadowRoot.getElementById('cameraLocalBtn').setAttribute('disabled', '');
-        let constraints = { video: { width: { ideal: 3840 }, height: { ideal: 2160 }, facingMode: { ideal: 'environment' } } };
+        let constraints = { video: { width: { ideal: 1920 }, height: { ideal: 1080 }, facingMode: { ideal: 'environment' } } };
         let permissionTimeoutId = setTimeout(() => { permissionTimeoutId = null; this.permissionDialogPresent(); }, 1500); //this is "event" in case of browser's camera allow/block dialog
-        navigator.mediaDevices.getUserMedia(constraints).then(stream => {
+        navigator.mediaDevices.getUserMedia(constraints).then(async stream => {
           this.permissionDialogAbsent(permissionTimeoutId);
+          try {
+            await this.openFullscreen();
+          } catch (e) {}
           let video = this.shadowRoot.getElementById('video');
           video.controls = true;
           if ('srcObject' in video) {
@@ -509,52 +566,33 @@ function defineComponent() {
           setTimeout(() => {
             video.play().catch(() => {
               addClass(this.shadowRoot.getElementById('photoBtn'), 'hidden');
+              addClass(this.shadowRoot.getElementById('cardPlacer'), 'hidden');
             });
           }, 0);
-
           this.toggleTabs(false);
           this.clearTabs();
-          Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container'), elem => toggleClass(elem, 'hidden', !hasClass(elem, 'video')));
-
-          // Rescale card-layout-rectangle and it's background to the component size
-          // Get current values
-          var componentWidth = this.shadowRoot.getElementById('rootContainer').offsetWidth;
-          var componentHeight = this.shadowRoot.getElementById('rootContainer').offsetHeight;
-          var cardLayoutRectangleWidth = this.shadowRoot.getElementById('card-layout-rectangle').offsetWidth;
-          var cardLayoutRectangleHeight = this.shadowRoot.getElementById('card-layout-rectangle').offsetHeight;
-
-          // Try to scale depends on the component's width
-          var paddingFactor = CARD_PADDING_FACTOR_TO_THE_COMPONENT;
-          var scaleFactor = (componentWidth / cardLayoutRectangleWidth) * paddingFactor;
-          // Fallback to scale depends on the component height if card border is out of the component
-          if ((cardLayoutRectangleHeight * scaleFactor) > (componentHeight * paddingFactor)) {
-            scaleFactor = (componentHeight / cardLayoutRectangleHeight) * paddingFactor;
-          }
-
-          // Update UI
-          this.shadowRoot.getElementById('card-layout-rectangle').style.zoom = scaleFactor;
-          this.shadowRoot.getElementById('card-layout-rectangle-background').style.zoom = scaleFactor;
-
-        }).catch(error => {
+          Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container, .permission, .confirm-image'),
+              elem => toggleClass(toggleClass(elem, 'hidden', !hasClass(elem, 'video')), 'show', hasClass(elem, 'video')));
+        }).catch(async error => {
+          await this.closeFullscreen();
           this.permissionDialogAbsent(permissionTimeoutId);
 
           let errorMessage;
           switch(error.name) {
             case 'NotFoundError':
-              errorMessage = this.shadowRoot.querySelector('slot[name="labels.notFoundErrorMsg"]').textContent;
+              errorMessage = this.getSlotText('labels.notFoundErrorMsg');
               break;
             case 'NotAllowedError':
-              errorMessage = this.shadowRoot.querySelector('slot[name="labels.notAllowedErrorMsg"]').textContent;
-              break;
+              errorMessage = this.getSlotText('labels.notAllowedErrorMsg');
           }
 
           this.toggleError(true, errorMessage);
           this.dispatchEvent('error', new Error('Camera error: ' + error.name));
-          console.log(error.name); //NotFoundError, NotAllowedError
+          console.log(error.name + ': ' + error.message); //NotFoundError, NotAllowedError
         }).then(() => this.shadowRoot.getElementById('cameraLocalBtn').removeAttribute('disabled'));
 
       } else {
-        alert('WebRTC not supported by your browser'); //should we fallback to flash?
+        this.toggleError(true, this.getSlotText('labels.webRtcUnsupported')); //should we fallback to flash?
       }
     }
 
@@ -570,71 +608,59 @@ function defineComponent() {
         video.srcObject = null;
       }
       else if (video.src) {
-        if(video.captureStream || video.mozCaptureStream) {
+        if (video.captureStream || video.mozCaptureStream) {
           (video.captureStream || video.mozCaptureStream)().getTracks()[0].stop();
           URL.revokeObjectURL(video.src);
           video.src = null;
         }
       }
       video.load();
-      Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container'), elem => toggleClass(elem, 'hidden', !hasClass(elem, 'main')));
+      Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container, .permission, .confirm-image'),
+          elem => toggleClass(toggleClass(elem, 'hidden', !hasClass(elem, 'main')), 'show', hasClass(elem, 'main')));
+      this.closeFullscreen();
     }
 
     startRecording() {
       this.enableResultShow = false;
+      this.frame = null;
+      this.canvas = null;
       let countdown = 3;
       addClass(this.shadowRoot.getElementById('photoBtn'), 'hidden');
       addClass(this.shadowRoot.getElementById('counter'), 'show');
-      let numberNode = this.shadowRoot.querySelector('.counter-number');
-      removeClass(numberNode, 'hidden');
+      let numberNode = this.shadowRoot.getElementById('counter-number');
       numberNode.textContent = String(countdown);
-      let frames = [];
       let counterIntervalId = setInterval(() => {
         numberNode.textContent = String(--countdown);
         if (countdown === 1) {
-          this.frameSendingIntervalId = setInterval(() => {
-            this.captureFrameAndAddToArray(frames);
+          this.frameSendingIntervalId = setInterval(async() => {
+            if (countdown === 0) {
+              removeClass(this.shadowRoot.getElementById('counter'), 'show');
+              clearInterval(this.frameSendingIntervalId);
+              this.frame = await this.getNextBestFrame();
+              this.showConfirmDialog(this.frame);
+            } else {
+              this.frame = await this.getNextBestFrame();
+            }
           }, 200);
         }
         if (countdown === 0) {
           clearInterval(counterIntervalId);
-          clearInterval(this.frameSendingIntervalId);
-          this.hideCounter();
-          this.enableResultShow = true;
-
-          // So that even the picture on 0 countdown mark would be included
-          this.captureFrameAndAddToArray(frames).then(() => {
-            let bestFrame = frames.reduce((prev, current) => (prev.frameQuality > current.frameQuality) ? prev : current);
-            this.userImageConfirmation(bestFrame.data);
-          });
         }
       }, 1000);
     }
 
-    userImageConfirmation(scanInputFile) {
-      this.webcamImage = scanInputFile;
-      let image = new Image();
-      image.src = URL.createObjectURL(scanInputFile.blob);
-      let imageContainerNode = this.shadowRoot.querySelector('.confirm-image .image-container');
-      imageContainerNode.innerHTML = '';
-      imageContainerNode.appendChild(image);
-      addClass(this.shadowRoot.querySelector('.confirm-image'), 'show');
-    }
-
-    captureFrameAndAddToArray(frames) {
+    getNextBestFrame() {
       return new Promise(resolve => {
-        this.captureFrame().then(data => {
-          let frameQuality = FrameHelper.getFrameQuality(data.pixelData);
-          delete data.pixelData; // So Microblink.SDK.SendImage will recognize it as ScanInputFile instead of ScanInputFrame
-          frames.push({data, frameQuality});
-          resolve();
+        this.captureFrame().then(({ blob, pixelData }) => {
+          let quality = FrameHelper.getFrameQuality(pixelData);
+          resolve(!this.frame || quality > this.frame.quality ? { blob, quality } : this.frame);
         });
       });
     }
 
     captureFrame() {
       let video = this.shadowRoot.getElementById('video');
-      let canvas = document.createElement('canvas');
+      let canvas = this.canvas = this.canvas || document.createElement('canvas');
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -651,34 +677,38 @@ function defineComponent() {
       });
     }
 
+    showConfirmDialog({ blob }) {
+      this.webcamImage = { blob };
+      let image = new Image();
+      image.src = URL.createObjectURL(blob);
+      let imageContainerNode = this.shadowRoot.querySelector('.confirm-image .image-container');
+      imageContainerNode.innerHTML = '';
+      imageContainerNode.appendChild(image);
+      addClass(this.shadowRoot.querySelector('.confirm-image'), 'show');
+      this.restartCounter();
+    }
+
+    clearConfirmImage() {
+      removeClass(this.shadowRoot.querySelector('.confirm-image'), 'show');
+      let imageContainerNode = this.shadowRoot.querySelector('.confirm-image .image-container');
+      let image = imageContainerNode.querySelector('img');
+      if (image) URL.revokeObjectURL(image.src);
+      imageContainerNode.innerHTML = '';
+    }
+
     restart() {
       this.toggleTabs(false);
       this.clearTabs();
-      Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container'), elem => toggleClass(elem, 'hidden', !hasClass(elem, 'main')));
+      Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container, .permission, .confirm-image'),
+          elem => toggleClass(toggleClass(elem, 'hidden', !hasClass(elem, 'main')), 'show', hasClass(elem, 'main')));
     }
 
     restartCounter() {
       removeClass(this.shadowRoot.getElementById('photoBtn'), 'hidden');
       removeClass(this.shadowRoot.getElementById('counter'), 'show');
-      removeClass(this.shadowRoot.querySelector('.counter-number'), 'hidden');
-    }
-
-    hideCounter() {
-      removeClass(this.shadowRoot.getElementById('counter'), 'show');
     }
 
     fillTabs(response) {
-      const imageTabElement = this.shadowRoot.getElementById('imageTab');
-
-      if (response.sourceBlob) {
-        let image = new Image();
-        image.src = URL.createObjectURL(response.sourceBlob);
-        this.shadowRoot.querySelector('.main > .image').appendChild(image);
-        imageTabElement.style.setProperty('display', 'block');
-      } else {
-        imageTabElement.style.setProperty('display', 'none', 'important');
-      }
-
       this.fillResultTable(response.result);
       this.fillJson(response.result);
       this.toggleTabs(true);
@@ -686,33 +716,72 @@ function defineComponent() {
 
     fillResultTable(json) {
       if (!json || !json.data) return;
+      removeClass(this.shadowRoot.querySelector('.error-container'), 'show');
       let data = json.data instanceof Array ? json.data : [json.data];
       let innerHtml = '';
+      let resultsMasked = json.summary.search(/Authorization header is missing/gi) !== -1;
       data.forEach(({ recognizer, result }) => {
         if (!result) return;
-        innerHtml += `<table>
-							<caption>${recognizer}</caption>
-							<thead><tr>
-								<th><slot name="labels.table.keys">Data field from the ID</slot></th>
-								<th><slot name="labels.table.values">Value</slot></th>
-							</tr></thead>
-							<tbody>`;
+
+        let faceImageElement = '';
+        if (result.faceImageBase64 !== undefined) {
+          if (resultsMasked) {
+            faceImageElement = '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAQAAADa613fAAAAa0lEQVR42u3PMREAAAgEIL9/WwtoBHcPGpCeeiEiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIpcFKjbCiZfrjTwAAAAASUVORK5CYII="/>';
+          } else {
+            faceImageElement = `<img src="data:image/${getImageTypeFromBase64(result.faceImageBase64)};base64,${result.faceImageBase64}"/>`;
+          }
+        }
+
+        let fullName;
+        if (result.lastName !== undefined && result.firstName !== undefined) {
+          fullName = result.lastName + ' ' + result.firstName;
+        } else if (result.primaryID !== undefined && result.secondaryID !== undefined) {
+          fullName = result.primaryID + ' ' + result.secondaryID;
+        } else {
+          fullName = '';
+        }
+
+        innerHtml += `<div class="resultTable">
+              <div class="row heading">
+                <div class="faceImage">${faceImageElement}</div>
+                <div class="headingText">
+                  <div class="fullName">${fullName}</div>
+                  <div class="recognizerType">${recognizer}</div>
+                </div>
+              </div>`;
+
         Object.keys(result).forEach(key => {
-          innerHtml += `<tr><td>${labelFromCamelCase(key)}</td>
-								  <td>${result[key] instanceof Object ? dateFromObject(result[key]) : escapeHtml(result[key])}</td>
-							  </tr>`;
+          if (!key.includes('Base64')) {
+            innerHtml += `<div class="row"><div class="label">${labelFromCamelCase(key)}</div>
+                    <div class="content">${result[key] instanceof Object ? dateFromObject(result[key]) : escapeHtml(result[key])}</div>
+                  </div>`;
+          }
         });
-        innerHtml += '</tbody></table>';
+
+        if (result.signatureImageBase64 !== undefined) {
+          if (resultsMasked) {
+            innerHtml += `<div class="row"><div class="label">Signature</div><div class="content signature"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPAAAAA8CAQAAADydv/WAAAAbElEQVR42u3RAQEAAAQDMO/fVgF6sFVYeorDIlgwghGMYAQjGMGCEYxgBCMYwQgWjGAEIxjBCEYwggUjGMEIRjCCESwYwQhGMIIRjGDBCEYwghGMYAQjWDCCEYxgBCMYwYIRjGAEIxjBCP5uAQrmdLkka2HAAAAAAElFTkSuQmCC"></div></div>`;
+          } else {
+            innerHtml += `<div class="row"><div class="label">Signature</div>
+                <div class="content signature"><img src="data:image/${getImageTypeFromBase64(result.signatureImageBase64)};base64,${result.signatureImageBase64}"/></div>
+              </div>`;
+          }
+        }
+        if (result.fullDocumentImageBase64 !== undefined) {
+          if (resultsMasked) {
+            innerHtml += `<div class="row"><div class="label"></div><div class="content fullDocument"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAjAAAAFUCAQAAACQdc41AAADO0lEQVR42u3UMQEAAAjDMObfLQZABReJhB5NTwGciMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBABgMYDCAwQAYDGAwgMEAGAxgMIDBABgMYDCAwQAYDGAwgMEAGAxgMIDBABgMYDCAwQAYDGAwgMEAGAxgMIDBABgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAYDGAwgMEAGAxgMIDBABgMYDCAwQAYDGAwgMEAGAxgMIDBABgMYDCAwQAYDGAwgMEAGAxgMIDBABgMYDCAwYgAGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAP8sMiWVh63j1TAAAAAASUVORK5CYII="/></div></div>`;
+          } else {
+            innerHtml += `<div class="row"><div class="label"></div>
+                    <div class="content fullDocument"><img src="data:image/${getImageTypeFromBase64(result.fullDocumentImageBase64)};base64,${result.fullDocumentImageBase64}"/></div>
+                  </div>`;
+          }
+        }
+        innerHtml += '</div>';
       });
       if (innerHtml) {
-        if (json.summary.search(/Authorization header is missing/gi) !== -1) {
-          innerHtml = `<p class="masked-label">${RESULT_MASKED}</p>${innerHtml}`;
-        }
         this.shadowRoot.querySelector('.container.results').innerHTML = innerHtml;
       } else {
-        this.shadowRoot.querySelector('.container.results').innerHTML = `<span class="no-result">
-        Scanning is finished, but we could not extract the data. Please check if you uploaded the right document type.
-      </span>`;
+        this.toggleError(true, this.getSlotText('labels.scanningFinishedNoDataMessage'), this.getSlotText('labels.scanningFinishedNoDataTitle'), false);
       }
     }
 
@@ -734,6 +803,9 @@ function defineComponent() {
         switch(typeof value) {
           case "undefined": case "function": case "symbol": break;
           case "string":
+            if (key.includes('Base64')) {
+              value = value.substring(0, 50) + '...';
+            }
             jsonHtml += `<span class="string">"${escapeHtml(value)}"</span>,`; break;
           case "number":
             jsonHtml += `<span class="number">${value}</span>,`; break;
@@ -768,6 +840,7 @@ function defineComponent() {
 
     onScanSuccess(response) {
       if (!response) return;
+      this.executionResult = response.result;
       this.clearTimers();
       let showIntervalId = setInterval(() => {
         if (this.enableResultShow) {
@@ -794,7 +867,7 @@ function defineComponent() {
       this.stopCamera();
       this.restartCounter();
       this.toggleError(true, error && error.message);
-      this.dispatchEvent('error', (error && error.message) || 'We\'re sorry, but something went wrong. Please try again.' );
+      this.dispatchEvent('error', new Error((error && error.message) || this.getSlotText('labels.errorMsg')));
     }
 
     clearTimers() {

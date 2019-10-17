@@ -5,5 +5,6 @@ export {
   ScanListener,
   StatusCodes,
   ScanExchanger,
-  ScanExchangerCodes
+  ScanExchangerCodes,
+  ExportImageTypes
 } from './microblink.types'

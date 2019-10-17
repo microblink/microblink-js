@@ -8,7 +8,8 @@ export interface IMicroblinkApi {
   ): Observable<any>
 
   SetAuthorization(authorizationHeader: string): void
-  SetExportImages(isExportImagesEnabled: boolean): void
+  SetExportImages(exportImages: boolean | string | string[]): void
+  SetDetectGlare(detectGlare: boolean): void
   SetEndpoint(endpoint: string): void
 
   TerminateAll(): void

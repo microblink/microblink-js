@@ -19,7 +19,8 @@ export interface IMicroblink {
   GetRecognizers(): string | string[]
   SetAuthorization(authorizationHeader: string): void
   GetAuthorization(): string
-  SetExportImages(isExportImagesEnabled: boolean): void
+  SetExportImages(exportImages: boolean | string | string[]): void
+  SetDetectGlare(detectGlare: boolean): void
   SetEndpoint(endpoint: string): void
 
   TerminateActiveRequests(): void
@@ -29,4 +30,5 @@ export interface IMicroblink {
 
   CreateScanExchanger(scan: ScanExchanger, onUpdate: (scan: ScanExchanger) => void): any
   IsDesktopToMobileAvailable(): Promise<boolean>
+  IsRecognizerArraySet(): boolean
 }

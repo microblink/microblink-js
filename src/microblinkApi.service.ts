@@ -10,7 +10,8 @@ const DEFAULT_ENDPOINT = 'https://api.microblink.com'
  */
 export default class MicroblinkApi implements IMicroblinkApi {
   private authorizationHeader = ''
-  private isExportImagesEnabled = false
+  private exportImages: boolean | string | string[] = false
+  private detectGlare: boolean = false
   private endpoint: string
   private activeRequests: XMLHttpRequest[] = []
   private userId: string = ''
@@ -39,11 +40,19 @@ export default class MicroblinkApi implements IMicroblinkApi {
   }
 
   /**
-   * Change export images flag for next request
-   * @param isExportImagesEnabled is flag which describes does API should return extracted images in next response
+   * Change which images to export for next request
+   * @param exportImages is either a boolean flag which describes whether API should return extracted images in next response or an array of API properties
    */
-  SetExportImages(isExportImagesEnabled: boolean): void {
-    this.isExportImagesEnabled = isExportImagesEnabled
+  SetExportImages(exportImages: boolean | string | string[]): void {
+    this.exportImages = exportImages
+  }
+
+  /**
+   * Set detect glare option for next request
+   * @param detectGlare is a boolean flag which describes whether API should return null for image segments where glare is detected
+   */
+  SetDetectGlare(detectGlare: boolean): void {
+    this.detectGlare = detectGlare
   }
 
   /**
@@ -83,7 +92,7 @@ export default class MicroblinkApi implements IMicroblinkApi {
     imageBase64: string,
     uploadProgress?: EventListener
   ): Observable<any> {
-    return Observable.create((observer: Observer<any>) => {
+    return new Observable((observer: Observer<any>) => {
       // Image should be as Base64 encoded file
       const body: any = {
         imageBase64: imageBase64
@@ -97,8 +106,13 @@ export default class MicroblinkApi implements IMicroblinkApi {
       }
 
       // Export images flag set if it is enabled
-      if (this.isExportImagesEnabled) {
-        body['exportImages'] = true
+      if (this.exportImages) {
+        body['exportImages'] = this.exportImages
+      }
+
+      // Detect glare flag set if it is enabled
+      if (this.detectGlare) {
+        body['detectGlare'] = true
       }
 
       // Set userId if it is defined

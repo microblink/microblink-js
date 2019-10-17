@@ -7,30 +7,63 @@
     height: 100%;
     box-sizing: border-box;
     border-style: solid;
-    --mb-widget-font-family: Helvetica, Tahoma, Verdana, Arial, sans-serif;
-    --mb-default-font-color: black;
-    --mb-btn-background-color: black;
-    --mb-btn-background-color-hover: dimgrey;
-    --mb-btn-flip-image-color: black;
-    --mb-btn-cancel-color: black;
-    --mb-btn-webcam-confirm-color: black;
-    --mb-btn-webcam-retake-color: black;
-    --mb-card-layout-border-color: black;
-    --mb-json-color-null: #ff00ff;
-    --mb-json-color-number: #ffc000;
-    --mb-json-color-string: #008000;
-    --mb-json-color-boolean: #0000FF;
-    --mb-json-color-key: #ff0000;
     --mb-hem: 1rem;
+    --mb-widget-font-family: Helvetica, Tahoma, Verdana, Arial, sans-serif;
+    --mb-widget-border-width: 0;
+    --mb-widget-border-color: black;
+    --mb-widget-background-color: white;
+    --mb-default-font-color: black;
+    --mb-alt-font-color: #575757;
+    --mb-btn-font-color: white;
+    --mb-btn-background-color: #48b2e8;
+    --mb-btn-background-color-hover: #26a4e4;
+    --mb-btn-flip-color: white;
+    --mb-btn-alt-font-color: black;
+    --mb-btn-alt-background-color: white;
+    --mb-btn-border-radius: 0;
+    --mb-btn-intro-stroke-color: black;
+    --mb-btn-intro-stroke-color-hover: white;
+    --mb-btn-intro-circle-color: #f2f2f2;
+    --mb-btn-intro-circle-color-hover: #48b2e8;
+    --mb-btn-container-border-color: lightgrey;
+    --mb-spinner-border-width: 6px;
+    --mb-tabs-background-color: black;
+    --mb-tabs-font-color: white;
+    --mb-tabs-border-width: 4px;
+    --mb-btn-icon-cancel-color: white;
+    --mb-dropzone-hover-color: rgba(72, 178, 232, 0.2);
+    --mb-dropzone-circle-color: #48b2e8;
+    --mb-dropzone-icon-color: black;
+    --mb-loader-font-color: black;
+    --mb-loader-background-color: #48b2e8;
+    --mb-card-layout-border-color: black;
+    --mb-tabs-hover-color: #26a4e4;
+    --mb-tabs-active-color: #48b2e8;
+    --mb-json-color-key: black;
+    --mb-json-color-string: #48b2e8;
+    --mb-json-color-boolean: #26a4e4;
+    --mb-json-color-number: black;
+    --mb-json-color-null: #26a4e4;
+    --mb-results-border-color: #dee2e6;
+    --mb-results-image-border-radius: 6px;
+    --mb-results-image-background-color: #f2f2f2;
+    --mb-dialog-title-color: black;
+    --mb-dialog-message-color: #575757;
+    --mb-photo-icon-primary: white;
+    --mb-photo-icon-accent: #48b2e8;
     font-family: var(--mb-widget-font-family);
-    border-width: var(--mb-widget-border-width, 0);
-    border-color: var(--mb-widget-border-color, black);
+    border-width: var(--mb-widget-border-width);
+    border-color: var(--mb-widget-border-color);
     font-size: var(--mb-hem);
-    background-color: var(--mb-widget-background-color, transparent);
+    background-color: var(--mb-widget-background-color);
   }
-  .container {height:100%; width:100%; margin:auto; box-sizing: border-box; position: relative;}
-  .font-0 {font-size:0;}
-  .font-1 {font-size: var(--mb-hem);}
+  .container {
+    height:100%;
+    width:100%;
+    margin:auto;
+    box-sizing: border-box;
+    position: relative;
+  }
   button {
     font-family: inherit;
     cursor: pointer;
@@ -41,17 +74,14 @@
     user-select: none;
     border: 1px solid transparent;
     outline: none;
-    color: var(--mb-btn-font-color, #fff);
+    color: var(--mb-btn-font-color);
     background-color: var(--mb-btn-background-color);
     transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
-    width: calc( 7.5 * var(--mb-hem));
-    border-radius: var(--mb-btn-border-radius, 5px);
+    width: calc(7.5 * var(--mb-hem));
+    border-radius: var(--mb-btn-border-radius);
   }
   button:hover {
     background-color: var(--mb-btn-background-color-hover);
-  }
-  #cameraBtnSeparator {
-    margin: 10px 0
   }
   button#flipBtn {
     background-color: transparent;
@@ -61,19 +91,18 @@
     right: var(--mb-hem);
     margin: 0;
     padding: 0;
-    width: 50px;
-    height: 50px;
+    width: calc(2.2 * var(--mb-hem));
     display: flex;
     justify-content: center;
     align-items: center;
   }
   #flipBtn svg path {
-    stroke: var(--mb-btn-flip-image-color);
+    stroke: var(--mb-btn-flip-color);
   }
   #flipBtn svg .fill {
-    fill: var(--mb-btn-flip-image-color);
+    fill: var(--mb-btn-flip-color);
   }
-  button#cancelBtnLocalCamera, button#cancelBtnRemoteCamera {
+  button#cancelBtnLocalCamera, button#cancelBtnRemoteCamera, button#cancelBtnConfirmImage {
     background-color: transparent;
     background-size: auto;
     position: absolute;
@@ -81,103 +110,174 @@
     right: var(--mb-hem);
     margin: 0;
     padding: 0;
-    width: 50px;
-    height: 50px;
+    width: calc(1.6 * var(--mb-hem));
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 999;
   }
-  #cancelBtnLocalCamera svg path, #cancelBtnRemoteCamera svg path {
-    stroke: var(--mb-btn-cancel-color);
-    fill: var(--mb-btn-cancel-color);
+  #cancelBtnLocalCamera svg path, #cancelBtnRemoteCamera svg path, #cancelBtnConfirmImage svg path {
+    stroke: var(--mb-btn-icon-cancel-color);
+    fill: var(--mb-btn-icon-cancel-color);
   }
   .intro { text-align: center;}
-  .inline {display: inline-block;}
-  .intro .inline {
-    text-align: center;
-    width: 50%;
-    height: 100%;
-    flex-direction: column;
-    padding: 0 10%;
-    vertical-align: top;
-    box-sizing: border-box;
-  }
   .tabs > .container {
     height: calc(100% - 56px);
   }
   .tab-container {
-    background: var(--mb-tabs-background-color, black);
-    color: var(--mb-tabs-font-color, white);
-    height: 56px;
+    background: var(--mb-tabs-background-color);
+    color: var(--mb-tabs-font-color);
+    height: calc(2.8 * var(--mb-hem));
     display: none;
     margin: 0;
     padding: 0;
   }
   .tabs .tab-container {
     display: flex;
-    justify-content: space-around;
+    justify-content: center;
   }
   .tab {
     text-align: center;
-    line-height: 56px;
+    line-height: calc(2.8 * var(--mb-hem));
     cursor: pointer;
+    margin: 0 calc(0.5 * var(--mb-hem));
+    width: calc(10 * var(--mb-hem));
   }
   .tab label {
     display: inline-block;
     margin: auto;
     padding: 0 calc(1.25 * var(--mb-hem));
+    width: 100%;
     box-sizing: border-box;
-    border-bottom: var(--mb-tabs-border-width, 4px) solid transparent;
-    height: 56px;
+    border-bottom: var(--mb-tabs-border-width) solid transparent;
+    height: calc(2.8 * var(--mb-hem));
     user-select: none;
     cursor: inherit;
+    white-space: nowrap;
   }
   .tab.active label {
-    color: var(--mb-tabs-active-color, var(--mb-tabs-hover-color, #ddd));
-    border-bottom-color: var(--mb-tabs-active-color, var(--mb-tabs-hover-color, #ddd));
+    color: var(--mb-tabs-active-color);
+    border-bottom-color: var(--mb-tabs-active-color);
   }
   .tab:hover label {
-    color: var(--mb-tabs-hover-color, var(--mb-tabs-active-color, #ddd));
-    border-bottom-color: var(--mb-tabs-hover-color, var(--mb-tabs-active-color, #ddd));
+    color: var(--mb-tabs-hover-color);
+    border-bottom-color: var(--mb-tabs-hover-color);
   }
-  .flex-center {
+  #introTab {
+    margin-right: auto;
+    text-align: left;
+  }
+  #introTab label, #introTab:hover label {
+    color: var(--mb-tabs-active-color);
+    border-bottom-color: transparent;
+    min-width: unset;
+    padding: 0 calc(0.5 * var(--mb-hem));
+  }
+  #introTab label svg {
+    width: var(--mb-hem);
+    margin-right: calc(0.5 * var(--mb-hem));
+  }
+  #introTab label svg path {
+    fill: var(--mb-tabs-active-color);
+  }
+  .tab-container::after {
+    content: "";
+    margin-left: auto;
+    width: calc(10 * var(--mb-hem));
+    flex-shrink: 1000;
+  }
+  .intro .flex-horizontal {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    min-height: calc(9.2 * var(--mb-hem));
+  }
+  .intro .flex-vertical {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 100%;
+  }
+  .intro-label {
+    color: var(--mb-default-font-color);
+    user-select: none;
+  }
+  .intro-button {
+    background-color: transparent;
+    width: calc(7 * var(--mb-hem));
+    margin: 0 calc(0.5 * var(--mb-hem));
+  }
+  .intro-button:hover {
+    background-color: transparent;
+  }
+  .intro-button .circle {
+    width: calc( 5 * var(--mb-hem));
+    height: calc( 5 * var(--mb-hem));
+    border-radius: 50%;
+    margin: 0 auto;
+    background-color: var(--mb-btn-intro-circle-color);
+  }
+  .intro-button:hover .circle {
+    background-color: var(--mb-btn-intro-circle-color-hover);
+  }
+  .intro-button svg {
+    width: calc(0.7 * 100%);
+    height: calc(0.7 * 100%);
+    margin: calc(0.15 * 100%) auto;
+    stroke: var(--mb-btn-intro-stroke-color);
+  }
+  .intro-button:hover svg {
+    stroke: var(--mb-btn-intro-stroke-color-hover);
+  }
+  .intro-button p {
+    color: var(--mb-alt-font-color);
+    font-size: calc( 0.8 * var(--mb-hem));
+    font-weight: normal;
+    line-height: 130%;
+    margin-top: calc( 0.5 * var(--mb-hem));
+    margin-bottom: 0;
+  }
+  .dropzone * { pointer-events: none; }
+  .dropzone button { pointer-events: auto; }
+  .dropzone.draghover button { pointer-events: none; }
+
+  .draghover > div:first-child {
+    opacity: 0.1;
+  }
+  #dragMask {
+    display: none;
+  }
+  .draghover #dragMask {
+    background-color: var(--mb-dropzone-hover-color);
+    cursor: copy;
+    position:absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 999;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     display: flex;
     align-items: center;
     justify-content: center;
   }
-  .intro .flex-center {
-    flex-direction: column;
-    height: 100%;
+  .draghover #dropButton .circle, .draghover #dropButton:hover .circle {
+    background-color: var(--mb-dropzone-circle-color);
   }
-  .inline p { margin: 0; }
-  .intro-label {
-    color: var(--mb-alt-font-color, black);
-  }
-  .intro .inline p {
-    flex-basis: calc(3 * 1.2 * var(--mb-hem));
-    line-height: 1.2;
-    margin-bottom: calc(50px - 1.2 * var(--mb-hem));
-  }
-  .intro .inline + .inline {
-    border-image: linear-gradient(to bottom, transparent 15%, var(--mb-widget-border-color, #bdbdbd) 15%, var(--mb-widget-border-color, #bdbdbd) 85%, transparent 85%) 1;
-    border-width: 0 0 0 1px;
-    border-style: solid;
-  }
-  .intro .inline:only-child {
-    width: 100%;
-  }
-  .dropzone * { pointer-events: none; }
-  .dropzone button { pointer-events: auto; }
-  .draghover {
-    background-color: var(--mb-dropzone-hover-color, rgba(0, 0, 0, .25));
-    cursor: copy;
+  .draghover #dropButton .circle svg, .draghover #dropButton:hover .circle svg {
+    stroke: var(--mb-dropzone-icon-color);
   }
   #file {
     display: none;
   }
-  .video {
+  .video, .video.show {
     display: flex;
     justify-content: center;
+    text-align: center;
+    overflow: hidden;
   }
   video.flipped, #flipBtn.flipped {
     -ms-transform: scaleX(-1);
@@ -187,7 +287,41 @@
   video {
     height: 100%;
   }
-  .pending-container, .error-container, .permission, .confirm-image {
+  #cardPlacer {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    box-sizing: border-box;
+    transform: translate(-50%, -50%);
+    border: solid rgba(0,0,0,0.4);
+    font-size: 0;
+  }
+  #cardPlacer .corner {
+    position: absolute;
+    display: block;
+    z-index: 200;
+    width: calc(1.3 * var(--mb-hem));
+    height: calc(0.9 * var(--mb-hem));
+    box-sizing: border-box;
+    border: 0 solid white;
+  }
+  #cardPlacer .corner-top {
+    top: calc(var(--mb-hem) / -8);
+    border-top-width: calc(var(--mb-hem) / 4);
+  }
+  #cardPlacer .corner-bottom {
+    bottom: calc(var(--mb-hem) / -8);
+    border-bottom-width: calc(var(--mb-hem) / 4);
+  }
+  #cardPlacer .corner-left {
+    left: calc(var(--mb-hem) / -8);
+    border-left-width: calc(var(--mb-hem) / 4);
+  }
+  #cardPlacer .corner-right {
+    right: calc(var(--mb-hem) / -8);
+    border-right-width: calc(var(--mb-hem) / 4);
+  }
+  .pending-container, .dialog, .confirm-image {
     display: none;
     position: absolute;
     z-index: 1000;
@@ -197,19 +331,20 @@
     right: 0;
   }
   .pending-container {
-    background-color: var(--mb-loader-background-color, var(--mb-dialog-background-color, white));
+    background-color: var(--mb-loader-background-color);
     flex-direction: column;
-    color: var(--mb-loader-font-color, var(--mb-dialog-font-color, black));
+    color: var(--mb-loader-font-color);
   }
   .pending-container h2 {
     font-size: calc(1.4 * var(--mb-hem));
     margin: calc(1.4 *var(--mb-hem)) 0 0;
     font-weight: 500;
   }
-  .pending-container.show, .error-container.show, .permission.show, .confirm-image.show {
+  .pending-container.show, .dialog.show, .confirm-image.show {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-direction: column;
   }
   .loader-img {
     display: block;
@@ -229,31 +364,25 @@
     color: black;
     font-weight: bold;
   }
-  /*.progress-bar {
-    background-color: var(--mb-progress-bar-color, lightgrey);
-    width: 37.5%;
-    height: 10px;
-    position: relative;
-    display: block;
-  }
-  .progress-bar > .progress-bar-value {
-    background-color: var(--mb-progress-bar-value-color, black);
-    display: block;
-    width: 0;
-    height: 100%;
-    transition: width 0.25s linear;
-  }*/
-  .error-container, .permission {
-    background-color: var(--mb-dialog-background-color, white);
-    color: var(--mb-dialog-font-color, black);
-    font-weight: 500;
-    font-size: calc(1.4 * var(--mb-hem));
+  .dialog {
+    background-color: var(--mb-widget-background-color);
     text-align: center;
+    user-select: none;
   }
-  .error-container.show {
-    flex-direction: column;
+  .dialog .title {
+    color: var(--mb-dialog-title-color);
+    font-size: var(--mb-hem);
+    line-height: 150%;
+    max-width: calc(23 * var(--mb-hem));
+    margin-bottom: calc(0.4 * var(--mb-hem));
   }
-  .error-container p { margin: calc(2.5 * var(--mb-hem)) 0; }
+  .dialog .message {
+    color: var(--mb-dialog-message-color);
+    font-size: calc(0.8 * var(--mb-hem));
+    line-height: 130%;
+    max-width: calc(23 * var(--mb-hem));
+    margin-bottom: calc(0.8 * var(--mb-hem));
+  }
   .container.hidden {
     display: none;
   }
@@ -262,6 +391,9 @@
   }
   .show {
     display: block;
+  }
+  .container.main {
+    background-color: var(--mb-widget-background-color);
   }
   .container.main > * {
     display: none;
@@ -288,6 +420,7 @@
   .json .number { color: var(--mb-json-color-number); }
   .json .null { color: var(--mb-json-color-null); }
   .json .boolean { color: var(--mb-json-color-boolean); }
+
   #copyBtn {
     font-size: calc(0.8 * var(--mb-hem));
     padding: 0 calc(0.8 * var(--mb-hem));
@@ -299,52 +432,70 @@
     top: calc(1.5 * var(--mb-hem));
     right: calc(1.5 * var(--mb-hem));
   }
+  #copyBtn:active {
+    cursor: wait;
+  }
   .cpyTxtArea {
     position: absolute;
     left: -9999px;
     top: -9999px;
   }
   .container.results { overflow: auto; }
-  .container.results caption {
-    text-align: center;
-    padding: var(--mb-hem) calc(2 * var(--mb-hem));
-    font-weight: bold;
-    font-size: calc(1.2 * var(--mb-hem));
-    color: var(--mb-default-font-color);
-  }
-  .results table {
-    border-width: 1px 0;
-    border-style: solid;
-    table-layout: fixed;
-    width: 100%;
-    border-collapse: collapse;
-    caption-side: top;
-  }
-  .results table + table {
-    margin-top: calc(1.5 * var(--mb-hem));
-  }
-  .results th {
-    font-weight: bold;
-    background-color: var(--mb-table-header-background-color, #f2f2f2);
-  }
-  .results th, .results td {
-    width: 50%;
-    word-break: break-word;
-    word-wrap: break-word;
-    border: 1px solid black;
+  .results .resultTable .row {
     padding: calc(0.8 * var(--mb-hem)) var(--mb-hem);
-    box-sizing: border-box;
+    border-bottom: 1px solid var(--mb-results-border-color);
+    display: flex;
+    align-items: flex-start;
+    overflow: hidden;
   }
-  .results th:first-child, .results td:first-child {
-    border-left: 0;
-    text-transform: capitalize;
+  .results .resultTable .row.heading {
+    align-items: center;
   }
-  .results th:last-child, .results td:last-child {
-    border-right: 0;
+  .results .resultTable .row .label {
+    font-size: calc(0.8 * var(--mb-hem));
+    color: var(--mb-alt-font-color);
+    line-height: 130%;
+    flex-basis: calc(11 * var(--mb-hem));
+    padding-right: var(--mb-hem);
+    flex-shrink: 0;
   }
-  .results td:last-child {
-    font-weight: 500;
+  .results .resultTable .row .content {
+    font-size: calc(0.8 * var(--mb-hem));
     color: var(--mb-default-font-color);
+    line-height: 130%;
+    flex-shrink: 1000;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .results .resultTable .heading .faceImage, .results .resultTable .row .signature, .results .resultTable .row .fullDocument {
+    font-size: 0;
+  }
+  .results .resultTable .heading .faceImage img {
+    border-radius: var(--mb-results-image-border-radius);
+    max-height: calc(5 * var(--mb-hem));
+    margin-right: var(--mb-hem);
+  }
+  .results .resultTable .heading .headingText .fullName {
+    color: var(--mb-default-font-color);
+    margin-bottom: calc(0.2 * var(--mb-hem));
+    font-size: var(--mb-hem);
+    line-height: 130%;
+    font-weight: 500;
+  }
+  .results .resultTable .heading .headingText .recognizerType {
+    color: var(--mb-alt-font-color);
+    font-size: calc(0.8 * var(--mb-hem));
+    line-height: 130%;
+    font-weight: 500;
+  }
+  .results .resultTable .row .signature img {
+    border-radius: var(--mb-results-image-border-radius);
+    max-height: calc(3 * var(--mb-hem));
+  }
+  .results .resultTable .row .fullDocument img {
+    border-radius: var(--mb-results-image-border-radius);
+    max-height: calc(17 * var(--mb-hem));
+    max-width: 100%; /*best trick ever - fully responsive*/
   }
   .results .no-result {
     position: absolute;
@@ -375,88 +526,86 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, calc(-50% + 1.4 * var(--mb-hem)));
+    padding: 0;
+    background-color: transparent;
+    width: unset;
+    max-width: calc(7.5 * var(--mb-hem));
+    font-size: calc(0.8 * var(--mb-hem));
+    font-weight: 500;
+    user-select: none;
+  }
+  #photoBtn svg {
+    width: calc(5 * var(--mb-hem));
   }
   #counter {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: var(--mb-counter-background-color, rgba(0, 0, 0, 0.7));
-    width: calc(8 * var(--mb-hem));
-    height: calc(8 * var(--mb-hem));
+    background-color: transparent;
+    width: calc(6 * var(--mb-hem));
+    height: calc(6 * var(--mb-hem));
     display: none;
     text-align: center;
-    color: var(--mb-counter-font-color, white);
-    font-size: calc(2.5 * var(--mb-hem));
     justify-content: center;
     align-items: center;
   }
-  .counter-number {
+  #photoBtn svg .primary {
+    fill: var(--mb-photo-icon-primary);
+  }
+  #counter svg .primary:nth-child(1) {
+    stroke: var(--mb-photo-icon-primary);
+  }
+  #counter svg .primary:nth-child(2) {
+    fill: var(--mb-photo-icon-primary);
+  }
+  #photoBtn svg .accent {
+    stroke: var(--mb-photo-icon-accent);
+  }
+  #counter-number {
     margin: 0;
     padding: 0;
     font-weight: 500;
-    line-height: 1;
-    font-size: calc(4 * var(--mb-hem));
+    font-size: calc(1.75 * var(--mb-hem));
+    fill: var(--mb-photo-icon-accent);
   }
   #counter.show {
     display: flex;
   }
-  #card-layout-rectangle {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 85.6mm;
-    height: 53.98mm;
-    transform: translate(-50%, -50%);
-    box-sizing: border-box;
-    border: 2px dashed var(--mb-card-layout-border-color);
-    border-radius: 3mm;
-  }
-  #card-layout-rectangle-background {
-    background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiID8+PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAxLjEvL0VOIiAiaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkIj48c3ZnIHdpZHRoPSIxNDQwcHQiIGhlaWdodD0iOTAwcHQiIHZpZXdCb3g9IjAgMCAxNDQwIDkwMCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxnIGlkPSIjMDAwMDAwNGQiPjxwYXRoIGZpbGw9IiMwMDAwMDAiIG9wYWNpdHk9IjAuMzAiIGQ9IiBNIDAuMDAgMC4wMCBMIDE0NDAuMDAgMC4wMCBMIDE0NDAuMDAgOTAwLjAwIEwgMC4wMCA5MDAuMDAgTCAwLjAwIDAuMDAgTSA1NjcuNTEgMzQ4LjQ3IEMgNTYyLjMxIDM0OS42MCA1NTguMjkgMzU0LjU1IDU1OC41OSAzNTkuOTQgQyA1NTguNTcgNDE5Ljk3IDU1OC41NyA0ODAuMDEgNTU4LjU5IDU0MC4wNSBDIDU1OC4xMSA1NDYuODIgNTY0LjU2IDU1Mi4yNiA1NzEuMDYgNTUxLjk5IEMgNjY4LjY4IDU1MS45OCA3NjYuMzAgNTUxLjk5IDg2My45MiA1NTEuOTkgQyA4NjcuNjEgNTUxLjg4IDg3MS41NCA1NTIuNTQgODc0Ljk2IDU1MC43NiBDIDg3OS4zMSA1NDkuMjUgODgyLjIxIDU0NC41NiA4ODIuMDAgNTQwLjA0IEMgODgxLjk3IDQ3OS42OSA4ODIuMDAgNDE5LjM1IDg4MS45OSAzNTkuMDEgQyA4ODEuODQgMzUyLjQzIDg3NS4yOCAzNDcuNjIgODY5LjAwIDM0OC4wMCBDIDc2OS42NyAzNDguMDMgNjcwLjM0IDM0OC4wMCA1NzEuMDAgMzQ4LjAxIEMgNTY5LjgxIDM0Ny45OCA1NjguNjQgMzQ4LjEzIDU2Ny41MSAzNDguNDcgWiIgLz48L2c+PC9zdmc+);
-    background-position: center center;
-    /* It is aligned with #card-layout-rectangle */
-    background-size: 380mm;
-    background-repeat: no-repeat;
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
-  }
 
   #exchange-link-as-QR img {
-    max-height: 300px;
-  }
-
-
-  .container.root[max-width~="775px"] .intro .inline {
-    padding: 0 5%;
+    max-height: calc(15 * var(--mb-hem));
   }
   .container.root[max-width~="500px"] .tab label {
     padding: 0 calc(0.5 * var(--mb-hem));
   }
-  .container.root[max-width~="500px"] .intro .inline {
-    height: 50%;
-    width: 100%;
-    padding: 0 15%;
-  }
-  .container.root[max-width~="500px"] .intro .inline + .inline {
-    border-image: linear-gradient(to right, transparent 15%, var(--mb-widget-border-color, #bdbdbd) 15%, var(--mb-widget-border-color, #bdbdbd) 85%, transparent 85%) 1;
-    border-width: 1px 0 0 0;
-  }
-  .container.root[max-width~="500px"] .intro .inline:only-child {
-    height: 100%;
-  }
-  .container.root[max-width~="500px"] .intro .inline p {margin-bottom: calc(1.5 * var(--mb-hem));}
-
   .container.root[max-width~="500px"] #copyBtn {
     position: relative;
     top: 0;
     left: 0;
     margin: calc(0.9 * var(--mb-hem)) auto;
     display: block;
+  }
+  .container.root[max-width~="600px"] .resultTable .row {
+    flex-direction: column;
+    max-width: 100%;
+  }
+  .container.root[max-width~="600px"] .resultTable .row .content {
+    max-width: 100%;
+  }
+  .container.root[max-width~="600px"] .resultTable .row.heading {
+    flex-direction: row;
+  }
+  .container.root[min-width~="720px"] .resultTable .row .label {
+    flex-basis: 35%;
+  }
+  .container.root[max-width~="630px"] .resultTable .row .label {
+    flex-basis: calc(10.5 * var(--mb-hem));
+  }
+  .container.root[max-width~="600px"] .resultTable .row .label {
+    flex-basis: auto;
+    margin-bottom: calc(0.2 * var(--mb-hem));
   }
 
   @media only screen and (orientation: portrait) {
@@ -478,10 +627,11 @@
     position: absolute;
     width: calc(5 * var(--mb-hem));
     height: calc(5 * var(--mb-hem));
-    border: 6px solid;
+    border-width: var(--mb-spinner-border-width);
+    border-style: solid;
     border-radius: 50%;
     animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-    border-color: var(--mb-loader-font-color, var(--mb-dialog-font-color, black)) transparent transparent transparent;
+    border-color: var(--mb-loader-font-color) transparent transparent transparent;
   }
   .lds-ring div:nth-child(1) {
     animation-delay: -0.45s;
@@ -500,86 +650,173 @@
       transform: rotate(360deg);
     }
   }
-  :host([webcam="off"]) #cameraLocalBtn, :host([webcam="off"]) #cameraBtnSeparator {
+  :host([webcam="off"]) #cameraLocalBtn {
     display: none;
   }
-  #cameraLocalBtn, #cameraBtnSeparator {
+  #cameraLocalBtn {
     display: block;
   }
   .confirm-image .image-container {
     width: 100%;
-    height: calc(100% - 66px);
-    background-color: white;
+    height: calc(100% - 3.3 * var(--mb-hem));
+    background-color: var(--mb-widget-background-color);
     position: absolute;
-    bottom: 66px;
+    bottom: calc(3.3 * var(--mb-hem));
   }
   .confirm-image .button-container {
     position: absolute;
     bottom: 0;
     box-sizing: border-box;
     width: 100%;
-    height: 66px;
-    background-color: white;
+    height: calc(3.3 * var(--mb-hem));
+    background-color: var(--mb-widget-background-color);
     display: flex;
     justify-content: center;
-    border-top: 1px solid lightgrey;
+    border-top: 1px solid var(--mb-btn-container-border-color);
   }
   .confirm-image .button-container button {
-    margin: 10px;
+    margin: calc(0.5 * var(--mb-hem));
   }
   #webcamConfirmBtn {
-    background-color: var(--mb-btn-webcam-confirm-color);
+    background-color: var(--mb-btn-background-color);
+    color: var(--mb-btn-font-color);
   }
   #webcamRetakeBtn {
-    background-color: var(--mb-btn-webcam-retake-color);
+    background-color: var(--mb-btn-alt-background-color);
+    color: var(--mb-btn-alt-font-color);
   }
 </style>
-<div class="container root" id="rootContainer">
+<div class="container root">
   <div class="tab-container">
-    <div class="tab" id="introTab"><label><slot name="tabs.retake">RETAKE</slot></label></div>
-    <div class="tab active" id="resultsTab"><label><slot name="tabs.results">RESULTS</slot></label></div>
-    <div class="tab" id="imageTab"><label><slot name="tabs.image">IMAGE</slot></label></div>
+    <div class="tab" id="introTab">
+      <label>
+        <svg fill="none" viewBox="0 0 20 16" width="100%" xmlns="http://www.w3.org/2000/svg">
+          <path d="m8 16 1.41-1.41-5.58-5.59h15.67v-2h-15.67l5.59-5.58-1.42-1.4200005-8.00000035 8.0000005z"/>
+        </svg>
+        <slot name="tabs.back">Back</slot>
+      </label>
+    </div>
+    <div class="tab active" id="resultsTab"><label><slot name="tabs.results">Results</slot></label></div>
     <div class="tab" id="jsonTab"><label><slot name="tabs.json">JSON</slot></label></div>
   </div>
   <div class="container main">
-    <div class="container intro font-0 active">
-      <div class="inline font-1 dropzone">
-        <div class="flex-center">
-          <p class="intro-label"><slot name="labels.dragDrop">Drag and Drop<br/>document here OR</slot></p>
-          <p class="intro-label hidden"><slot name="labels.nativeCamera">Choose image from <br/>device or camera app:</slot></p>
-          <button type="button" id="fileBtn"><slot name="buttons.browse">Browse</slot></button>
+    <div class="container intro dropzone active">
+      <div class="flex-vertical">
+        <p class="intro-label"><slot name="labels.chooseInputMethod">Choose input method</slot></p>
+        <div class="flex-horizontal">
+          <button type="button" class="intro-button" id="cameraRemoteBtn">
+            <div class="circle">
+              <svg width="100%" viewBox="0 0 70 70" fill="none" stroke="black" xmlns="http://www.w3.org/2000/svg">
+                <path d="M26.2846 16.102C27.6413 16.102 28.7411 15.0022 28.7411 13.6454C28.7411 12.2887 27.6413 11.1889 26.2846 11.1889C24.9279 11.1889 23.828 12.2887 23.828 13.6454C23.828 15.0022 24.9279 16.102 26.2846 16.102Z" stroke-miterlimit="10"/>
+                <path d="M49.6121 47.818V44.6646" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M49.6121 53.602V47.8181" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M20 42.4956V55.7155C20 59.1861 22.8139 62 26.2845 62" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M39.6642 7H26.2845C22.8139 7 20 9.8139 20 13.2845V25.0537" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M49.6123 44.6646V13.3946C49.6123 9.92394 46.7984 7.11005 43.3278 7.11005H41.8889" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M28.611 62H43.3277C46.7983 62 49.6122 59.1861 49.6122 55.7155" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M32.2887 15.0134C33.0441 15.0134 33.6566 14.401 33.6566 13.6455C33.6566 12.89 33.0441 12.2776 32.2887 12.2776C31.5332 12.2776 30.9208 12.89 30.9208 13.6455C30.9208 14.401 31.5332 15.0134 32.2887 15.0134Z" stroke-miterlimit="10"/>
+              </svg>
+            </div>
+            <p><slot name="buttons.cameraRemote">Use mobile camera</slot></p>
+          </button>
           <input type="file" accept="image/png,image/gif,image/bmp,image/jpeg,image/x-png,image/vnd.wap.wbmp" id="file"/>
+          <button type="button" class="intro-button" id="fileBtn">
+            <div class="circle">
+              <svg width="100%" viewBox="0 0 70 70" fill="none" stroke="black" xmlns="http://www.w3.org/2000/svg">
+                <path d="M34.3388 13.3654V42.6923" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M43.1777 18.8388L35.7531 11.4142C34.972 10.6332 33.7057 10.6332 32.9246 11.4142L25.5 18.8388" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M38.2404 59.9999H49.0577" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M13 52.3077V57C13 58.6568 14.3431 60 16 60H35.1154" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M56.2692 52.3076V56.9999C56.2692 58.6568 54.9261 59.9999 53.2692 59.9999H49.5385" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M18.7692 55.673H49.5385" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <p class="browseLabel"><slot name="buttons.browseDesktop">Upload image</slot></p>
+            <p class="browseLabel hidden"><slot name="buttons.browseMobile">Take or upload photo</slot></p>
+          </button>
+          <button type="button" class="intro-button" id="cameraLocalBtn">
+            <div class="circle">
+              <svg width="100%" viewBox="0 0 70 70" fill="none" stroke="black" xmlns="http://www.w3.org/2000/svg">
+                <path d="M35.7171 14.7725C36.4106 14.7725 36.9728 14.2104 36.9728 13.5169C36.9728 12.8234 36.4106 12.2612 35.7171 12.2612C35.0237 12.2612 34.4615 12.8234 34.4615 13.5169C34.4615 14.2104 35.0237 14.7725 35.7171 14.7725Z" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12.9204 33.9312V16.3388C12.9204 12.843 15.7739 10 19.2829 10H48.013" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M13.2887 46.0429H58.3318C58.5345 46.0429 58.6977 45.8797 58.6977 45.6744V16.4415C58.6977 12.9457 55.8442 10.1027 52.3352 10.1027" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M10.1772 50.0759H18.5983C18.801 50.0759 18.9668 50.2391 18.9668 50.4445V51.4948" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M21.0305 50.0758H26.3822" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M28.8171 50.0758H34.1688C34.3715 50.0758 34.5373 50.239 34.5373 50.4443V51.4947" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M36.6039 50.0758H41.9556" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M44.3907 50.0758H49.7423" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M8.01323 54.4904H18.5981C18.8008 54.4904 18.9667 54.6536 18.9667 54.8589V55.9092" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M21.0303 54.4904H26.382" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M45.7514 60H15.9209" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M29.1411 54.4904H41.9556" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M44.3905 54.4904H49.7422" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M52.156 54.4904H57.5077" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M52.1773 50.0758H57.529C57.7317 50.0758 57.8975 50.239 57.8975 50.4443V51.4947" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M48.7524 60H64.2257C64.3468 60 64.46 59.9395 64.5337 59.8368C64.6021 59.7368 64.6153 59.6104 64.5732 59.4972L61.0642 50.3101" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M14.0124 14.6462H27.543" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M13.2438 60H6.368C6.24954 60 6.13634 59.9421 6.0679 59.8447C5.99946 59.7473 5.98103 59.6236 6.02052 59.5104L7.66314 54.7378C7.72895 54.5457 7.93954 54.443 8.13171 54.5088" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <p class="cameraLocalLabel"><slot name="buttons.cameraLocalDesktop">Use web camera</slot></p>
+            <p class="cameraLocalLabel hidden"><slot name="buttons.cameraLocalMobile">In-browser camera</slot></p>
+          </button>
         </div>
       </div>
-      <div class="inline font-1">
-        <div class="flex-center">
-          <p class="intro-label"><slot name="labels.cameraActivate">Activate your camera to capture the ID document:</slot></p>
-          <button type="button" id="cameraRemoteBtn"><slot name="buttons.cameraRemote">Use remote phone camera</slot></button>
-          <div id="cameraBtnSeparator">OR</div>
-          <button type="button" id="cameraLocalBtn"><slot name="buttons.cameraLocal">Use web camera</slot></button>
+      <div id="dragMask" class="flex-vertical">
+        <p class="intro-label" style="opacity: 0"><slot name="labels.chooseInputMethod">Choose input method</slot></p>
+        <div class="flex-horizontal">
+          <button type="button" class="intro-button" id="dropButton">
+            <div class="circle">
+              <svg width="100%" viewBox="0 0 70 70" fill="none" stroke="black" xmlns="http://www.w3.org/2000/svg">
+                <path d="M34.3388 13.3654V42.6923" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M43.1777 18.8388L35.7531 11.4142C34.972 10.6332 33.7057 10.6332 32.9246 11.4142L25.5 18.8388" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M38.2404 59.9999H49.0577" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M13 52.3077V57C13 58.6568 14.3431 60 16 60H35.1154" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M56.2692 52.3076V56.9999C56.2692 58.6568 54.9261 59.9999 53.2692 59.9999H49.5385" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M18.7692 55.673H49.5385" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <p><slot name="buttons.dropFiles">Drop files to upload</slot></p>
+          </button>
         </div>
       </div>
     </div>
     <div class="container results"></div>
-    <div class="container image"></div>
     <div class="container json">
       <button id="copyBtn"><slot name="buttons.copy">Copy to clipboard</slot></button>
       <div></div>
     </div>
   </div>
-  <div class="container remote-camera" >
+  <div class="container remote-camera hidden">
     <h2 id="generating-exchange-link"><slot name="labels.generatingExchangeLink">Generating exchange link...</slot></h2>
     <h2 id="exchange-link-title"><slot name="labels.exchangeLinkTitle">Exchange link is</slot></h2>
 
     <button type="button" id="cancelBtnRemoteCamera" >
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" width="30px" height="30px">
-        <path d="M 7 4 C 6.744125 4 6.4879687 4.0974687 6.2929688 4.2929688 L 4.2929688 6.2929688 C 3.9019687 6.6839688 3.9019687 7.3170313 4.2929688 7.7070312 L 11.585938 15 L 4.2929688 22.292969 C 3.9019687 22.683969 3.9019687 23.317031 4.2929688 23.707031 L 6.2929688 25.707031 C 6.6839688 26.098031 7.3170313 26.098031 7.7070312 25.707031 L 15 18.414062 L 22.292969 25.707031 C 22.682969 26.098031 23.317031 26.098031 23.707031 25.707031 L 25.707031 23.707031 C 26.098031 23.316031 26.098031 22.682969 25.707031 22.292969 L 18.414062 15 L 25.707031 7.7070312 C 26.098031 7.3170312 26.098031 6.6829688 25.707031 6.2929688 L 23.707031 4.2929688 C 23.316031 3.9019687 22.682969 3.9019687 22.292969 4.2929688 L 15 11.585938 L 7.7070312 4.2929688 C 7.5115312 4.0974687 7.255875 4 7 4 z"/>
+      <svg width="100%" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g filter="url(#filter0_dd)">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M16.0004 13.8786L24.2731 5.60596L26.3944 7.72728L18.1218 16L26.3944 24.2726L24.2731 26.3939L16.0004 18.1213L7.72777 26.3939L5.60645 24.2726L13.8791 16L5.60645 7.72728L7.72777 5.60596L16.0004 13.8786Z" fill="white"/>
+        </g>
+        <defs>
+        <filter id="filter0_dd" x="1.60645" y="1.60596" width="28.788" height="28.788" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+        <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+        <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
+        <feOffset/>
+        <feGaussianBlur stdDeviation="2"/>
+        <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
+        <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow"/>
+        <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
+        <feOffset dy="1"/>
+        <feGaussianBlur stdDeviation="1"/>
+        <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
+        <feBlend mode="normal" in2="effect1_dropShadow" result="effect2_dropShadow"/>
+        <feBlend mode="normal" in="SourceGraphic" in2="effect2_dropShadow" result="shape"/>
+        </filter>
+        </defs>
       </svg>
     </button>
 
     <div class="loader-img">
       <slot name="loader-image">
-        pr1
         <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
       </slot>
     </div>
@@ -588,7 +825,7 @@
 
     <div id="exchange-link-as-QR" ></div>
 
-    <p id="exchange-link-notes"><slot name="labels.openLinkAtSmartphone" >Please open exchange link at the smartphone.</slot></p>
+    <p id="exchange-link-notes"><slot name="labels.openLinkAtSmartphone" >Please open exchange link at the smartphone</slot></p>
 
     <p id="exchange-link-remote-camera-is-pending"><slot name="labels.remoteCameraIsPending" >Remote camera is pending...</slot></p>
 
@@ -603,14 +840,27 @@
     </div>
   </div>
   <div class="container video hidden">
-    <video class="flipped" id="video" muted playsinline>Your browser does not support video tag.</video>
-
-    <div id="card-layout-rectangle-background" ></div>
-    <div id="card-layout-rectangle" ></div>
-
-    <button type="button" id="photoBtn"><slot name="buttons.takePhoto">TAKE A PHOTO</slot></button>
+    <video class="flipped" id="video" muted playsinline autoplay><slot name="labels.videoTagUnsupported" >Your browser does not support video tag</slot></video>
+    <div id="cardPlacer">
+      <div class="corner corner-top corner-left"></div>
+      <div class="corner corner-top corner-right"></div>
+      <div class="corner corner-bottom corner-left"></div>
+      <div class="corner corner-bottom corner-right"></div>
+    </div>
+    <button type="button" id="photoBtn">
+      <svg width="100%" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g opacity="0.85">
+          <circle class="primary" cx="50" cy="50" r="50" fill="white"/>
+          <g opacity="0.8">
+            <circle class="accent" cx="50" cy="50" r="28" stroke="#48B2E8" stroke-width="2"/>
+            <circle class="accent" cx="50" cy="50" r="22" stroke="#48B2E8" stroke-width="2"/>
+          </g>
+        </g>
+      </svg>
+      <p><slot name="buttons.takePhoto">Take a photo</slot></p>
+    </button>
     <button type="button" id="flipBtn" class="flipped">
-      <svg width='44' height='35' viewBox='0 0 44 35' fill='none' xmlns='http://www.w3.org/2000/svg'>
+      <svg width='100%' viewBox='0 0 44 35' fill='none' xmlns='http://www.w3.org/2000/svg'>
         <path d='M22 7V35' stroke-width='1.38744' stroke-miterlimit='3.8637' stroke-dasharray='1.39 2.77'/>
         <path d='M38.8375 11.5471L27.2239 20.9999L38.8375 30.4527L38.8375 11.5471Z' stroke-width='1.38744'/>
         <path class="fill" d='M5.16247 11.5471L16.7761 20.9999L5.16247 30.4527L5.16247 11.5471Z' stroke-width='1.38744'/>
@@ -618,18 +868,39 @@
       </svg>
     </button>
     <button type="button" id="cancelBtnLocalCamera" >
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" width="30px" height="30px">
-        <path d="M 7 4 C 6.744125 4 6.4879687 4.0974687 6.2929688 4.2929688 L 4.2929688 6.2929688 C 3.9019687 6.6839688 3.9019687 7.3170313 4.2929688 7.7070312 L 11.585938 15 L 4.2929688 22.292969 C 3.9019687 22.683969 3.9019687 23.317031 4.2929688 23.707031 L 6.2929688 25.707031 C 6.6839688 26.098031 7.3170313 26.098031 7.7070312 25.707031 L 15 18.414062 L 22.292969 25.707031 C 22.682969 26.098031 23.317031 26.098031 23.707031 25.707031 L 25.707031 23.707031 C 26.098031 23.316031 26.098031 22.682969 25.707031 22.292969 L 18.414062 15 L 25.707031 7.7070312 C 26.098031 7.3170312 26.098031 6.6829688 25.707031 6.2929688 L 23.707031 4.2929688 C 23.316031 3.9019687 22.682969 3.9019687 22.292969 4.2929688 L 15 11.585938 L 7.7070312 4.2929688 C 7.5115312 4.0974687 7.255875 4 7 4 z"/>
+      <svg width="100%" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g filter="url(#filter1_dd)">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M16.0004 13.8786L24.2731 5.60596L26.3944 7.72728L18.1218 16L26.3944 24.2726L24.2731 26.3939L16.0004 18.1213L7.72777 26.3939L5.60645 24.2726L13.8791 16L5.60645 7.72728L7.72777 5.60596L16.0004 13.8786Z" fill="white"/>
+        </g>
+        <defs>
+        <filter id="filter1_dd" x="1.60645" y="1.60596" width="28.788" height="28.788" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+        <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+        <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
+        <feOffset/>
+        <feGaussianBlur stdDeviation="2"/>
+        <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
+        <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow"/>
+        <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
+        <feOffset dy="1"/>
+        <feGaussianBlur stdDeviation="1"/>
+        <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
+        <feBlend mode="normal" in2="effect1_dropShadow" result="effect2_dropShadow"/>
+        <feBlend mode="normal" in="SourceGraphic" in2="effect2_dropShadow" result="shape"/>
+        </filter>
+        </defs>
       </svg>
     </button>
     <div id="counter">
-      <p class="counter-number"></p>
+      <svg width="100%" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle class="primary" opacity="0.2" cx="60" cy="60" r="59" stroke="white" stroke-width="2"/>
+        <circle class="primary" opacity="0.8" cx="60" cy="60" r="50" fill="white"/>
+        <text id="counter-number" class="accent" x="50%" y="50%" fill="#48B2E8" text-anchor="middle" dy=".3em"></text>
+      </svg>
     </div>
   </div>
   <div class="pending-container">
     <div class="loader-img">
       <slot name="loader-image">
-        pr2
         <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
       </slot>
     </div>
@@ -638,26 +909,53 @@
     <h2><slot name="labels.analyzing">Analyzing</slot></h2>
     <h2><slot name="labels.extracting">Extracting data</slot></h2>
     <h2><slot name="labels.almostDone">Almost done</slot></h2>
-    <!--<div class="progress-bar">
-      <div class="progress-bar-value"></div>
-    </div> -->
   </div>
-  <div class="error-container">
-    <div class="hidden">
-        <slot name="labels.errorMsg">We're sorry, but something went wrong. Please try again.</slot>
-        <slot name="labels.notFoundErrorMsg">No camera was found on your device.</slot>
-        <slot name="labels.notAllowedErrorMsg">You have denied camera access permission.</slot>
-    </div>
-    <button type="button" id="againBtn"><slot name="buttons.tryAgain">TRY AGAIN</slot></button>
-  </div>
-  <div class="permission">
-    <p><slot name="labels.permissionMsg">Enable camera please</slot></p>
+  <div class="error-container dialog"></div>
+  <div class="permission dialog">
+    <div class="title"><slot name="labels.permissionMsg">Enable camera please</slot></div>
   </div>
   <div class="confirm-image">
+    <button type="button" id="cancelBtnConfirmImage" >
+      <svg width="100%" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g filter="url(#filter2_dd)">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M16.0004 13.8786L24.2731 5.60596L26.3944 7.72728L18.1218 16L26.3944 24.2726L24.2731 26.3939L16.0004 18.1213L7.72777 26.3939L5.60645 24.2726L13.8791 16L5.60645 7.72728L7.72777 5.60596L16.0004 13.8786Z" fill="white"/>
+        </g>
+        <defs>
+        <filter id="filter2_dd" x="1.60645" y="1.60596" width="28.788" height="28.788" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+        <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+        <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
+        <feOffset/>
+        <feGaussianBlur stdDeviation="2"/>
+        <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
+        <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow"/>
+        <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
+        <feOffset dy="1"/>
+        <feGaussianBlur stdDeviation="1"/>
+        <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
+        <feBlend mode="normal" in2="effect1_dropShadow" result="effect2_dropShadow"/>
+        <feBlend mode="normal" in="SourceGraphic" in2="effect2_dropShadow" result="shape"/>
+        </filter>
+        </defs>
+      </svg>
+    </button>
     <div class="image-container"></div>
     <div class="button-container">
-      <button type="button" id="webcamConfirmBtn"><slot name="buttons.confirm">CONFIRM</slot></button>
       <button type="button" id="webcamRetakeBtn"><slot name="buttons.retake">RETAKE</slot></button>
+      <button type="button" id="webcamConfirmBtn"><slot name="buttons.confirm">USE PHOTO</slot></button>
     </div>
   </div>
+  <div style="display: none;">
+    <slot name="buttons.tryAgain">TRY AGAIN</slot>
+    <slot name="labels.errorMsg">We're sorry, but something went wrong. Please try again.</slot>
+    <slot name="labels.notFoundErrorMsg">No camera was found on your device</slot>
+    <slot name="labels.notAllowedErrorMsg">You have denied camera access permission</slot>
+    <slot name="labels.scanningFinishedNoDataTitle">Document not recognized</slot>
+    <slot name="labels.scanningFinishedNoDataMessage">Please try again with a supported document or select a different document type</slot>
+    <slot name="labels.unsupportedFileType">Unsupported file type</slot>
+    <slot name="labels.selectDocumentType">Please select one or more document types to start scanning</slot>
+    <slot name="labels.noDocumentType">No document type selected</slot>
+    <slot name="labels.webRtcUnsupported">WebRTC not supported by your browser</slot>
+    <slot name="labels.fileSizeLimitExceeded">Maximum file size is 15 MB</slot>
+  </div>
 </div>
+
