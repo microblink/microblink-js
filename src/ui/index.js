@@ -803,7 +803,7 @@ function defineComponent() {
         switch(typeof value) {
           case "undefined": case "function": case "symbol": break;
           case "string":
-            if (key.includes('Base64')) {
+            if (key && key.includes('Base64')) {
               value = value.substring(0, 50) + '...';
             }
             jsonHtml += `<span class="string">"${escapeHtml(value)}"</span>,`; break;
