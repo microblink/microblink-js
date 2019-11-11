@@ -70,6 +70,9 @@ export interface ScanExchanger {
   authorizationHeader?: string
   exportImages?: boolean | string | string[]
   detectGlare?: boolean
+  anonymizeCardNumber?: boolean
+  anonymizeCvv?: boolean
+  anonymizeOwner?: boolean
 }
 
 export enum ScanExchangerCodes {

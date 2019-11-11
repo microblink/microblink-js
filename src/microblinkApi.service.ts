@@ -13,6 +13,9 @@ export default class MicroblinkApi implements IMicroblinkApi {
   private exportImages: boolean | string | string[] = false
   private detectGlare: boolean = false
   private endpoint: string
+  private anonymizeCardNumber: boolean = false
+  private anonymizeCvv: boolean = false
+  private anonymizeOwner: boolean = false
   private activeRequests: XMLHttpRequest[] = []
   private userId: string = ''
   private isDataPersistingEnabled = true
@@ -61,6 +64,30 @@ export default class MicroblinkApi implements IMicroblinkApi {
    */
   SetEndpoint(endpoint: string): void {
     this.endpoint = endpoint
+  }
+
+  /**
+   * Set anonymize card number (works on BLINK_CARD recognizer) for next request
+   * @param anonymizeCardNumber is a boolean flag which describes whether API should return a base64 image of the scanned card with the card number anonymized
+   */
+  SetAnonymizeCardNumber(anonymizeCardNumber: boolean): void {
+    this.anonymizeCardNumber = anonymizeCardNumber
+  }
+
+  /**
+   * Set anonymize cvv (works on BLINK_CARD recognizer) for next request
+   * @param anonymizeCvv is a boolean flag which describes whether API should return a base64 image of the scanned card with the cvv number anonymized
+   */
+  SetAnonymizeCvv(anonymizeCvv: boolean): void {
+    this.anonymizeCvv = anonymizeCvv
+  }
+
+  /**
+   * Set anonymize owner (works on BLINK_CARD recognizer) for next request
+   * @param anonymizeOwner is a boolean flag which describes whether API should return a base64 image of the scanned card with the owner name anonymized
+   */
+  SetAnonymizeOwner(anonymizeOwner: boolean): void {
+    this.anonymizeOwner = anonymizeOwner
   }
 
   /**
@@ -113,6 +140,21 @@ export default class MicroblinkApi implements IMicroblinkApi {
       // Detect glare flag set if it is enabled
       if (this.detectGlare) {
         body['detectGlare'] = true
+      }
+
+      // Anonymize card number flag set if it is enabled
+      if (this.anonymizeCardNumber) {
+        body['anonymizeCardNumber'] = true
+      }
+
+      // Anonymize cvv flag set if it is enabled
+      if (this.anonymizeCvv) {
+        body['anonymizeCvv'] = true
+      }
+
+      // Anonymize owner set if it is enabled
+      if (this.anonymizeOwner) {
+        body['anonymizeOwner'] = true
       }
 
       // Set userId if it is defined

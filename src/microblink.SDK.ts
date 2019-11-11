@@ -112,6 +112,30 @@ export namespace SDK {
   }
 
   /**
+   * Set anonymize card number (works on BLINK_CARD recognizer) for next request
+   * @param anonymizeCardNumber is a boolean flag which describes whether API should return a base64 image of the scanned card with the card number anonymized
+   */
+  export function SetAnonymizeCardNumber(anonymizeCardNumber: boolean): void {
+    SDK.SetAnonymizeCardNumber(anonymizeCardNumber)
+  }
+
+  /**
+   * Set anonymize cvv (works on BLINK_CARD recognizer) for next request
+   * @param anonymizeCvv is a boolean flag which describes whether API should return a base64 image of the scanned card with the cvv number anonymized
+   */
+  export function SetAnonymizeCvv(anonymizeCvv: boolean): void {
+    SDK.SetAnonymizeCvv(anonymizeCvv)
+  }
+
+  /**
+   * Set anonymize owner (works on BLINK_CARD recognizer) for next request
+   * @param anonymizeOwner is a boolean flag which describes whether API should return a base64 image of the scanned card with the owner name anonymized
+   */
+  export function SetAnonymizeOwner(anonymizeOwner: boolean): void {
+    SDK.SetAnonymizeOwner(anonymizeOwner)
+  }
+
+  /**
    * Terminate all queued HTTP requests.
    * This is useful when images are sending from camera video stream in ms time periods and when successful
    * result is received then all pending requests could be terminated, this should be primary used for application

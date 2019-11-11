@@ -12,6 +12,10 @@ export interface IMicroblinkApi {
   SetDetectGlare(detectGlare: boolean): void
   SetEndpoint(endpoint: string): void
 
+  SetAnonymizeCardNumber(anonymizeCardNumber: boolean): void
+  SetAnonymizeCvv(anonymizeCvv: boolean): void
+  SetAnonymizeOwner(anonymizeOwner: boolean): void
+
   TerminateAll(): void
 
   SetUserId(userId: string): void

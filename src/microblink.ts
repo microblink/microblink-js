@@ -33,6 +33,9 @@ export default class Microblink implements IMicroblink {
   private authorizationHeader: string = ''
   private exportImages: boolean | string | string[] = false
   private detectGlare: boolean = false
+  private anonymizeCardNumber: boolean = false
+  private anonymizeCvv: boolean = false
+  private anonymizeOwner: boolean = false
   private listeners: ScanListener[] = []
   private scanFrameQueue: ScanInputFrameWithQuality[] = []
 
@@ -177,6 +180,33 @@ export default class Microblink implements IMicroblink {
   }
 
   /**
+   * Set anonymize card number (works on BLINK_CARD recognizer) for next request
+   * @param anonymizeCardNumber is a boolean flag which describes whether API should return a base64 image of the scanned card with the card number anonymized
+   */
+  SetAnonymizeCardNumber(anonymizeCardNumber: boolean): void {
+    this.anonymizeCardNumber = anonymizeCardNumber
+    this.API.SetAnonymizeCardNumber(anonymizeCardNumber)
+  }
+
+  /**
+   * Set anonymize cvv (works on BLINK_CARD recognizer) for next request
+   * @param anonymizeCvv is a boolean flag which describes whether API should return a base64 image of the scanned card with the cvv number anonymized
+   */
+  SetAnonymizeCvv(anonymizeCvv: boolean): void {
+    this.anonymizeCvv = anonymizeCvv
+    this.API.SetAnonymizeCvv(anonymizeCvv)
+  }
+
+  /**
+   * Set anonymize owner (works on BLINK_CARD recognizer) for next request
+   * @param anonymizeOwner is a boolean flag which describes whether API should return a base64 image of the scanned card with the owner name anonymized
+   */
+  SetAnonymizeOwner(anonymizeOwner: boolean): void {
+    this.anonymizeOwner = anonymizeOwner
+    this.API.SetAnonymizeOwner(anonymizeOwner)
+  }
+
+  /**
    * Set user identificator which will be stored with uploaded image
    * @param userId is any string which unique identifies user who use SDK and upload any image to API
    */
@@ -231,6 +261,9 @@ export default class Microblink implements IMicroblink {
     data.authorizationHeader = this.authorizationHeader // it is encrypted
     data.exportImages = this.exportImages
     data.detectGlare = this.detectGlare
+    data.anonymizeCardNumber = this.anonymizeCardNumber
+    data.anonymizeCvv = this.anonymizeCvv
+    data.anonymizeOwner = this.anonymizeOwner
 
     // Generate Secret key
     // Generate random 32 long string
