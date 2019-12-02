@@ -24,8 +24,12 @@ export function isMobile() {
   return /Mobi|Android/.test(navigator.userAgent);
 }
 
-export function isOpera() {
-  return /Opera|OPR/.test(navigator.userAgent);
+export function isSafari() {
+  return /Version\//.test(navigator.userAgent) && /Safari\//.test(navigator.userAgent) && !/(Chrome|Chromium)\//.test(navigator.userAgent);
+}
+
+export function isFirefox() {
+  return /Firefox\//.test(navigator.userAgent) && !/Seamonkey\//.test(navigator.userAgent);
 }
 
 function isFirebaseAppConfigured() {
@@ -77,4 +81,38 @@ export function getImageTypeFromBase64(base64Image) {
     default:
       return 'png';
   }
+}
+
+export function adjustScreenFull(screenFull) {
+  screenFull.request = element => {
+    return new Promise((resolve, reject) => {
+      let onFullScreenEntered = () => {
+        screenFull.off('change', onFullScreenEntered);
+        resolve();
+      };
+      screenFull.on('change', onFullScreenEntered);
+      element = element || document.documentElement;
+      Promise.resolve(element[screenFull.raw.requestFullscreen]({ navigationUI: 'hide' })).catch(reject);
+    });
+  };
+  let onChangeHandler = ({ target: webApi }) => { //TODO try matchMedia
+    let root = webApi.shadowRoot.querySelector('.root');
+    setTimeout(() => {
+      if (screenFull.isFullscreen && isMobile()) { //remember to reset when some values for orientationchange (maybe just erase style or class)
+        if (isFirefox()) { //fix for firefox fullscreen bug where navigation is rendered over the component
+          if (window.outerHeight > window.outerWidth) { //portrait mode
+            if (root.clientHeight !== screen.availHeight) { //this is where bug exists
+              //improve in next version
+            }
+          } else { //landscape
+            if (root.clientWidth !== screen.availWidth) { //bug in landscape mode
+
+            }
+          }
+        }
+      }
+    }, 200); //onchange is fired before elements are resized for fullscreen mode and there is no clear post render event in this case
+  };
+  screenFull.on('change', onChangeHandler);
+  screenFull.onChangeHandler = onChangeHandler;
 }

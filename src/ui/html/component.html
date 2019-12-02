@@ -57,6 +57,9 @@
     font-size: var(--mb-hem);
     background-color: var(--mb-widget-background-color);
   }
+  :host([webcam="off"]) #cameraLocalBtn {
+    display: none;
+  }
   .container {
     height:100%;
     width:100%;
@@ -286,6 +289,7 @@
   }
   video {
     height: 100%;
+    z-index: 0;
   }
   #cardPlacer {
     position: absolute;
@@ -411,6 +415,7 @@
     font-size: calc(0.9 * var(--mb-hem));
     line-height: calc(1.5 * var(--mb-hem));
     position: relative;
+    -webkit-overflow-scrolling: touch;
   }
   .json > div {
     white-space: pre;
@@ -440,7 +445,10 @@
     left: -9999px;
     top: -9999px;
   }
-  .container.results { overflow: auto; }
+  .container.results {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
   .results .resultTable .row {
     padding: calc(0.8 * var(--mb-hem)) var(--mb-hem);
     border-bottom: 1px solid var(--mb-results-border-color);
@@ -526,17 +534,21 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, calc(-50% + 1.4 * var(--mb-hem)));
+    transform: translate(-50%, calc(-50% + 0.45 * var(--mb-hem) + 0.75 * var(--mb-hem)));
     padding: 0;
     background-color: transparent;
     width: unset;
     max-width: calc(7.5 * var(--mb-hem));
-    font-size: calc(0.8 * var(--mb-hem));
+    font-size: 0;
     font-weight: 500;
     user-select: none;
   }
   #photoBtn svg {
     width: calc(5 * var(--mb-hem));
+  }
+  #photoBtn p {
+    font-size: calc(0.8 * var(--mb-hem));
+    margin: calc(0.8 * var(--mb-hem));
   }
   #counter {
     position: absolute;
@@ -649,9 +661,6 @@
     100% {
       transform: rotate(360deg);
     }
-  }
-  :host([webcam="off"]) #cameraLocalBtn {
-    display: none;
   }
   #cameraLocalBtn {
     display: block;
@@ -840,7 +849,7 @@
     </div>
   </div>
   <div class="container video hidden">
-    <video class="flipped" id="video" muted playsinline autoplay><slot name="labels.videoTagUnsupported" >Your browser does not support video tag</slot></video>
+    <video class="flipped" id="video" muted playsinline><slot name="labels.videoTagUnsupported" >Your browser does not support video tag</slot></video>
     <div id="cardPlacer">
       <div class="corner corner-top corner-left"></div>
       <div class="corner corner-top corner-right"></div>

@@ -7,9 +7,9 @@ import { FrameHelper } from '../frameHelper'
 import screenfull from 'screenfull';
 import copy from 'copy-to-clipboard';
 import {
-  escapeHtml, labelFromCamelCase, dateFromObject, isMobile, isOpera, hasClass, addClass,
-  removeClass, toggleClass, isRemotePhoneCameraAvailable, getImageTypeFromBase64
-} from './utils.js'
+  escapeHtml, labelFromCamelCase, dateFromObject, isMobile, isFirefox, isSafari, hasClass, addClass,
+  removeClass, toggleClass, isRemotePhoneCameraAvailable, getImageTypeFromBase64, adjustScreenFull
+} from './utils.js';
 
 const Microblink = {
 	SDK: SDK
@@ -23,15 +23,31 @@ if (window) {
 //insert web components light polyfill for cross-browser compatibility
 let script = document.createElement('script');
 script.src = '//unpkg.com/@webcomponents/webcomponentsjs/webcomponents-loader.js';
-script.addEventListener('load', function() {
-  window.WebComponents.waitFor(defineComponent); //to make sure all polyfills are loaded
+script.addEventListener('load', () => {
+  window.WebComponents.waitFor(() => { //to make sure all polyfills are loaded
+    if (!window.customElements) {
+      let fullPolyFillScript = ddocument.createElement('script');
+      fullPolyFillScript.src = '//unpkg.com/@webcomponents/webcomponentsjs/bundles/webcomponents-sd-ce-pf.js';
+      fullPolyFillScript.addEventListener('load', () => {
+        window.WebComponents.waitFor(defineComponent); //fallback in case of unloaded pollyfills (fixes strange bug)
+      });
+      document.head.insertBefore(fullPolyFillScript, document.head.querySelector('script[src*="microblink."]'));
+    } else {
+      defineComponent();
+    }
+  });
 });
 document.head.insertBefore(script, document.head.querySelector('script[src*="microblink."]'));
+
+if (screenfull && screenfull.isEnabled) adjustScreenFull(screenfull);
 
 function defineComponent() {
 
   let template = document.createElement('template');
   template.innerHTML = templateHtml;
+
+  // Use polyfill only in browsers that lack native Shadow DOM
+  window.ShadyCSS && ShadyCSS.prepareTemplate(template, 'microblink-ui-web');
 
   class WebApi extends HTMLElement {
 
@@ -71,7 +87,8 @@ function defineComponent() {
     }
 
     connectedCallback() {
-      if(this.shadowRoot.innerHTML) this.shadowRoot.innerHTML = '';
+      if (!this.shadowRoot) this.attachShadow({ mode: 'open' });
+      if (this.shadowRoot.innerHTML) this.shadowRoot.innerHTML = '';
       this.shadowRoot.appendChild(template.content.cloneNode(true));
       this.getLocalization();
       this.shadowRoot.getElementById('fileBtn').addEventListener('click', () => this.shadowRoot.getElementById('file').click());
@@ -79,6 +96,7 @@ function defineComponent() {
       this.shadowRoot.getElementById('file').addEventListener('touchstart', function() { this.value = ''; });
       this.shadowRoot.getElementById('file').addEventListener('change', this.fileChosen.bind(this));
       this.shadowRoot.getElementById('cancelBtnLocalCamera').addEventListener('click', () => {
+        this.clearTimers();
         this.stopCamera();
       });
       this.shadowRoot.getElementById('cancelBtnRemoteCamera').addEventListener('click', () => {
@@ -88,7 +106,17 @@ function defineComponent() {
       this.shadowRoot.querySelector('.dropzone').addEventListener('drop', this.onDrop.bind(this));
       this.shadowRoot.querySelector('.dropzone').addEventListener('dragenter', this.onDragEnter.bind(this));
       this.shadowRoot.querySelector('.dropzone').addEventListener('dragleave', this.onDragLeave.bind(this));
-      this.shadowRoot.getElementById('cameraLocalBtn').addEventListener('click', this.activateLocalCamera.bind(this));
+      this.shadowRoot.getElementById('cameraLocalBtn').addEventListener('click', () => {
+        if (isFirefox()) {
+          this.openFullscreen().finally(() => this.activateLocalCamera());
+        } else if (isSafari()) {
+          if (this.cameraPermitted) this.openFullscreen();
+          this.activateLocalCamera();
+        } else {
+          this.openFullscreen();
+          this.activateLocalCamera();
+        }
+      });
       this.shadowRoot.getElementById('cameraRemoteBtn').addEventListener('click', this.activateRemoteCamera.bind(this));
       this.shadowRoot.querySelector('video').addEventListener('loadedmetadata', function() { this.play(); this.controls = false; });
       this.shadowRoot.querySelector('video').addEventListener('play', () => {
@@ -117,6 +145,7 @@ function defineComponent() {
       this.checkRecognizers();
       this.checkWebRTCSupport();
       this.checkRemoteCameraSupport();
+      this.checkForSafariCamera();
       this.adjustComponent(true);
       this.ElementQueries = ElementQueriesFactory(ResizeSensor, this.shadowRoot);
       this.ElementQueries.listen();
@@ -141,6 +170,7 @@ function defineComponent() {
       document.addEventListener('keydown', (evt) => {
         evt = evt || window.event;
         if (evt.key === 'Escape') {
+          this.clearTimers();
           this.stopCamera();
         }
       });
@@ -169,9 +199,14 @@ function defineComponent() {
 
     adjustComponent(initial) {
       if (isMobile()) {
-        if (parseInt(getComputedStyle(this.parentNode).height) < window.innerHeight) {
-          this.style.height = getComputedStyle(this.parentNode).height;
-        } else this.style.height = `${window.innerHeight}px`;
+        let isFullScreen = screenfull && screenfull.isFullscreen;
+        if (!isFullScreen) {
+          if (parseInt(getComputedStyle(this.parentNode).height) < window.innerHeight) {
+            this.style.height = getComputedStyle(this.parentNode).height;
+          } else this.style.height = `${window.innerHeight}px`;
+        } else {
+          screenfull.onChangeHandler({ target: this }); //dispatch event
+        }
         if (initial) {
           this.shadowRoot.getElementById('flipBtn').style.setProperty('display', 'none', 'important');
           let remoteCamera = this.shadowRoot.getElementById('cameraRemoteBtn');
@@ -539,23 +574,21 @@ function defineComponent() {
     }
 
     openFullscreen() {
-      return this.fullscreen && screenfull && screenfull.isEnabled && !isOpera() ? screenfull.request(this) : Promise.resolve(false); //Opera has a fullscreen bug
+      let root = this.shadowRoot.querySelector('.root'); //for now remove fullscreen option for firefox mobile
+      return this.fullscreen && screenfull && screenfull.isEnabled && !(isMobile() && isFirefox()) ? screenfull.request(root) : Promise.resolve(false);
     }
 
     closeFullscreen() {
-      return this.fullscreen && screenfull && screenfull.isEnabled && !isOpera() ? screenfull.exit() : Promise.resolve(false);
+      return this.fullscreen && screenfull && screenfull.isEnabled && !(isMobile() && isFirefox()) ? screenfull.exit() : Promise.resolve(false);
     }
 
     activateLocalCamera() {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         this.shadowRoot.getElementById('cameraLocalBtn').setAttribute('disabled', '');
         let constraints = { video: { width: { ideal: 1920 }, height: { ideal: 1080 }, facingMode: { ideal: 'environment' } } };
-        let permissionTimeoutId = setTimeout(() => { permissionTimeoutId = null; this.permissionDialogPresent(); }, 1500); //this is "event" in case of browser's camera allow/block dialog
-        navigator.mediaDevices.getUserMedia(constraints).then(async stream => {
-          this.permissionDialogAbsent(permissionTimeoutId);
-          try {
-            await this.openFullscreen();
-          } catch (e) {}
+        this.permissionTimeoutId = setTimeout(() => { this.permissionTimeoutId = null; this.onCameraPermissionDialog(); }, 1500); //this is "event" in case of browser's camera allow/block dialog
+        navigator.mediaDevices.getUserMedia(constraints).then(stream => {
+          this.onCameraPermissionResolve(true);
           let video = this.shadowRoot.getElementById('video');
           video.controls = true;
           if ('srcObject' in video) {
@@ -563,6 +596,7 @@ function defineComponent() {
           } else {
             video.src = URL.createObjectURL(stream);
           }
+          video.load();
           setTimeout(() => {
             video.play().catch(() => {
               addClass(this.shadowRoot.getElementById('photoBtn'), 'hidden');
@@ -572,10 +606,10 @@ function defineComponent() {
           this.toggleTabs(false);
           this.clearTabs();
           Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container, .permission, .confirm-image'),
-              elem => toggleClass(toggleClass(elem, 'hidden', !hasClass(elem, 'video')), 'show', hasClass(elem, 'video')));
-        }).catch(async error => {
-          await this.closeFullscreen();
-          this.permissionDialogAbsent(permissionTimeoutId);
+            elem => toggleClass(toggleClass(elem, 'hidden', !hasClass(elem, 'video')), 'show', hasClass(elem, 'video')));
+        }).catch(error => {
+          this.closeFullscreen();
+          this.onCameraPermissionResolve(false);
 
           let errorMessage;
           switch(error.name) {
@@ -590,7 +624,6 @@ function defineComponent() {
           this.dispatchEvent('error', new Error('Camera error: ' + error.name));
           console.log(error.name + ': ' + error.message); //NotFoundError, NotAllowedError
         }).then(() => this.shadowRoot.getElementById('cameraLocalBtn').removeAttribute('disabled'));
-
       } else {
         this.toggleError(true, this.getSlotText('labels.webRtcUnsupported')); //should we fallback to flash?
       }
@@ -614,10 +647,18 @@ function defineComponent() {
           video.src = null;
         }
       }
-      video.load();
       Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container, .permission, .confirm-image'),
           elem => toggleClass(toggleClass(elem, 'hidden', !hasClass(elem, 'main')), 'show', hasClass(elem, 'main')));
       this.closeFullscreen();
+      this.checkForSafariCamera();
+    }
+
+    checkForSafariCamera() {
+      if (isSafari() && navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+        navigator.mediaDevices.enumerateDevices().then(devices => {
+          this.cameraPermitted = !!(devices || []).filter(({ kind: k, label: l }) => k === "videoinput" && !!l).length
+        });
+      }
     }
 
     startRecording() {
@@ -629,7 +670,7 @@ function defineComponent() {
       addClass(this.shadowRoot.getElementById('counter'), 'show');
       let numberNode = this.shadowRoot.getElementById('counter-number');
       numberNode.textContent = String(countdown);
-      let counterIntervalId = setInterval(() => {
+      this.counterIntervalId = setInterval(() => {
         numberNode.textContent = String(--countdown);
         if (countdown === 1) {
           this.frameSendingIntervalId = setInterval(async() => {
@@ -644,7 +685,7 @@ function defineComponent() {
           }, 200);
         }
         if (countdown === 0) {
-          clearInterval(counterIntervalId);
+          clearInterval(this.counterIntervalId);
         }
       }, 1000);
     }
@@ -872,7 +913,9 @@ function defineComponent() {
 
     clearTimers() {
       clearInterval(this.frameSendingIntervalId);
+      clearInterval(this.counterIntervalId);
       clearTimeout(this.messageTimeoutId);
+      removeClass(this.shadowRoot.getElementById('counter'), 'show');
     }
 
     dispatchEvent(type, input) {
@@ -925,12 +968,13 @@ function defineComponent() {
       this.messageTimeoutId = setTimeout(() => this.changeLoaderMessage(++cnt), 1000 + Math.round(Math.random() * 3000));
     }
 
-    permissionDialogPresent() {
+    onCameraPermissionDialog() {
       addClass(this.shadowRoot.querySelector('.permission'), 'show');
     }
 
-    permissionDialogAbsent(timeoutId) {
-      timeoutId !== null ? clearTimeout(timeoutId) : removeClass(this.shadowRoot.querySelector('.permission'), 'show');
+    onCameraPermissionResolve(status) {
+      this.permissionTimeoutId !== null ? clearTimeout(this.permissionTimeoutId) : removeClass(this.shadowRoot.querySelector('.permission'), 'show');
+      this.streamStatus = status;
     }
   }
   customElements.define('microblink-ui-web', WebApi);
