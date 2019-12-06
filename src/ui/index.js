@@ -352,9 +352,23 @@ function defineComponent() {
       function iterateJson(jsonTree, name) {
         Object.keys(jsonTree).forEach(key => {
           if (jsonTree[key] instanceof Object) iterateJson(jsonTree[key], name ? (name + '.' + key) : key);
-          else templateHtml += `<span slot="${name ? (name + '.' + key) : key}">${jsonTree[key]}</span>`;
+          else templateHtml += `<span class="translate-label" slot="${name ? (name + '.' + key) : key}">${jsonTree[key]}</span>`;
         });
       }
+    }
+
+    setLocalization(localization) {
+      if (!localization || (!['string', 'object'].includes(typeof localization))) return false;
+      if (typeof localization === 'string') {
+        try {
+          localization = JSON.parse(localization);
+        } catch(e) {
+          return false;
+        }
+      }
+      Array.prototype.forEach.call(this.querySelectorAll('.translate-label'), label => label.parentNode.removeChild(label));
+      this.handleJson(localization);
+      return true;
     }
 
     injectStyleSheet(url) {
@@ -366,16 +380,6 @@ function defineComponent() {
         this.shadowRoot.insertBefore(link, this.shadowRoot.childNodes[1]);
       }
     }
-
-    /*switchLocale() {
-      let slotTargets =  this.querySelectorAll('[slot*=labels]'); //not live nodelist so it will work
-      if (slotTargets && slotTargets.length) {
-        Array.prototype.forEach.call(slotTargets, target => target.parentNode.removeChild(target));
-      } else {
-        this.getLocalization();
-      }
-    }
-    */
 
     toggleLoader(show) {
       let loader = this.shadowRoot.querySelector('.pending-container');

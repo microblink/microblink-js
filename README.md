@@ -106,16 +106,74 @@ table view of the results and preview of a JSON response from the server.
 
 ### Localization
 
-If you wish to change textual contents inside a component, we are offering you an easy way to do this without the need for you to do cumbersome additional javascript manipulation. Maybe you want your page in a different language than English or you just don't like our default English labels.  
-As for the implementation details of this feature, we are using `<slot>` elements as placeholders in a shadow DOM structure. The slots will be generated automatically. All you need to do is to provide a JSON content via `<template class="localization">` element and place the template as a child of `<microblink-ui-web>`. The template text content should be an URL to external JSON file, or you can insert JSON directly as a template content in which case you should append "json" class to `<template>`.  
+If you wish to change textual contents inside component, we are offering you an easy way to do this without the need for you to do cumbersome additional javascript manipulation. Maybe you want your page in a different language or you just don't want our default English labels.  
+As for the implementation details of this feature, we are using `<slot>` elements as placeholders in a shadow DOM structure. The slots will be generated automatically.
+
+`<microblink-ui-web>` has a method `setLocalization` which can receive JSON string or javascript object as parameter, containing translated or adjusted text for component's labels. This is the recommended way.
+Calling this method will reset current localization texts and place new ones.
 To clarify, we are providing an example with all currently customizable labels and their default values:
+
+```javascript
+document.querySelector('microblink-ui-web').setLocalization({
+  "buttons" : {
+    "browseDesktop": "Upload image",
+    "browseMobile": "Take or upload photo",
+    "cameraRemote": "Use mobile camera",
+    "cameraLocalDesktop": "Use web camera",
+    "cameraLocalMobile": "Use camera",
+    "dropFiles": "Drop files to upload",
+    "tryAgain": "TRY AGAIN",
+    "takePhoto": "Take a photo",
+    "copy": "Copy to clipboard",
+    "confirm": "USE PHOTO",
+    "retake": "RETAKE"
+  },
+  "labels" : {
+    "chooseInputMethod": "Choose input method",
+    "generatingExchangeLink": "Generating exchange link...",
+    "exchangeLinkTitle": "Exchange link is",
+    "openLinkAtSmartphone": "Please open exchange link at the smartphone with OR reader",
+    "remoteCameraIsPending": "Remote camera is pending...",
+    "remoteCameraIsOpen": "Remote camera is open...",
+    "imageIsUploading": "Image is uploading...",
+    "imageIsProcessing": "Image is processing...",
+    "videoTagUnsupported": "Your browser does not support video tag",
+    "uploading" : "Uploading",
+    "processing" : "Processing",
+    "analyzing" : "Analyzing",
+    "extracting" : "Extracting data",
+    "almostDone" : "Almost done",
+    "errorMsg": "We're sorry, but something went wrong. Please try again.",
+    "permissionMsg": "Enable camera please",
+    "notFoundErrorMsg": "No camera was found on your device",
+    "notAllowedErrorMsg": "You have denied camera access permission",
+    "scanningFinishedNoDataTitle": "Document not recognized",
+    "scanningFinishedNoDataMessage": "Please try again with a supported document or select a different recognizer",
+    "unsupportedFileType": "Unsupported file type",
+    "selectRecognizers": "Please select one or more recognizers to start scanning",
+    "noRecognizersSelected": "No recognizers selected",
+    "webRtcUnsupported": "WebRTC not supported by your browser"
+  },
+  "tabs" : {
+    "back": "Back",
+    "results": "Results",
+    "json": "JSON"
+  }
+});
+```
+
+To retain compatibility, we are supporting old, now discouraged way of interpolating json directly into html:
+
+You can provide JSON content via `<template class="localization">` element and place the template as a child of `<microblink-ui-web>`. The template text content should be an URL to external JSON file, or you can insert JSON directly as a template content in which case you should append "json" class to `<template>`.  
+Here is an example with all currently customizable labels:
 
 ```json
 <microblink-ui-web>
 	<template class="localization json">
 		{
 			"buttons" : {
-				"browse": "Upload image",
+				"browseDesktop": "Upload image",
+        "browseMobile": "Take or upload photo",
 				"cameraRemote": "Use mobile camera",
 				"cameraLocalDesktop": "Use web camera",
 				"cameraLocalMobile": "Use camera",
@@ -130,6 +188,7 @@ To clarify, we are providing an example with all currently customizable labels a
 				"chooseInputMethod": "Choose input method",
 				"generatingExchangeLink": "Generating exchange link...",
 				"exchangeLinkTitle": "Exchange link is",
+				"openLinkAtSmartphone": "Please open exchange link at the smartphone with OR reader",
 				"remoteCameraIsPending": "Remote camera is pending...",
 				"remoteCameraIsOpen": "Remote camera is open...",
 				"imageIsUploading": "Image is uploading...",
@@ -158,13 +217,10 @@ To clarify, we are providing an example with all currently customizable labels a
 			}
 		}
 	</template>
-	<img slot="loader-image" class="hide-until-component-is-loaded" src="https://microblink.com/bundles/microblinkmicroblink/images/loading-animation-on-blue.gif" />
-	<span slot="labels.openLinkAtSmartphone" class="hide-until-component-is-loaded">Please open <b>exchange link</b> at smartphone with <b>QR</b> reader</span>
 </microblink-ui-web>
 ```
 
-You can use this example as a template and just change JSON values for your purposes.  
-There is a work in progress to provide a better support for single page apps and a better input format.
+You can use this example as a template and just change JSON values for your purposes.
 
 ### Theme customization
 
