@@ -38,6 +38,7 @@ export default class Microblink implements IMicroblink {
   private anonymizeOwner: boolean = false
   private listeners: ScanListener[] = []
   private scanFrameQueue: ScanInputFrameWithQuality[] = []
+  private endpoint: string = ''
 
   constructor() {
     this.API = new MicroblinkApi()
@@ -176,6 +177,7 @@ export default class Microblink implements IMicroblink {
    * Microblink SaaS API and frontend application which uses this library.
    */
   SetEndpoint(endpoint: string): void {
+    this.endpoint = endpoint
     this.API.SetEndpoint(endpoint)
   }
 
@@ -264,6 +266,7 @@ export default class Microblink implements IMicroblink {
     data.anonymizeCardNumber = this.anonymizeCardNumber
     data.anonymizeCvv = this.anonymizeCvv
     data.anonymizeOwner = this.anonymizeOwner
+    data.endpoint = this.endpoint
 
     // Generate Secret key
     // Generate random 32 long string
