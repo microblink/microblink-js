@@ -73,6 +73,7 @@ export interface ScanExchanger {
   anonymizeCardNumber?: boolean
   anonymizeCvv?: boolean
   anonymizeOwner?: boolean
+  endpoint?: string
 }
 
 export enum ScanExchangerCodes {
