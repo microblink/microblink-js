@@ -52,7 +52,7 @@ function defineComponent() {
   class WebApi extends HTMLElement {
 
     static get observedAttributes() {
-      return ['tabs', 'autoscroll', 'webcam', 'fullscreen'];
+      return ['tabs', 'autoscroll', 'webcam', 'fullscreen', 'upload'];
     }
 
     get tabs() { return this.hasAttribute('tabs'); }
@@ -63,6 +63,9 @@ function defineComponent() {
 
     get webcam() { return this.getAttribute('webcam') !== 'off'; }
     set webcam(value) { value === false ? this.setAttribute('webcam', 'off') : this.removeAttribute('webcam'); }
+
+    get upload() { return this.getAttribute('upload') !== 'off'; }
+    set upload(value) { value === false ? this.setAttribute('upload', 'off') : this.removeAttribute('upload'); }
 
     get fullscreen() { return this.getAttribute('fullscreen') !== 'off'; }
     set fullscreen(value) { value === false ? this.setAttribute('fullscreen', 'false') : this.removeAttribute('fullscreen'); }
