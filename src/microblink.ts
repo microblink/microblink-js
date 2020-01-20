@@ -365,7 +365,7 @@ export default class Microblink implements IMicroblink {
         */
         return false
       } else {
-        //console.log('IsDesktopToMobileAvailable.error', err)
+        // console.log('IsDesktopToMobileAvailable.error', err)
       }
     }
     return true
