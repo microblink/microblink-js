@@ -358,12 +358,14 @@ export default class Microblink implements IMicroblink {
     } catch (err) {
       // Only if Firestore is not available then desktop-to-mobile is not available
       if (err.name === 'FirebaseError' && err.code === 'unavailable') {
+        /*
         console.error(
           'Microblink.SDK: feature desktop-to-mobile is not available because connection to the Firebase.Firestore is not available!'
         )
+        */
         return false
       } else {
-        console.log('IsDesktopToMobileAvailable.error', err)
+        // console.log('IsDesktopToMobileAvailable.error', err)
       }
     }
     return true
