@@ -102,6 +102,8 @@ table view of the results and preview of a JSON response from the server.
 
 **webcam** - this is for enabling or disabling the option to use web camera. To disable the use of webcam set the `webcam` attribute to "off".
 
+**upload** - this is for enabling or disabling the option to use upload image. To disable the use of upload image set the `upload` attribute to "off".
+
 **fullscreen** - this is for enabling or disabling the option to open web camera video stream fullscreen. To disable the use of fullscreen camera video stream set the `fullscreen` attribute to "off".
 
 ### Localization

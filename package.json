@@ -1,6 +1,6 @@
 {
   "name": "microblink",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "description": "",
   "keywords": [],
   "main": "dist/microblink.sdk.umd.js",
@@ -11,7 +11,8 @@
   ],
   "author": "Matija Stepanic <matija.stepanic@microblink.com>",
   "contributors": [
-    "Dragan Bezak <dragan.bezak@microblink.com>"
+    "Dragan Bezak <dragan.bezak@microblink.com>",
+    "Luka Vrtaric <luka.vrtaric@microblink.com>"
   ],
   "repository": {
     "type": "git",
