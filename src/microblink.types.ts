@@ -69,11 +69,17 @@ export interface ScanExchanger {
   recognizers?: string | string[]
   authorizationHeader?: string
   exportImages?: boolean | string | string[]
+  exportFullDocumentImage?: boolean
+  exportSignatureImage?: boolean
+  exportFaceImage?: boolean
   detectGlare?: boolean
+  allowBlurFilter?: boolean
   anonymizeCardNumber?: boolean
+  anonymizeIban?: boolean
   anonymizeCvv?: boolean
   anonymizeOwner?: boolean
   endpoint?: string
+  anonymizeNetherlandsMrz?: boolean
 }
 
 export enum ScanExchangerCodes {

@@ -9,10 +9,14 @@ export interface IMicroblinkApi {
 
   SetAuthorization(authorizationHeader: string): void
   SetExportImages(exportImages: boolean | string | string[]): void
+  SetExportFullDocumentImage(exportFullDocumentImage: boolean): void
+  SetExportSignatureImage(exportSignatureImage: boolean): void
+  SetExportFaceImage(exportFaceImage: boolean): void
   SetDetectGlare(detectGlare: boolean): void
   SetEndpoint(endpoint: string): void
 
   SetAnonymizeCardNumber(anonymizeCardNumber: boolean): void
+  SetAnonymizeIban(anonymizeIban: boolean): void
   SetAnonymizeCvv(anonymizeCvv: boolean): void
   SetAnonymizeOwner(anonymizeOwner: boolean): void
 
@@ -20,4 +24,7 @@ export interface IMicroblinkApi {
 
   SetUserId(userId: string): void
   SetIsDataPersistingEnabled(isEnabled: boolean): void
+  SetAllowBlurFilter(allowBlurFilter: boolean): void
+
+  SetAnonymizeNetherlandsMrz(anonymizeNetherlandsMrz: boolean): void
 }

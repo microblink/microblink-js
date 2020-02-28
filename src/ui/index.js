@@ -10,6 +10,7 @@ import {
   escapeHtml, labelFromCamelCase, dateFromObject, isMobile, isFirefox, isSafari, hasClass, addClass,
   removeClass, toggleClass, isRemotePhoneCameraAvailable, getImageTypeFromBase64, adjustScreenFull
 } from './utils.js';
+import { cameraManager } from './../cameraManagement';
 
 const Microblink = {
 	SDK: SDK
@@ -252,7 +253,7 @@ function defineComponent() {
           let positionY = this.getBoundingClientRect().top;
           this.autoScrollListener.previousPositionY = positionY;
           if (Math.abs(positionY) < 30 && Math.abs(previousPositionY) > Math.abs(positionY)) {
-            event.preventDefault();
+            // event.preventDefault(); // sometimes causing problems on mobile browser
             if (!this.autoScrollListener.touchEventInit) {
               this.autoScrollListener.touchEventInit = true;
               document.body.style.setProperty('overflow', 'hidden', 'important');
@@ -589,6 +590,8 @@ function defineComponent() {
       return this.fullscreen && screenfull && screenfull.isEnabled && !(isMobile() && isFirefox()) ? screenfull.exit() : Promise.resolve(false);
     }
 
+    // Old way without camera manager
+    /*
     activateLocalCamera() {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         this.shadowRoot.getElementById('cameraLocalBtn').setAttribute('disabled', '');
@@ -603,6 +606,9 @@ function defineComponent() {
           } else {
             video.src = URL.createObjectURL(stream);
           }
+
+          console.log(video);
+          
           video.load();
           setTimeout(() => {
             video.play().catch(() => {
@@ -634,6 +640,60 @@ function defineComponent() {
       } else {
         this.toggleError(true, this.getSlotText('labels.webRtcUnsupported')); //should we fallback to flash?
       }
+    }
+    */
+
+    // New way with camera manager
+    async activateLocalCamera() {
+      let video = this.shadowRoot.getElementById('video');
+      await cameraManager(video)
+        .then(cameraFeed => {
+          this.shadowRoot.getElementById('cameraLocalBtn').setAttribute('disabled', '');
+
+          cameraFeed.controls = true;
+          video.load();
+
+          setTimeout(() => {
+            video.play().catch(() => {
+              addClass(this.shadowRoot.getElementById('photoBtn'), 'hidden');
+              addClass(this.shadowRoot.getElementById('cardPlacer'), 'hidden');
+            });
+          }, 0);
+
+          this.toggleTabs(false);
+          this.clearTabs();
+
+          Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container, .permission, .confirm-image'),
+            elem => toggleClass(toggleClass(elem, 'hidden', !hasClass(elem, 'video')), 'show', hasClass(elem, 'video')));
+        })
+        .catch(error => {
+          this.closeFullscreen();
+          this.onCameraPermissionResolve(false);
+
+          let errorMessage;
+          switch(error.reason) {
+            case 'CameraNotFound':
+              errorMessage = this.getSlotText('labels.notFoundErrorMsg');
+              break;
+            case 'CameraNotAllowed':
+              errorMessage = this.getSlotText('labels.notAllowedErrorMsg');
+              break;
+            case 'CameraNotAvailable':
+              errorMessage = this.getSlotText('labels.cameraNotAvailableErrorMsg');
+              break;
+            case 'CameraInUse':
+              errorMessage = this.getSlotText('labels.cameraInUseErrorMsg');
+              break;
+            case 'MediaDevicesNotSupported':
+              errorMessage = this.getSlotText('labels.webRtcUnsupported');
+              break;
+          }
+
+          this.toggleError(true, errorMessage);
+          this.dispatchEvent('error', new Error('Camera error: ' + error.reason));
+          console.log(error.name + ': ' + error.message);
+        })
+        .finally(() => this.shadowRoot.getElementById('cameraLocalBtn').removeAttribute('disabled'));
     }
 
     flipCamera() {

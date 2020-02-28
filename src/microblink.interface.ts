@@ -20,10 +20,15 @@ export interface IMicroblink {
   SetAuthorization(authorizationHeader: string): void
   GetAuthorization(): string
   SetExportImages(exportImages: boolean | string | string[]): void
+  SetExportFullDocumentImage(exportFullDocumentImage: boolean): void
+  SetExportSignatureImage(exportSignatureImage: boolean): void
+  SetExportFaceImage(exportFaceImage: boolean): void
   SetDetectGlare(detectGlare: boolean): void
+  SetAllowBlurFilter(allowBlurFilter: boolean): void
   SetEndpoint(endpoint: string): void
 
   SetAnonymizeCardNumber(anonymizeCardNumber: boolean): void
+  SetAnonymizeIban(anonymizeCard: boolean): void
   SetAnonymizeCvv(anonymizeCvv: boolean): void
   SetAnonymizeOwner(anonymizeOwner: boolean): void
 
@@ -35,4 +40,6 @@ export interface IMicroblink {
   CreateScanExchanger(scan: ScanExchanger, onUpdate: (scan: ScanExchanger) => void): any
   IsDesktopToMobileAvailable(): Promise<boolean>
   IsRecognizerArraySet(): boolean
+
+  SetAnonymizeNetherlandsMrz(anonymizeNetherlandsMrz: boolean): void
 }
