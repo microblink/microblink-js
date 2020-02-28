@@ -53,7 +53,7 @@ export async function cameraManager(
       try {
         const selectedCamera = await selectCamera(preferredCameraType)
 
-        if (selectedCamera == null) {
+        if (selectedCamera === null) {
           reject(new CameraManagerError(NotSupportedReason.CameraNotFound))
 
           return
@@ -226,7 +226,7 @@ async function selectCamera(
       let selectedCameraIndex = 0
       const cameraResolutions: number[] = cameraPool.map(camera => {
         const match = camera.label.match(/\b([0-9]+)MP?\b/i)
-        if (match != null) {
+        if (match !== null) {
           return parseInt(match[1], 10)
         } else {
           return NaN

@@ -84,8 +84,12 @@ export default class Microblink implements IMicroblink {
     // NOTE: error callback should be defined to handle Uncaught exception
     // tslint:disable-next-line:no-empty
     this.scan(scanInputFile.blob, true, uploadProgress).subscribe(
-      () => {},
-      () => {}
+      () => {
+        /** */
+      },
+      () => {
+        /** */
+      }
     )
   }
 
@@ -122,8 +126,12 @@ export default class Microblink implements IMicroblink {
       // NOTE: error callback should be defined to handle Uncaught exception
       // tslint:disable-next-line:no-empty
       this.scan(bestFrame.blob, false).subscribe(
-        () => {},
-        () => {}
+        () => {
+          /** */
+        },
+        () => {
+          /** */
+        }
       )
     }
   }
