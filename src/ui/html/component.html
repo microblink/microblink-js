@@ -803,28 +803,30 @@
     <h2 id="generating-exchange-link"><slot name="labels.generatingExchangeLink">Generating exchange link...</slot></h2>
     <h2 id="exchange-link-title"><slot name="labels.exchangeLinkTitle">Exchange link is</slot></h2>
 
-    <button type="button" id="cancelBtnRemoteCamera" >
-      <svg width="100%" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <g filter="url(#filter0_dd)">
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M16.0004 13.8786L24.2731 5.60596L26.3944 7.72728L18.1218 16L26.3944 24.2726L24.2731 26.3939L16.0004 18.1213L7.72777 26.3939L5.60645 24.2726L13.8791 16L5.60645 7.72728L7.72777 5.60596L16.0004 13.8786Z" fill="white"/>
-        </g>
-        <defs>
-        <filter id="filter0_dd" x="1.60645" y="1.60596" width="28.788" height="28.788" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-        <feFlood flood-opacity="0" result="BackgroundImageFix"/>
-        <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
-        <feOffset/>
-        <feGaussianBlur stdDeviation="2"/>
-        <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
-        <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow"/>
-        <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
-        <feOffset dy="1"/>
-        <feGaussianBlur stdDeviation="1"/>
-        <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
-        <feBlend mode="normal" in2="effect1_dropShadow" result="effect2_dropShadow"/>
-        <feBlend mode="normal" in="SourceGraphic" in2="effect2_dropShadow" result="shape"/>
-        </filter>
-        </defs>
-      </svg>
+    <button type="button" id="cancelBtnRemoteCamera">
+      <slot name="cancel-btn-remote-camera">
+        <svg width="100%" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g filter="url(#filter0_dd)">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M16.0004 13.8786L24.2731 5.60596L26.3944 7.72728L18.1218 16L26.3944 24.2726L24.2731 26.3939L16.0004 18.1213L7.72777 26.3939L5.60645 24.2726L13.8791 16L5.60645 7.72728L7.72777 5.60596L16.0004 13.8786Z" fill="white"/>
+          </g>
+          <defs>
+          <filter id="filter0_dd" x="1.60645" y="1.60596" width="28.788" height="28.788" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+          <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+          <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
+          <feOffset/>
+          <feGaussianBlur stdDeviation="2"/>
+          <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
+          <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow"/>
+          <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
+          <feOffset dy="1"/>
+          <feGaussianBlur stdDeviation="1"/>
+          <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
+          <feBlend mode="normal" in2="effect1_dropShadow" result="effect2_dropShadow"/>
+          <feBlend mode="normal" in="SourceGraphic" in2="effect2_dropShadow" result="shape"/>
+          </filter>
+          </defs>
+        </svg>
+      </slot>
     </button>
 
     <div class="loader-img">
@@ -959,15 +961,17 @@
   <div style="display: none;">
     <slot name="buttons.tryAgain">TRY AGAIN</slot>
     <slot name="labels.errorMsg">We're sorry, but something went wrong. Please try again.</slot>
-    <slot name="labels.notFoundErrorMsg">No camera was found on your device</slot>
-    <slot name="labels.notAllowedErrorMsg">You have denied camera access permission</slot>
-    <slot name="labels.scanningFinishedNoDataTitle">Document not recognized</slot>
-    <slot name="labels.scanningFinishedNoDataMessage">Please try again with a supported document or select a different document type</slot>
-    <slot name="labels.unsupportedFileType">Unsupported file type</slot>
-    <slot name="labels.selectDocumentType">Please select one or more document types to start scanning</slot>
-    <slot name="labels.noDocumentType">No document type selected</slot>
-    <slot name="labels.webRtcUnsupported">WebRTC not supported by your browser</slot>
-    <slot name="labels.fileSizeLimitExceeded">Maximum file size is 15 MB</slot>
+    <slot name="labels.notFoundErrorMsg">No camera was found on your device.</slot>
+    <slot name="labels.notAllowedErrorMsg">You have denied camera access permission.</slot>
+    <slot name="labels.cameraNotAvailableErrorMsg">Camera is not available at this moment.</slot>
+    <slot name="labels.cameraInUseErrorMsg">Camera is already in use.</slot>
+    <slot name="labels.scanningFinishedNoDataTitle">Document not recognized.</slot>
+    <slot name="labels.scanningFinishedNoDataMessage">Please try again with a supported document or select a different document type.</slot>
+    <slot name="labels.unsupportedFileType">Unsupported file type.</slot>
+    <slot name="labels.selectDocumentType">Please select one or more document types to start scanning.</slot>
+    <slot name="labels.noDocumentType">No document type selected.</slot>
+    <slot name="labels.webRtcUnsupported">WebRTC not supported by your browser.</slot>
+    <slot name="labels.fileSizeLimitExceeded">Maximum file size is 15 MB.</slot>
   </div>
 </div>
 

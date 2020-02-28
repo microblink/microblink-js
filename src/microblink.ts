@@ -32,8 +32,14 @@ export default class Microblink implements IMicroblink {
   private recognizers: string | string[] = []
   private authorizationHeader: string = ''
   private exportImages: boolean | string | string[] = false
+  private exportFullDocumentImage: boolean = false
+  private exportSignatureImage: boolean = false
+  private exportFaceImage: boolean = false
   private detectGlare: boolean = false
+  private allowBlurFilter: boolean = false
+  private anonymizeNetherlandsMrz: boolean = false
   private anonymizeCardNumber: boolean = false
+  private anonymizeIban: boolean = false
   private anonymizeCvv: boolean = false
   private anonymizeOwner: boolean = false
   private listeners: ScanListener[] = []
@@ -77,7 +83,10 @@ export default class Microblink implements IMicroblink {
     // Call observable with empty callback because global listener will handle result
     // NOTE: error callback should be defined to handle Uncaught exception
     // tslint:disable-next-line:no-empty
-    this.scan(scanInputFile.blob, true, uploadProgress).subscribe(() => {}, () => {})
+    this.scan(scanInputFile.blob, true, uploadProgress).subscribe(
+      () => {},
+      () => {}
+    )
   }
 
   /**
@@ -112,7 +121,10 @@ export default class Microblink implements IMicroblink {
       // Call observable with empty callback because global listener will handle result
       // NOTE: error callback should be defined to handle Uncaught exception
       // tslint:disable-next-line:no-empty
-      this.scan(bestFrame.blob, false).subscribe(() => {}, () => {})
+      this.scan(bestFrame.blob, false).subscribe(
+        () => {},
+        () => {}
+      )
     }
   }
 
@@ -162,12 +174,48 @@ export default class Microblink implements IMicroblink {
   }
 
   /**
+   * Change which images to export for next request
+   * @param exportFullDocumentImage is a boolean flag which describes whether API should return extracted full document image in next response
+   */
+  SetExportFullDocumentImage(exportFullDocumentImage: boolean): void {
+    this.exportFullDocumentImage = exportFullDocumentImage
+    this.API.SetExportFullDocumentImage(exportFullDocumentImage)
+  }
+
+  /**
+   * Change which images to export for next request
+   * @param exportSignatureImage is a boolean flag which describes whether API should return extracted signature image in next response
+   */
+  SetExportSignatureImage(exportSignatureImage: boolean): void {
+    this.exportSignatureImage = exportSignatureImage
+    this.API.SetExportSignatureImage(exportSignatureImage)
+  }
+
+  /**
+   * Change which images to export for next request
+   * @param exportFaceImage is a boolean flag which describes whether API should return extracted face image in next response
+   */
+  SetExportFaceImage(exportFaceImage: boolean): void {
+    this.exportFaceImage = exportFaceImage
+    this.API.SetExportFaceImage(exportFaceImage)
+  }
+
+  /**
    * Set detect glare option for next request
    * @param detectGlare is a boolean flag which describes whether API should return null for image segments where glare is detected
    */
   SetDetectGlare(detectGlare: boolean): void {
     this.detectGlare = detectGlare
     this.API.SetDetectGlare(detectGlare)
+  }
+
+  /**
+   * Set allow blur filter option for next request
+   * @param allowBlurFilter is a boolean flag which describes whether API should return null for image segments where blur is detected
+   */
+  SetAllowBlurFilter(allowBlurFilter: boolean): void {
+    this.allowBlurFilter = allowBlurFilter
+    this.API.SetAllowBlurFilter(allowBlurFilter)
   }
 
   /**
@@ -188,6 +236,15 @@ export default class Microblink implements IMicroblink {
   SetAnonymizeCardNumber(anonymizeCardNumber: boolean): void {
     this.anonymizeCardNumber = anonymizeCardNumber
     this.API.SetAnonymizeCardNumber(anonymizeCardNumber)
+  }
+
+  /**
+   * Set anonymize IBAN (works on BLINK_CARD recognizer) for next request
+   * @param anonymizeIbanNumber is a boolean flag which describes whether API should return a base64 image of the scanned card with the IBAN number anonymized
+   */
+  SetAnonymizeIban(anonymizeIban: boolean): void {
+    this.anonymizeIban = anonymizeIban
+    this.API.SetAnonymizeIban(anonymizeIban)
   }
 
   /**
@@ -227,6 +284,15 @@ export default class Microblink implements IMicroblink {
   }
 
   /**
+   * Set anonymize netherlandsMrz (works on BLINK_CARD recognizer) for next request
+   * @param anonymizeNetherlandsMrz is a boolean flag which describes whether API should return a base64 image of the scanned card with the netherlands MRZ anonymized
+   */
+  SetAnonymizeNetherlandsMrz(anonymizeNetherlandsMrz: boolean): void {
+    this.anonymizeNetherlandsMrz = anonymizeNetherlandsMrz
+    this.API.SetAnonymizeNetherlandsMrz(anonymizeNetherlandsMrz)
+  }
+
+  /**
    * Check is all requirement for desktop-to-mobile feature are available
    */
   async IsDesktopToMobileAvailable(): Promise<boolean> {
@@ -262,11 +328,17 @@ export default class Microblink implements IMicroblink {
     data.recognizers = this.recognizers
     data.authorizationHeader = this.authorizationHeader // it is encrypted
     data.exportImages = this.exportImages
+    data.exportFullDocumentImage = this.exportFullDocumentImage
+    data.exportSignatureImage = this.exportSignatureImage
+    data.exportFaceImage = this.exportFaceImage
     data.detectGlare = this.detectGlare
+    data.allowBlurFilter = this.allowBlurFilter
     data.anonymizeCardNumber = this.anonymizeCardNumber
+    data.anonymizeIban = this.anonymizeIban
     data.anonymizeCvv = this.anonymizeCvv
     data.anonymizeOwner = this.anonymizeOwner
     data.endpoint = this.endpoint
+    data.anonymizeNetherlandsMrz = this.anonymizeNetherlandsMrz
 
     // Generate Secret key
     // Generate random 32 long string

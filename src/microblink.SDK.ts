@@ -97,11 +97,43 @@ export namespace SDK {
   }
 
   /**
+   * Change which images to export for next request
+   * @param exportFullDocumentImage is a boolean flag which describes whether API should return extracted full document image in next response
+   */
+  export function SetExportFullDocumentImage(exportFullDocumentImage: boolean): void {
+    SDK.SetExportFullDocumentImage(exportFullDocumentImage)
+  }
+
+  /**
+   * Change which images to export for next request
+   * @param exportSignatureImage is a boolean flag which describes whether API should return extracted signature image in next response
+   */
+  export function SetExportSignatureImage(exportSignatureImage: boolean): void {
+    SDK.SetExportSignatureImage(exportSignatureImage)
+  }
+
+  /**
+   * Change which images to export for next request
+   * @param exportFaceImage is a boolean flag which describes whether API should return extracted face image in next response
+   */
+  export function SetExportFaceImage(exportFaceImage: boolean): void {
+    SDK.SetExportFaceImage(exportFaceImage)
+  }
+
+  /**
    * Set detect glare option for next request
    * @param detectGlare is a boolean flag which describes whether API should return null for image segments where glare is detected
    */
   export function SetDetectGlare(detectGlare: boolean): void {
     SDK.SetDetectGlare(detectGlare)
+  }
+
+  /**
+   * Set allow blur filter option for next request
+   * @param allowBlurFilter is a boolean flag which describes whether API should return null for image segments where blur is detected
+   */
+  export function SetAllowBlurFilter(allowBlurFilter: boolean): void {
+    SDK.SetAllowBlurFilter(allowBlurFilter)
   }
 
   /**
@@ -120,6 +152,14 @@ export namespace SDK {
   }
 
   /**
+   * Set anonymize IBAN (works on BLINK_CARD recognizer) for next request
+   * @param anonymizeIbanNumber is a boolean flag which describes whether API should return a base64 image of the scanned card with the card number anonymized
+   */
+  export function SetAnonymizeIban(anonymizeIban: boolean): void {
+    SDK.SetAnonymizeIban(anonymizeIban)
+  }
+
+  /**
    * Set anonymize cvv (works on BLINK_CARD recognizer) for next request
    * @param anonymizeCvv is a boolean flag which describes whether API should return a base64 image of the scanned card with the cvv number anonymized
    */
@@ -133,6 +173,14 @@ export namespace SDK {
    */
   export function SetAnonymizeOwner(anonymizeOwner: boolean): void {
     SDK.SetAnonymizeOwner(anonymizeOwner)
+  }
+
+  /**
+   * Set anonymize netherlandsMrz (works on BLINK_CARD recognizer) for next request
+   * @param anonymizeNetherlandsMrz is a boolean flag which describes whether API should return a base64 image of the scanned card with the netherlands MRZ anonymized
+   */
+  export function SetAnonymizeNetherlandsMrz(anonymizeNetherlandsMrz: boolean): void {
+    SDK.SetAnonymizeNetherlandsMrz(anonymizeNetherlandsMrz)
   }
 
   /**

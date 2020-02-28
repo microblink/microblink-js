@@ -11,11 +11,17 @@ const DEFAULT_ENDPOINT = 'https://api.microblink.com'
 export default class MicroblinkApi implements IMicroblinkApi {
   private authorizationHeader = ''
   private exportImages: boolean | string | string[] = false
+  private exportFullDocumentImage: boolean = false
+  private exportSignatureImage: boolean = false
+  private exportFaceImage: boolean = false
   private detectGlare: boolean = false
   private endpoint: string
   private anonymizeCardNumber: boolean = false
+  private anonymizeIban: boolean = false
   private anonymizeCvv: boolean = false
   private anonymizeOwner: boolean = false
+  private allowBlurFilter: boolean = false
+  private anonymizeNetherlandsMrz: boolean = false
   private activeRequests: XMLHttpRequest[] = []
   private userId: string = ''
   private isDataPersistingEnabled = true
@@ -51,11 +57,43 @@ export default class MicroblinkApi implements IMicroblinkApi {
   }
 
   /**
+   * Change which images to export for next request
+   * @param exportFullDocumentImage is a boolean flag which describes whether API should return extracted full document image in next response
+   */
+  SetExportFullDocumentImage(exportFullDocumentImage: boolean): void {
+    this.exportFullDocumentImage = exportFullDocumentImage
+  }
+
+  /**
+   * Change which images to export for next request
+   * @param exportSignatureImage is a boolean flag which describes whether API should return extracted signature image in next response
+   */
+  SetExportSignatureImage(exportSignatureImage: boolean): void {
+    this.exportSignatureImage = exportSignatureImage
+  }
+
+  /**
+   * Change which images to export for next request
+   * @param exportFaceImage is a boolean flag which describes whether API should return extracted face image in next response
+   */
+  SetExportFaceImage(exportFaceImage: boolean): void {
+    this.exportFaceImage = exportFaceImage
+  }
+
+  /**
    * Set detect glare option for next request
    * @param detectGlare is a boolean flag which describes whether API should return null for image segments where glare is detected
    */
   SetDetectGlare(detectGlare: boolean): void {
     this.detectGlare = detectGlare
+  }
+
+  /**
+   * Set allow blur filter option for next request
+   * @param allowBlurFilter is a boolean flag which describes whether API should return null for image segments where blur is detected
+   */
+  SetAllowBlurFilter(allowBlurFilter: boolean): void {
+    this.allowBlurFilter = allowBlurFilter
   }
 
   /**
@@ -72,6 +110,14 @@ export default class MicroblinkApi implements IMicroblinkApi {
    */
   SetAnonymizeCardNumber(anonymizeCardNumber: boolean): void {
     this.anonymizeCardNumber = anonymizeCardNumber
+  }
+
+  /**
+   * Set anonymize card number (works on BLINK_CARD recognizer) for next request
+   * @param anonymizeIbanNumber is a boolean flag which describes whether API should return a base64 image of the scanned card with the card number anonymized
+   */
+  SetAnonymizeIban(anonymizeIban: boolean): void {
+    this.anonymizeIban = anonymizeIban
   }
 
   /**
@@ -99,13 +145,21 @@ export default class MicroblinkApi implements IMicroblinkApi {
   }
 
   /**
-   * When Authorization is not set it is available to disable persiting of uploaded data, by default it is enabled
+   * When Authorization is not set it is available to disable persisting of uploaded data, by default it is enabled
    * this should be disabled for every page where GDPR is not implemented and this is ability to disable data persisting
    * on some demo pages
    * @param isEnabled is flag which describes should or should not API persist uploaded data, be default it is enabled
    */
   SetIsDataPersistingEnabled(isEnabled: boolean): void {
     this.isDataPersistingEnabled = isEnabled
+  }
+
+  /**
+   * Set anonymize netherlandsMrz (works on BLINK_CARD recognizer) for next request
+   * @param anonymizeNetherlandsMrz is a boolean flag which describes whether API should return a base64 image of the scanned card with the netherlands MRZ anonymized
+   */
+  SetAnonymizeNetherlandsMrz(anonymizeNetherlandsMrz: boolean): void {
+    this.anonymizeNetherlandsMrz = anonymizeNetherlandsMrz
   }
 
   /**
@@ -137,14 +191,39 @@ export default class MicroblinkApi implements IMicroblinkApi {
         body['exportImages'] = this.exportImages
       }
 
+      // Export full document image flag set if it is enabled
+      if (this.exportFullDocumentImage) {
+        body['exportFullDocumentImage'] = true
+      }
+
+      // Export signature image flag set if it is enabled
+      if (this.exportSignatureImage) {
+        body['exportSignatureImage'] = true
+      }
+
+      // Export face image flag set if it is enabled
+      if (this.exportFaceImage) {
+        body['exportFaceImage'] = true
+      }
+
       // Detect glare flag set if it is enabled
       if (this.detectGlare) {
         body['detectGlare'] = true
       }
 
+      // Detect blur flag set if it is enabled
+      if (this.allowBlurFilter) {
+        body['allowBlurFilter'] = true
+      }
+
       // Anonymize card number flag set if it is enabled
       if (this.anonymizeCardNumber) {
         body['anonymizeCardNumber'] = true
+      }
+
+      // Anonymize IBAN number flag set if it is enabled
+      if (this.anonymizeIban) {
+        body['anonymizeIban'] = true
       }
 
       // Anonymize cvv flag set if it is enabled
@@ -165,6 +244,11 @@ export default class MicroblinkApi implements IMicroblinkApi {
       // If it is set to FALSE then set disable data persisting flag
       if (this.isDataPersistingEnabled === false) {
         body['disableDataPersisting'] = true
+      }
+
+      // If it is set to FALSE then set disable data persisting flag
+      if (this.anonymizeNetherlandsMrz) {
+        body['anonymizeNetherlandsMrz'] = true
       }
 
       // Body data should be send as stringified JSON and as Content-type=application/json
