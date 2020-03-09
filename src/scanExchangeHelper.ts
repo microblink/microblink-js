@@ -10,7 +10,7 @@ const FIRESTORE_COLLECTION_ID = 'scans'
 try {
   // NOTE: avoid use of shortcut `firestore` instead of `firebase.firestore()` beacause this produce error in
   // Codepen and jsFiddle environment!
-  //const settings = { timestampsInSnapshots: true } // deprecated, new firebase version released
+  // const settings = { timestampsInSnapshots: true } // deprecated, new firebase version released
   firebase.firestore().settings({})
 } catch (e) {
   /* tslint:disable:no-empty */
