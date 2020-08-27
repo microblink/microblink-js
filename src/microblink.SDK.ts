@@ -84,9 +84,9 @@ export namespace SDK {
   /**
    * Get authorization header which is defined in the SDK
    */
-  // export function GetAuthorization(): string {
-  //   return SDK.GetAuthorization()
-  // }
+  export function GetAuthorization(): string {
+    return SDK.GetAuthorization()
+  }
 
   /**
    * Change which images to export for next request
@@ -267,5 +267,35 @@ export namespace SDK {
    */
   export function IsRecognizerArraySet(): boolean {
     return SDK.IsRecognizerArraySet()
+  }
+
+  /**
+   * Set up complete request for specific recognizer
+   */
+  export function SetupRecognizerRequest(recognizer: string): void {
+    const baseURL = 'https://stagingapi.microblink.com/v1/recognizers'
+    let endpoint = ''
+
+    switch (recognizer) {
+      case 'BlinkID':
+        endpoint = baseURL + '/blinkid'
+        break
+      case 'IdBarcode':
+        endpoint = baseURL + '/id-barcode'
+        break
+      case 'MRTD':
+        endpoint = baseURL + '/mrtd'
+        break
+      case 'Passport':
+        endpoint = baseURL + '/passport'
+        break
+      case 'Visa':
+        endpoint = baseURL + '/visa'
+        break
+    }
+
+    SDK.SetRecognizers(recognizer)
+    SDK.SetEndpoint(endpoint)
+    SDK.ActivateSaaS(true)
   }
 }

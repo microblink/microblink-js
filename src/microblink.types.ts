@@ -80,6 +80,7 @@ export interface ScanExchanger {
   anonymizeOwner?: boolean
   endpoint?: string
   anonymizeNetherlandsMrz?: boolean
+  saasIsActive?: boolean
 }
 
 export enum ScanExchangerCodes {
