@@ -49,13 +49,13 @@
     <script>
 
       /*
-      * Use this method only if using On prem docker
-      * Multiple recognizers are allowed here if using On prem docker
+      * Use this method only if using Self-hosted API
+      * Multiple recognizers are allowed here if using Self-hosted API
       */
       Microblink.SDK.SetRecognizers(['MRTD']);
 
-      /* 
-      * If using On prem docker then setting endpoint is required
+      /*
+      * If using Self-hosted API then setting endpoint is required
       * It is required to set endpoint where Microblink API is available
       */
       //Microblink.SDK.SetEndpoint('http://localhost:8081');
@@ -70,12 +70,12 @@
        * Microblink.SDK.SetupRecognizerRequest('BlinkID');
        * or
        * Microblink.SDK.SetupRecognizerRequest('IdBarcode');
-       * or 
+       * or
        * Microblink.SDK.SetupRecognizerRequest('Passport');
        * ...
        */
       Microblink.SDK.SetupRecognizerRequest('MRTD');
-      
+
       Microblink.SDK.SetUserId('test-user-id@microblink.com');
       //Microblink.SDK.SetAuthorization('Bearer MDY0YWNlMGNiN2IzNGUwZTk4YWVmMDVhZDEyOGJjY2E6Mzk5NzNkNDUtYjg4MS00OWE1LTlhMTItYmEzYTRkNmYzY2Fj');
 
