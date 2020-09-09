@@ -49,29 +49,29 @@
     <script>
 
       /*
-      * Use this method only if using Self-hosted API
+      * Use this method if using Self-hosted API
       * Multiple recognizers are allowed here if using Self-hosted API
       */
-      Microblink.SDK.SetRecognizers(['MRTD']);
+      //Microblink.SDK.SetRecognizers(['MRTD']);
 
       /*
       * If using Self-hosted API then setting endpoint is required
-      * It is required to set endpoint where Microblink API is available
+      * It is required to set endpoint where Self-hosted API is available
       */
       //Microblink.SDK.SetEndpoint('http://localhost:8081');
 
       /*
        * Set request parameters for desired recognizer
-       * Setup this method only if you want to use our SaaS, otherwise just put this methods inside comment
+       * Setup this method only if you want to use our Cloud API, otherwise just put this methods inside comment
        * This method will override Microblink.SDK.SetRecognizers() and Microblink.SDK.SetEndpoint() methods
-       * Only one recognizer iz allowed as argument
-       * Available recognizers are (BlinkID, IdBarcode, MRTD, Passport, Visa)
+       * Only one recognizer iz allowed to be used
+       * Available recognizers are (BLINK_ID, ID_BARCODE, MRTD, PASSPORT, VISA, MRZ_ID)
        * Examples:
-       * Microblink.SDK.SetupRecognizerRequest('BlinkID');
+       * Microblink.SDK.SetupRecognizerRequest('BLINK_ID');
        * or
-       * Microblink.SDK.SetupRecognizerRequest('IdBarcode');
+       * Microblink.SDK.SetupRecognizerRequest('ID_BARCODE');
        * or
-       * Microblink.SDK.SetupRecognizerRequest('Passport');
+       * Microblink.SDK.SetupRecognizerRequest('PASSPORT');
        * ...
        */
       Microblink.SDK.SetupRecognizerRequest('MRTD');

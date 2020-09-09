@@ -273,24 +273,27 @@ export namespace SDK {
    * Set up complete request for specific recognizer
    */
   export function SetupRecognizerRequest(recognizer: string): void {
-    const baseURL = 'https://stagingapi.microblink.com/v1/recognizers'
+    const baseURL = 'https://api.microblink.com/v1/recognizers'
     let endpoint = ''
 
     switch (recognizer) {
-      case 'BlinkID':
+      case 'BLINK_ID':
         endpoint = baseURL + '/blinkid'
         break
-      case 'IdBarcode':
+      case 'ID_BARCODE':
         endpoint = baseURL + '/id-barcode'
         break
       case 'MRTD':
         endpoint = baseURL + '/mrtd'
         break
-      case 'Passport':
+      case 'PASSPORT':
         endpoint = baseURL + '/passport'
         break
-      case 'Visa':
+      case 'VISA':
         endpoint = baseURL + '/visa'
+        break
+      case 'MRZ_ID':
+        endpoint = baseURL + '/mrz-id'
         break
     }
 

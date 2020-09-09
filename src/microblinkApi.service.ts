@@ -299,10 +299,11 @@ export default class MicroblinkApi implements IMicroblinkApi {
               observer.error(responseBody)
             }
           } catch (err) {
-            if (uploadProgress && this.status === 0) {
+            if (this.status === 0) {
               responseBody = {
-                code: StatusCodes.TimedOut,
-                message: 'Connection timed out. Please try again.'
+                code: StatusCodes.NotFound,
+                message:
+                  'Please first check your endpoint URL and try again. If using our Cloud API check if SDK setup is correct. Also check our Codepen example.'
               }
             } else {
               responseBody = {
@@ -318,6 +319,15 @@ export default class MicroblinkApi implements IMicroblinkApi {
 
       xhr.onerror = error => {
         observer.error(error)
+      }
+
+      xhr.ontimeout = error => {
+        let responseBody = null
+        responseBody = {
+          code: StatusCodes.TimedOut,
+          message: 'Connection timed out. Please try again.'
+        }
+        observer.error(responseBody)
       }
 
       if (uploadProgress) {
