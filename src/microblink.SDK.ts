@@ -270,6 +270,13 @@ export namespace SDK {
   }
 
   /**
+   * Manually activate Cloud API feature from outside
+   */
+  export function UseCloudAPI(): void {
+    SDK.ActivateSaaS(true)
+  }
+
+  /**
    * Set up complete request for specific recognizer
    */
   export function SetupRecognizerRequest(recognizer: string): void {
