@@ -321,7 +321,7 @@ export default class MicroblinkApi implements IMicroblinkApi {
         observer.error(error)
       }
 
-      xhr.ontimeout = error => {
+      xhr.ontimeout = () => {
         let responseBody = null
         responseBody = {
           code: StatusCodes.TimedOut,
