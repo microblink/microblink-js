@@ -27,4 +27,5 @@ export interface IMicroblinkApi {
   SetAllowBlurFilter(allowBlurFilter: boolean): void
 
   SetAnonymizeNetherlandsMrz(anonymizeNetherlandsMrz: boolean): void
+  ActivateSaaS(activateSaaS: boolean): void
 }

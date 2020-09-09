@@ -45,6 +45,7 @@ export default class Microblink implements IMicroblink {
   private listeners: ScanListener[] = []
   private scanFrameQueue: ScanInputFrameWithQuality[] = []
   private endpoint: string = ''
+  private saasIsActive: boolean = false
 
   constructor() {
     this.API = new MicroblinkApi()
@@ -307,6 +308,11 @@ export default class Microblink implements IMicroblink {
     return this.isDesktopToMobileAvailable()
   }
 
+  ActivateSaaS(activateSaaS: boolean): void {
+    this.saasIsActive = activateSaaS
+    this.API.ActivateSaaS(activateSaaS)
+  }
+
   /**
    * Check if any recognizer is set in the recognizers array
    */
@@ -347,6 +353,7 @@ export default class Microblink implements IMicroblink {
     data.anonymizeOwner = this.anonymizeOwner
     data.endpoint = this.endpoint
     data.anonymizeNetherlandsMrz = this.anonymizeNetherlandsMrz
+    data.saasIsActive = this.saasIsActive
 
     // Generate Secret key
     // Generate random 32 long string
@@ -455,7 +462,7 @@ export default class Microblink implements IMicroblink {
    * Notify all global listeners when success scan is complete
    */
   private notifyOnSuccessListeners(scanOutput: ScanOutput, isFileScan: boolean): void {
-    const data: any = scanOutput.result.data
+    const data: any = this.saasIsActive ? scanOutput : scanOutput.result.data
     let isSuccessfulResponse = false
 
     // check if it is fetched data array of results
@@ -467,7 +474,7 @@ export default class Microblink implements IMicroblink {
       })
     } else {
       // otherwise it is returned result as object
-      const result = data.result
+      const result = this.saasIsActive ? data.result.result : data.result
       if (result) {
         isSuccessfulResponse = true
       }

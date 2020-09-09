@@ -84,9 +84,9 @@ export namespace SDK {
   /**
    * Get authorization header which is defined in the SDK
    */
-  // export function GetAuthorization(): string {
-  //   return SDK.GetAuthorization()
-  // }
+  export function GetAuthorization(): string {
+    return SDK.GetAuthorization()
+  }
 
   /**
    * Change which images to export for next request
@@ -267,5 +267,38 @@ export namespace SDK {
    */
   export function IsRecognizerArraySet(): boolean {
     return SDK.IsRecognizerArraySet()
+  }
+
+  /**
+   * Set up complete request for specific recognizer
+   */
+  export function SetupRecognizerRequest(recognizer: string): void {
+    const baseURL = 'https://api.microblink.com/v1/recognizers'
+    let endpoint = ''
+
+    switch (recognizer) {
+      case 'BLINK_ID':
+        endpoint = baseURL + '/blinkid'
+        break
+      case 'ID_BARCODE':
+        endpoint = baseURL + '/id-barcode'
+        break
+      case 'MRTD':
+        endpoint = baseURL + '/mrtd'
+        break
+      case 'PASSPORT':
+        endpoint = baseURL + '/passport'
+        break
+      case 'VISA':
+        endpoint = baseURL + '/visa'
+        break
+      case 'MRZ_ID':
+        endpoint = baseURL + '/mrz-id'
+        break
+    }
+
+    SDK.SetRecognizers(recognizer)
+    SDK.SetEndpoint(endpoint)
+    SDK.ActivateSaaS(true)
   }
 }

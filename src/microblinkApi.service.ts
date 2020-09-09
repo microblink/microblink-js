@@ -25,6 +25,7 @@ export default class MicroblinkApi implements IMicroblinkApi {
   private activeRequests: XMLHttpRequest[] = []
   private userId: string = ''
   private isDataPersistingEnabled = true
+  private saasIsActive: boolean = false
 
   constructor() {
     this.endpoint = DEFAULT_ENDPOINT
@@ -162,6 +163,10 @@ export default class MicroblinkApi implements IMicroblinkApi {
     this.anonymizeNetherlandsMrz = anonymizeNetherlandsMrz
   }
 
+  ActivateSaaS(activateSaaS: boolean): void {
+    this.saasIsActive = activateSaaS
+  }
+
   /**
    * Execute remote recognition
    * @param recognizers is string or array of strings on which image will be processed
@@ -175,8 +180,11 @@ export default class MicroblinkApi implements IMicroblinkApi {
   ): Observable<any> {
     return new Observable((observer: Observer<any>) => {
       // Image should be as Base64 encoded file
-      const body: any = {
-        imageBase64: imageBase64
+      let body: any = {}
+      if (this.saasIsActive) {
+        body = { imageSource: imageBase64 }
+      } else {
+        body = { imageBase64: imageBase64 }
       }
 
       // Recognizers could be one defined as string or multiple defined as string array
@@ -262,7 +270,13 @@ export default class MicroblinkApi implements IMicroblinkApi {
         // set timeout for file uploading
         xhr.timeout = 40000
       }
-      xhr.open('POST', this.endpoint + '/recognize/execute')
+
+      if (this.saasIsActive) {
+        xhr.open('POST', this.endpoint)
+      } else {
+        xhr.open('POST', this.endpoint + '/recognize/execute')
+      }
+
       xhr.setRequestHeader('Content-Type', 'application/json')
 
       // When Authorization header is not set results will be masked on server-side
@@ -285,10 +299,11 @@ export default class MicroblinkApi implements IMicroblinkApi {
               observer.error(responseBody)
             }
           } catch (err) {
-            if (uploadProgress && this.status === 0) {
+            if (this.status === 0) {
               responseBody = {
-                code: StatusCodes.TimedOut,
-                message: 'Connection timed out. Please try again.'
+                code: StatusCodes.NotFound,
+                message:
+                  'Please first check your endpoint URL and try again. If using our Cloud API check if SDK setup is correct. Also check our Codepen example.'
               }
             } else {
               responseBody = {
@@ -304,6 +319,15 @@ export default class MicroblinkApi implements IMicroblinkApi {
 
       xhr.onerror = error => {
         observer.error(error)
+      }
+
+      xhr.ontimeout = () => {
+        let responseBody = null
+        responseBody = {
+          code: StatusCodes.TimedOut,
+          message: 'Connection timed out. Please try again.'
+        }
+        observer.error(responseBody)
       }
 
       if (uploadProgress) {

@@ -823,69 +823,148 @@ function defineComponent() {
     }
 
     fillResultTable(json) {
-      if (!json || !json.data) return;
+      if (!json) return;
+
       removeClass(this.shadowRoot.querySelector('.error-container'), 'show');
-      let data = json.data instanceof Array ? json.data : [json.data];
+      let data = json.data ? json.data instanceof Array ? json.data : [json.data] : json;
       let innerHtml = '';
-      let resultsMasked = json.summary.search(/Authorization header is missing/gi) !== -1;
-      data.forEach(({ recognizer, result }) => {
-        if (!result) return;
+      let resultsMasked = Microblink.SDK.GetAuthorization() !== '' ? false : true;
 
-        let faceImageElement = '';
-        if (result.faceImageBase64 !== undefined) {
-          if (resultsMasked) {
-            faceImageElement = '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAQAAADa613fAAAAa0lEQVR42u3PMREAAAgEIL9/WwtoBHcPGpCeeiEiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIpcFKjbCiZfrjTwAAAAASUVORK5CYII="/>';
+      if (json.data) {
+        data.forEach(({ recognizer, result }) => {
+          if (!result) return;
+  
+          let faceImageElement = '';
+          if (result.faceImageBase64 !== undefined) {
+            if (resultsMasked) {
+              faceImageElement = '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAQAAADa613fAAAAa0lEQVR42u3PMREAAAgEIL9/WwtoBHcPGpCeeiEiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIpcFKjbCiZfrjTwAAAAASUVORK5CYII="/>';
+            } else {
+              faceImageElement = `<img src="data:image/${getImageTypeFromBase64(result.faceImageBase64)};base64,${result.faceImageBase64}"/>`;
+            }
+          }
+  
+          let fullName;
+          if (result.lastName !== undefined && result.firstName !== undefined) {
+            fullName = result.lastName + ' ' + result.firstName;
+          } else if (result.primaryID !== undefined && result.secondaryID !== undefined) {
+            fullName = result.primaryID + ' ' + result.secondaryID;
           } else {
-            faceImageElement = `<img src="data:image/${getImageTypeFromBase64(result.faceImageBase64)};base64,${result.faceImageBase64}"/>`;
+            fullName = '';
           }
-        }
-
-        let fullName;
-        if (result.lastName !== undefined && result.firstName !== undefined) {
-          fullName = result.lastName + ' ' + result.firstName;
-        } else if (result.primaryID !== undefined && result.secondaryID !== undefined) {
-          fullName = result.primaryID + ' ' + result.secondaryID;
-        } else {
-          fullName = '';
-        }
-
-        innerHtml += `<div class="resultTable">
-              <div class="row heading">
-                <div class="faceImage">${faceImageElement}</div>
-                <div class="headingText">
-                  <div class="fullName">${fullName}</div>
-                  <div class="recognizerType">${recognizer}</div>
-                </div>
-              </div>`;
-
-        Object.keys(result).forEach(key => {
-          if (!key.includes('Base64')) {
-            innerHtml += `<div class="row"><div class="label">${labelFromCamelCase(key)}</div>
-                    <div class="content">${result[key] instanceof Object ? dateFromObject(result[key]) : escapeHtml(result[key])}</div>
-                  </div>`;
+  
+          innerHtml += `<div class="resultTable">
+                <div class="row heading">
+                  <div class="faceImage">${faceImageElement}</div>
+                  <div class="headingText">
+                    <div class="fullName">${fullName}</div>
+                    <div class="recognizerType">${recognizer}</div>
+                  </div>
+                </div>`;
+  
+          Object.keys(result).forEach(key => {
+            if (!key.includes('Base64')) {
+              innerHtml += `<div class="row"><div class="label">${labelFromCamelCase(key)}</div>
+                      <div class="content">${result[key] instanceof Object ? dateFromObject(result[key]) : escapeHtml(result[key])}</div>
+                    </div>`;
+            }
+          });
+  
+          if (result.signatureImageBase64 !== undefined) {
+            if (resultsMasked) {
+              innerHtml += `<div class="row"><div class="label">Signature</div><div class="content signature"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPAAAAA8CAQAAADydv/WAAAAbElEQVR42u3RAQEAAAQDMO/fVgF6sFVYeorDIlgwghGMYAQjGMGCEYxgBCMYwQgWjGAEIxjBCEYwggUjGMEIRjCCESwYwQhGMIIRjGDBCEYwghGMYAQjWDCCEYxgBCMYwYIRjGAEIxjBCP5uAQrmdLkka2HAAAAAAElFTkSuQmCC"></div></div>`;
+            } else {
+              innerHtml += `<div class="row"><div class="label">Signature</div>
+                  <div class="content signature"><img src="data:image/${getImageTypeFromBase64(result.signatureImageBase64)};base64,${result.signatureImageBase64}"/></div>
+                </div>`;
+            }
           }
+          if (result.fullDocumentImageBase64 !== undefined) {
+            if (resultsMasked) {
+              innerHtml += `<div class="row"><div class="label"></div><div class="content fullDocument"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAjAAAAFUCAQAAACQdc41AAADO0lEQVR42u3UMQEAAAjDMObfLQZABReJhB5NTwGciMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBABgMYDCAwQAYDGAwgMEAGAxgMIDBABgMYDCAwQAYDGAwgMEAGAxgMIDBABgMYDCAwQAYDGAwgMEAGAxgMIDBABgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAYDGAwgMEAGAxgMIDBABgMYDCAwQAYDGAwgMEAGAxgMIDBABgMYDCAwQAYDGAwgMEAGAxgMIDBABgMYDCAwYgAGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAP8sMiWVh63j1TAAAAAASUVORK5CYII="/></div></div>`;
+            } else {
+              innerHtml += `<div class="row"><div class="label"></div>
+                      <div class="content fullDocument"><img src="data:image/${getImageTypeFromBase64(result.fullDocumentImageBase64)};base64,${result.fullDocumentImageBase64}"/></div>
+                    </div>`;
+            }
+          }
+          innerHtml += '</div>';
         });
+      }
+      else {
+        const result = data.result;
+        if (result) {
+          let faceImageElement = '';
+          if (result.faceImageBase64 && result.faceImageBase64 !== undefined) {
+            if (resultsMasked) {
+              faceImageElement = '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAQAAADa613fAAAAa0lEQVR42u3PMREAAAgEIL9/WwtoBHcPGpCeeiEiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIpcFKjbCiZfrjTwAAAAASUVORK5CYII="/>';
+            } else {
+              faceImageElement = `<img src="data:image/${getImageTypeFromBase64(result.faceImageBase64)};base64,${result.faceImageBase64}"/>`;
+            }
+          }
 
-        if (result.signatureImageBase64 !== undefined) {
-          if (resultsMasked) {
-            innerHtml += `<div class="row"><div class="label">Signature</div><div class="content signature"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPAAAAA8CAQAAADydv/WAAAAbElEQVR42u3RAQEAAAQDMO/fVgF6sFVYeorDIlgwghGMYAQjGMGCEYxgBCMYwQgWjGAEIxjBCEYwggUjGMEIRjCCESwYwQhGMIIRjGDBCEYwghGMYAQjWDCCEYxgBCMYwYIRjGAEIxjBCP5uAQrmdLkka2HAAAAAAElFTkSuQmCC"></div></div>`;
+          let fullName;
+          if (result.lastName !== undefined && result.firstName !== undefined) {
+            fullName = result.lastName + ' ' + result.firstName;
+          } else if (result.primaryID !== undefined && result.secondaryID !== undefined) {
+            fullName = result.primaryID + ' ' + result.secondaryID;
           } else {
-            innerHtml += `<div class="row"><div class="label">Signature</div>
-                <div class="content signature"><img src="data:image/${getImageTypeFromBase64(result.signatureImageBase64)};base64,${result.signatureImageBase64}"/></div>
-              </div>`;
+            fullName = '';
           }
-        }
-        if (result.fullDocumentImageBase64 !== undefined) {
-          if (resultsMasked) {
-            innerHtml += `<div class="row"><div class="label"></div><div class="content fullDocument"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAjAAAAFUCAQAAACQdc41AAADO0lEQVR42u3UMQEAAAjDMObfLQZABReJhB5NTwGciMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBABgMYDCAwQAYDGAwgMEAGAxgMIDBABgMYDCAwQAYDGAwgMEAGAxgMIDBABgMYDCAwQAYDGAwgMEAGAxgMIDBABgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAYDGAwgMEAGAxgMIDBABgMYDCAwQAYDGAwgMEAGAxgMIDBABgMYDCAwQAYDGAwgMEAGAxgMIDBABgMYDCAwYgAGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAP8sMiWVh63j1TAAAAAASUVORK5CYII="/></div></div>`;
-          } else {
-            innerHtml += `<div class="row"><div class="label"></div>
-                    <div class="content fullDocument"><img src="data:image/${getImageTypeFromBase64(result.fullDocumentImageBase64)};base64,${result.fullDocumentImageBase64}"/></div>
+
+          innerHtml += `<div class="resultTable">
+                <div class="row heading">
+                  <div class="faceImage">${faceImageElement}</div>
+                  <div class="headingText">
+                    <div class="fullName">${fullName}</div>
+                    <div class="recognizerType">${result.type}</div>
+                  </div>
+                </div>`;
+
+          Object.keys(result).forEach(key => {
+            if (!key.includes('Base64')) {
+              if (result[key]) {
+                if (result[key] instanceof Object && key.includes("date")) {
+                  innerHtml += 
+                    `<div class="row"><div class="label">${labelFromCamelCase(key)}</div>
+                      <div class="content">
+                        ${dateFromObject(result[key])}
+                      </div>
+                    </div>`;
+                }
+                else if (typeof result[key] !== 'object') {
+                  innerHtml += 
+                  `<div class="row"><div class="label">${labelFromCamelCase(key)}</div>
+                    <div class="content">
+                      ${escapeHtml(result[key])}
+                    </div>
                   </div>`;
+                }
+              }
+            }
+          });
+
+          if (result.signatureImageBase64 && result.signatureImageBase64 !== undefined) {
+            if (resultsMasked) {
+              innerHtml += `<div class="row"><div class="label">Signature</div><div class="content signature"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPAAAAA8CAQAAADydv/WAAAAbElEQVR42u3RAQEAAAQDMO/fVgF6sFVYeorDIlgwghGMYAQjGMGCEYxgBCMYwQgWjGAEIxjBCEYwggUjGMEIRjCCESwYwQhGMIIRjGDBCEYwghGMYAQjWDCCEYxgBCMYwYIRjGAEIxjBCP5uAQrmdLkka2HAAAAAAElFTkSuQmCC"></div></div>`;
+            } else {
+              innerHtml += `<div class="row"><div class="label">Signature</div>
+                  <div class="content signature"><img src="data:image/${getImageTypeFromBase64(result.signatureImageBase64)};base64,${result.signatureImageBase64}"/></div>
+                </div>`;
+            }
           }
+          if (result.fullDocumentImageBase64 && result.fullDocumentImageBase64 !== undefined) {
+            if (resultsMasked) {
+              innerHtml += `<div class="row"><div class="label"></div><div class="content fullDocument"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAjAAAAFUCAQAAACQdc41AAADO0lEQVR42u3UMQEAAAjDMObfLQZABReJhB5NTwGciMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBABgMYDCAwQAYDGAwgMEAGAxgMIDBABgMYDCAwQAYDGAwgMEAGAxgMIDBABgMYDCAwQAYDGAwgMEAGAxgMIDBABgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAYDGAwgMEAGAxgMIDBABgMYDCAwQAYDGAwgMEAGAxgMIDBABgMYDCAwQAYDGAwgMEAGAxgMIDBABgMYDCAwYgAGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAxgMAAGAxgMYDAABgMYDGAwAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGAxgMgMEABgMYDIDBAAYDGAyAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAAYDYDCAwQAGA2AwgMEABgNgMIDBAP8sMiWVh63j1TAAAAAASUVORK5CYII="/></div></div>`;
+            } else {
+              innerHtml += `<div class="row"><div class="label"></div>
+                      <div class="content fullDocument"><img src="data:image/${getImageTypeFromBase64(result.fullDocumentImageBase64)};base64,${result.fullDocumentImageBase64}"/></div>
+                    </div>`;
+            }
+          }
+          innerHtml += '</div>';
         }
-        innerHtml += '</div>';
-      });
+      }
+
       if (innerHtml) {
         this.shadowRoot.querySelector('.container.results').innerHTML = innerHtml;
       } else {

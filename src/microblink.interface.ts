@@ -42,4 +42,6 @@ export interface IMicroblink {
   IsRecognizerArraySet(): boolean
 
   SetAnonymizeNetherlandsMrz(anonymizeNetherlandsMrz: boolean): void
+
+  ActivateSaaS(activateSaaS: boolean): void
 }

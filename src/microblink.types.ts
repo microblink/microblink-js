@@ -45,7 +45,8 @@ export interface ScanListener {
 export enum StatusCodes {
   Ok = 'OK',
   ResultIsNotValidJSON = 'RESULT_IS_NOT_VALID_JSON',
-  TimedOut = 'CONNECTION_TIMED_OUT'
+  TimedOut = 'CONNECTION_TIMED_OUT',
+  NotFound = 'URL_NOT_FOUND'
 }
 
 /**
@@ -80,6 +81,7 @@ export interface ScanExchanger {
   anonymizeOwner?: boolean
   endpoint?: string
   anonymizeNetherlandsMrz?: boolean
+  saasIsActive?: boolean
 }
 
 export enum ScanExchangerCodes {
