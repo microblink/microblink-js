@@ -44,7 +44,7 @@
 
     <!-- Include dependency to the Microblink SDK  -->
     <!-- <script src="../dist/microblink.min.js" ></script> -->
-    <script src="https://unpkg.com/microblink@0.7.9/dist/microblink.min.js"></script>
+    <script src="https://unpkg.com/microblink@0.8.0/dist/microblink.min.js"></script>
 
     <script>
 
@@ -55,15 +55,16 @@
       //Microblink.SDK.SetRecognizers(['MRTD']);
 
       /*
-      * If using Self-hosted API then setting endpoint is required
-      * It is required to set endpoint where Self-hosted API is available
+      * Setting endpoint is required
+      * It is required to set endpoint where request is being sent
       */
       //Microblink.SDK.SetEndpoint('http://localhost:8081');
+      Microblink.SDK.SetEndpoint('https://demoapi.microblink.com');
 
       /*
        * Set request parameters for desired recognizer
        * Setup this method only if you want to use our Cloud API, otherwise just put this methods inside comment
-       * This method will override Microblink.SDK.SetRecognizers() and Microblink.SDK.SetEndpoint() methods
+       * This method will override Microblink.SDK.SetRecognizers() method if Microblink.SDK.SetRecognizers() is set
        * Only one recognizer iz allowed to be used
        * Available recognizers are (BLINK_ID, ID_BARCODE, MRTD, PASSPORT, VISA, MRZ_ID)
        * Examples:

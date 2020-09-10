@@ -3,7 +3,8 @@ import { Observable } from 'rxjs/internal/Observable'
 import { Observer } from 'rxjs/internal/types'
 import { StatusCodes } from './microblink.types'
 
-const DEFAULT_ENDPOINT = 'https://api.microblink.com'
+//const DEFAULT_ENDPOINT = 'https://api.microblink.com'
+const DEFAULT_ENDPOINT = 'http://localhost:8081'
 
 /**
  * HTTP layer with Microblink API
@@ -272,7 +273,33 @@ export default class MicroblinkApi implements IMicroblinkApi {
       }
 
       if (this.saasIsActive) {
-        xhr.open('POST', this.endpoint)
+        let route = ''
+        switch (recognizers) {
+          case 'BLINK_ID':
+            route = '/blinkid'
+            break
+          case 'ID_BARCODE':
+            route = '/id-barcode'
+            break
+          case 'MRTD':
+            route = '/mrtd'
+            break
+          case 'PASSPORT':
+            route = '/passport'
+            break
+          case 'VISA':
+            route = '/visa'
+            break
+          case 'MRZ_ID':
+            route = '/mrz-id'
+            break
+          default:
+            observer.error(
+              'Selected recognizer not recognized. Please make sure that recognizer is still available and is passed as string argument.'
+            )
+        }
+
+        xhr.open('POST', this.endpoint + '/v1/recognizers' + route)
       } else {
         xhr.open('POST', this.endpoint + '/recognize/execute')
       }
