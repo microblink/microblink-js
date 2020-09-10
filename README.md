@@ -310,6 +310,67 @@ Microblink Scan Web is a standalone Angular application available as GIT submodu
 
 Look at the [sample/index.html](./sample/index.html) and replace Firebase app configuration with your project's credentials. To exchange data through database which you are the owner.
 
+## SDK Setup
+
+SDK methods will allow you to manipulate with request according to your needs.
+
+Use this method if you are using country specific recognizers.
+Multiple recognizers are allowed here.
+```javascript
+Microblink.SDK.SetRecognizers(['MRTD']);
+```
+
+This method allows you to set the endpoint of the API service.
+If you are using Self-hosted API, set this to the address where your service is available.
+If you wish to test just the API functionality you can do that by using our demo service, which is available at https://demoapi.microblink.com.
+```javascript
+Microblink.SDK.SetEndpoint('http://localhost:8081');
+```
+
+This methods allows you to use our improved recognizers, or to test how our Cloud API works.
+Set request parameters for desired recognizer.
+This method will override Microblink.SDK.SetRecognizers() method.
+This way, you can use only one recognizer per request.
+Available recognizers are (BLINK_ID, ID_BARCODE, MRTD, PASSPORT, VISA and MRZ_ID).
+```javascript
+Microblink.SDK.SetupRecognizerRequest('MRTD');
+```
+
+Disable persisting uploaded data (this option is ignored if Authorization header is set).
+```javascript
+Microblink.SDK.SetIsDataPersistingEnabled(false);
+```
+Setup export images.
+```javascript
+Microblink.SDK.SetExportImages(true);
+```
+Set Authorization header (Bearer + ' ' + apiKey + apiSecret) - generate one in Microblink dashboard at https://microblink.com/customer/api.
+If endpoint is not equal to the default value `https://api.microblink.com` then `Authorization` header is ignored (self-hosted Microblink API by default has disabled authorization with Microblink API key/secret).
+```javascript
+Microblink.SDK.SetAuthorization('Bearer OTgzMGE95GU0YTA1NGQ1OTk5OTVhZjk3OTJiNjM0YzE6NWMyMzhiNzktYmE5My00MTMzLWFiNTHUMWRhYTk4NWI5Mzcz');
+```
+Set up UserID if needed.
+```javascript
+Microblink.SDK.SetUserId('test-user-id@microblink.com');
+```
+
+Default listeners (API's callbacks) are defined inside of the microblink-js UI component, but it is possible to configure global listeners to implement custom success/error handlers.
+```javascript
+Microblink.SDK.RegisterListener({
+  onScanSuccess: (data) => {
+    console.log('Data from Microblink API is', data);
+  },
+  onScanError: (error) => {
+    console.error('Error from Microblink API is', error);
+
+    // Display generic alert
+    if (error.summary) {
+      alert(error.summary);
+    }
+  }
+});
+```
+
 ## Development
 
 `npm install`
