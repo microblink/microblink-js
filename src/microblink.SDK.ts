@@ -279,8 +279,11 @@ export namespace SDK {
   /**
    * Set up complete request for specific recognizer
    */
-  export function SetupRecognizerRequest(recognizer: string): void {
-    const baseURL = 'https://api.microblink.com/v1/recognizers'
+  export function SetupRecognizerRequest(recognizer: string, useDemo?: string): void {
+    const baseURL =
+      useDemo && useDemo === 'demo'
+        ? 'https://demoapi.microblink.com/v1/recognizers'
+        : 'https://api.microblink.com/v1/recognizers'
     let endpoint = ''
 
     switch (recognizer) {
