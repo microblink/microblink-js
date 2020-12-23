@@ -1,5 +1,7 @@
 # Microblink JS
 
+*Microblink is deprecating this frontend solution to make way for a more efficient image acquisition component — [BlinkID ImageCapture In-browser SDK](https://github.com/BlinkID/blinkid-imagecapture-in-browser). You can still use this library but we will not provide technical support for it in case you encounter any issues and we won't be making any changes to it moving forward.*
+
 Javascript SDK for integrating with Microblink API
 
 [![npm version](https://badge.fury.io/js/microblink.svg)](https://badge.fury.io/js/microblink)
