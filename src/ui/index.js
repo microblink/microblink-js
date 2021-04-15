@@ -7,7 +7,7 @@ import { FrameHelper } from '../frameHelper'
 import screenfull from 'screenfull';
 import copy from 'copy-to-clipboard';
 import {
-  escapeHtml, labelFromCamelCase, dateFromObject, isMobile, isFirefox, isSafari, hasClass, addClass,
+  escapeHtml, labelFromCamelCase, dateFromObject, isMobile, isFirefox, isSafari, isMicrosoftEdge, hasClass, addClass,
   removeClass, toggleClass, isRemotePhoneCameraAvailable, getImageTypeFromBase64, adjustScreenFull
 } from './utils.js';
 import { cameraManager } from './../cameraManagement';
@@ -112,10 +112,13 @@ function defineComponent() {
       this.shadowRoot.querySelector('.dropzone').addEventListener('dragleave', this.onDragLeave.bind(this));
       this.shadowRoot.getElementById('cameraLocalBtn').addEventListener('click', () => {
         if (isFirefox()) {
-          this.openFullscreen().finally(() => this.activateLocalCamera());
+          //this.openFullscreen().finally(() => this.activateLocalCamera());
+          this.activateLocalCamera().then(() => this.openFullscreen());
         } else if (isSafari()) {
           if (this.cameraPermitted) this.openFullscreen();
           this.activateLocalCamera();
+        } else if (isMicrosoftEdge()) {
+          this.activateLocalCamera().then(() => this.openFullscreen());
         } else {
           this.openFullscreen();
           this.activateLocalCamera();
@@ -149,7 +152,7 @@ function defineComponent() {
       this.checkRecognizers();
       this.checkWebRTCSupport();
       this.checkRemoteCameraSupport();
-      this.checkForSafariCamera();
+      this.checkForCamera();
       this.adjustComponent(true);
       this.ElementQueries = ElementQueriesFactory(ResizeSensor, this.shadowRoot);
       this.ElementQueries.listen();
@@ -717,11 +720,11 @@ function defineComponent() {
       Array.prototype.forEach.call(this.shadowRoot.querySelectorAll('.root > .container, .permission, .confirm-image'),
           elem => toggleClass(toggleClass(elem, 'hidden', !hasClass(elem, 'main')), 'show', hasClass(elem, 'main')));
       this.closeFullscreen();
-      this.checkForSafariCamera();
+      this.checkForCamera();
     }
 
-    checkForSafariCamera() {
-      if (isSafari() && navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+    async checkForCamera() {
+      if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
         navigator.mediaDevices.enumerateDevices().then(devices => {
           this.cameraPermitted = !!(devices || []).filter(({ kind: k, label: l }) => k === "videoinput" && !!l).length
         });

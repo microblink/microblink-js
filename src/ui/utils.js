@@ -32,6 +32,10 @@ export function isFirefox() {
   return /Firefox\//.test(navigator.userAgent) && !/Seamonkey\//.test(navigator.userAgent);
 }
 
+export function isMicrosoftEdge() {
+  return /Edge/.test(navigator.userAgent) || /Edg/.test(navigator.userAgent);
+}
+
 function isFirebaseAppConfigured() {
   try {
     firebase.app();
